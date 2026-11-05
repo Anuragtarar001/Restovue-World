@@ -182,7 +182,9 @@ data class Adjustments(
 }
 
 enum class CropAspect(val label: String, val width: Int, val height: Int) {
-    ORIGINAL("Original", 0, 0), SQUARE("1:1", 1, 1), FOUR_THREE("4:3", 4, 3), SIXTEEN_NINE("16:9", 16, 9),
+    FREE("Free", 0, 0), ORIGINAL("Original", 0, 0), SQUARE("1:1", 1, 1), FOUR_THREE("4:3", 4, 3),
+    THREE_FOUR("3:4", 3, 4), SIXTEEN_NINE("16:9", 16, 9), NINE_SIXTEEN("9:16", 9, 16),
+    TWO_THREE("2:3", 2, 3), THREE_TWO("3:2", 3, 2), CUSTOM("Custom", 0, 0),
 }
 
 data class EditState(
@@ -192,18 +194,34 @@ data class EditState(
     val filter: FilterSelection = FilterSelection(),
     val lut: LutSelection? = null,
     val localEdits: List<LocalEditOperation> = emptyList(),
+    val cropRect: NormalizedRect = NormalizedRect(),
+    val customCropRatio: Float? = null,
+    val flipHorizontal: Boolean = false,
+    val flipVertical: Boolean = false,
+    val fineRotationDegrees: Float = 0f,
+    val perspective: PerspectiveQuad = PerspectiveQuad(),
+    val creativeLayers: List<CreativeLayer> = emptyList(),
+    val frame: FrameSettings = FrameSettings(),
+    val cropOutputWidth: Int? = null,
+    val cropOutputHeight: Int? = null,
 ) {
     init {
         require(quarterTurnsClockwise in 0..3)
         require(localEdits.size <= MAX_LOCAL_OPERATIONS)
+        require(customCropRatio == null || customCropRatio in .05f..20f)
+        require(fineRotationDegrees in -45f..45f)
+        require(creativeLayers.size <= MAX_CREATIVE_LAYERS)
+        require(cropOutputWidth == null || cropOutputWidth in 1..20000); require(cropOutputHeight == null || cropOutputHeight in 1..20000)
     }
     fun rotatedClockwise() = copy(quarterTurnsClockwise = (quarterTurnsClockwise + 1) % 4)
     val effectiveAdjustments get() = adjustments.blendedWith(filter.adjustments, filter.intensity)
     fun geometryOnly() = copy(adjustments = Adjustments(), filter = FilterSelection(), lut = null, localEdits = emptyList())
     val isOriginal get() = adjustments.isNeutral && quarterTurnsClockwise == 0 && cropAspect == CropAspect.ORIGINAL &&
-        filter.isOriginal && (lut == null || lut.intensity == 0f) && localEdits.isEmpty()
+        filter.isOriginal && (lut == null || lut.intensity == 0f) && localEdits.isEmpty() && cropRect.isFull &&
+        !flipHorizontal && !flipVertical && fineRotationDegrees == 0f && perspective.isIdentity &&
+        creativeLayers.isEmpty() && frame.isNeutral
 
-    companion object { const val MAX_LOCAL_OPERATIONS = 500 }
+    companion object { const val MAX_LOCAL_OPERATIONS = 500; const val MAX_CREATIVE_LAYERS = 100 }
 }
 
 data class FilterSelection(

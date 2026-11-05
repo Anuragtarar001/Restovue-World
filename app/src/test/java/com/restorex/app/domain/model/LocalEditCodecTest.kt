@@ -17,6 +17,9 @@ class LocalEditCodecTest {
             ),
             RadialLight(2, exposure = .7f, inverted = true),
             LinearLight(3, rotationDegrees = 35f, temperature = .2f),
+            LiquifyStroke(4, LiquifyType.TWIRL_CLOCKWISE, listOf(NormalizedPoint(.5f, .5f)), .1f, .4f, .7f),
+            BackgroundMaskStroke(5, BackgroundBrushMode.REMOVE, listOf(NormalizedPoint(.2f, .3f)), .08f, .6f, .9f),
+            BackgroundFill(6, BackgroundFillMode.GRADIENT, 0xFFFFFFFF.toInt(), 0xFF224466.toInt(), .8f),
         )
 
         assertEquals(operations, LocalEditCodec.decode(LocalEditCodec.encode(operations)))

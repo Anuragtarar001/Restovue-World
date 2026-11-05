@@ -34,8 +34,15 @@ class AppContainer(application: Application) {
     }
     val memoryPressure = MemoryPressureRegistry()
     val lutStore = LutStore(application.contentResolver, application.filesDir)
-    private val processor = AndroidImageProcessor(lutStore)
+    private val processor = AndroidImageProcessor(
+        lutStore,
+        com.restorex.app.data.AndroidBackgroundPipeline(application.contentResolver),
+        com.restorex.app.data.AndroidCreativePipeline(application.contentResolver),
+    )
     private val repository = AndroidImageRepository(application.contentResolver, processor)
+    val utilityProcessor = com.restorex.app.data.AndroidUtilityProcessor(application.contentResolver)
+    val batchProcessor = com.restorex.app.data.AndroidBatchProcessor(application.contentResolver, processor)
+    val presetRepository = com.restorex.app.data.FilePresetRepository(application.filesDir)
 
     val filterCatalog = DefaultFilterCatalog()
     val loadImage = LoadImage(repository)

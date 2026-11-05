@@ -21,6 +21,7 @@ value class ImageSource(val value: String)
 enum class ExportFormat(val mimeType: String, val extension: String) {
     JPEG("image/jpeg", "jpg"),
     PNG("image/png", "png"),
+    WEBP("image/webp", "webp"),
 }
 
 data class ExportOptions(
@@ -29,10 +30,12 @@ data class ExportOptions(
     val maxWidth: Int? = null,
     val maxHeight: Int? = null,
     val preserveMetadata: Boolean = true,
+    val targetKilobytes: Int? = null,
 ) {
     init {
         require(jpegQuality in 1..100)
         require(maxWidth == null || maxWidth > 0)
         require(maxHeight == null || maxHeight > 0)
+        require(targetKilobytes == null || targetKilobytes in 10..50_000)
     }
 }

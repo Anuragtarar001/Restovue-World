@@ -6,17 +6,24 @@ import com.restorex.app.domain.engine.ImageProcessor
 import com.restorex.app.domain.model.EditState
 import com.restorex.app.domain.model.RasterImage
 
-class AndroidImageProcessor(private val lutStore: LutStore? = null) : ImageProcessor {
+class AndroidImageProcessor(
+    private val lutStore: LutStore? = null,
+    private val backgroundPipeline: AndroidBackgroundPipeline? = null,
+    private val creativePipeline: AndroidCreativePipeline? = null,
+) : ImageProcessor {
     override fun render(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean): RasterImage {
         val localRaster = CpuLocalEditPipeline.apply(source, edits.localEdits, shouldCancel)
         val geometryRaster = renderGeometry(localRaster, edits, shouldCancel)
-        return CpuImagePipeline.apply(
+        val adjusted = CpuImagePipeline.apply(
             geometryRaster,
             edits.effectiveAdjustments,
             lutStore?.load(edits.lut),
             edits.lut?.intensity ?: 0f,
             shouldCancel,
         )
+        val background = edits.localEdits.filterIsInstance<com.restorex.app.domain.model.BackgroundFill>().lastOrNull()
+        return creativePipeline?.apply(backgroundPipeline?.apply(adjusted, background) ?: adjusted, edits.creativeLayers, edits.frame)
+            ?: (backgroundPipeline?.apply(adjusted, background) ?: adjusted)
     }
 
     override fun renderSharpenMask(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean): RasterImage =
@@ -29,7 +36,7 @@ class AndroidImageProcessor(private val lutStore: LutStore? = null) : ImageProce
     fun renderForExport(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean): RasterImage {
         val localRaster = CpuLocalEditPipeline.apply(source, edits.localEdits, shouldCancel, reuseSourcePixels = true)
         val geometryRaster = renderGeometry(localRaster, edits, shouldCancel)
-        return CpuImagePipeline.apply(
+        val adjusted = CpuImagePipeline.apply(
             geometryRaster,
             edits.effectiveAdjustments,
             lutStore?.load(edits.lut),
@@ -37,30 +44,13 @@ class AndroidImageProcessor(private val lutStore: LutStore? = null) : ImageProce
             shouldCancel,
             reuseSourcePixels = true,
         )
+        val background = edits.localEdits.filterIsInstance<com.restorex.app.domain.model.BackgroundFill>().lastOrNull()
+        return creativePipeline?.apply(backgroundPipeline?.apply(adjusted, background) ?: adjusted, edits.creativeLayers, edits.frame)
+            ?: (backgroundPipeline?.apply(adjusted, background) ?: adjusted)
     }
 
     private fun renderGeometry(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean): RasterImage {
-        if (edits.quarterTurnsClockwise == 0 && edits.cropAspect == com.restorex.app.domain.model.CropAspect.ORIGINAL) return source
-        val turns = edits.quarterTurnsClockwise
-        val rotatedWidth = if (turns % 2 == 0) source.width else source.height
-        val rotatedHeight = if (turns % 2 == 0) source.height else source.width
-        val bounds = CropCalculator.centered(rotatedWidth, rotatedHeight, edits.cropAspect)
-        val pixels = IntArray(bounds.width * bounds.height)
-        for (outputY in 0 until bounds.height) {
-            if (outputY and 31 == 0 && shouldCancel()) throw kotlinx.coroutines.CancellationException("Geometry render superseded")
-            val rotatedY = bounds.top + outputY
-            for (outputX in 0 until bounds.width) {
-                val rotatedX = bounds.left + outputX
-                val (sourceX, sourceY) = when (turns) {
-                    0 -> rotatedX to rotatedY
-                    1 -> rotatedY to (source.height - 1 - rotatedX)
-                    2 -> (source.width - 1 - rotatedX) to (source.height - 1 - rotatedY)
-                    else -> (source.width - 1 - rotatedY) to rotatedX
-                }
-                pixels[outputY * bounds.width + outputX] = source.argb[sourceY * source.width + sourceX]
-            }
-        }
-        return RasterImage(bounds.width, bounds.height, pixels, source.scaleFromOriginal)
+        return CpuGeometryPipeline.apply(source, edits, shouldCancel)
     }
 }
 

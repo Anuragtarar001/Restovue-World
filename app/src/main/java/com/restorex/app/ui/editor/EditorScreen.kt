@@ -3,6 +3,7 @@ package com.restorex.app.ui.editor
 import android.graphics.Bitmap
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -120,6 +121,26 @@ import com.restorex.app.domain.model.LinearLight
 import com.restorex.app.domain.model.LocalEditOperation
 import com.restorex.app.domain.model.NormalizedPoint
 import com.restorex.app.domain.model.RadialLight
+import com.restorex.app.domain.model.NormalizedRect
+import com.restorex.app.domain.model.PerspectiveQuad
+import com.restorex.app.domain.model.LiquifyStroke
+import com.restorex.app.domain.model.LiquifyType
+import com.restorex.app.domain.model.BackgroundBrushMode
+import com.restorex.app.domain.model.BackgroundFill
+import com.restorex.app.domain.model.BackgroundFillMode
+import com.restorex.app.domain.model.BackgroundMaskStroke
+import com.restorex.app.domain.model.CreativeLayer
+import com.restorex.app.domain.model.FrameSettings
+import com.restorex.app.domain.model.FrameStyle
+import com.restorex.app.domain.model.ShapeLayer
+import com.restorex.app.domain.model.ShapeType
+import com.restorex.app.domain.model.TextFont
+import com.restorex.app.domain.model.TextLayer
+import com.restorex.app.domain.model.StickerLayer
+import com.restorex.app.domain.model.UtilityMode
+import com.restorex.app.domain.model.UtilityOptions
+import com.restorex.app.domain.model.BatchOptions
+import com.restorex.app.domain.model.BatchFormat
 import com.restorex.app.R
 import com.restorex.app.presentation.EditorUiState
 import com.restorex.app.presentation.EditorViewModel
@@ -127,6 +148,8 @@ import com.restorex.app.presentation.EditorChromeState
 import com.restorex.app.presentation.PreviewSizing
 import com.restorex.app.presentation.RetouchTool
 import com.restorex.app.presentation.RetouchUiState
+import com.restorex.app.presentation.LiquifyUiState
+import com.restorex.app.presentation.BackgroundUiState
 import com.restorex.app.ui.theme.RestoreXAccent
 import com.restorex.app.ui.theme.RestoreXBackground
 import com.restorex.app.ui.theme.RestoreXDisabled
@@ -149,7 +172,27 @@ private enum class EditorTool(val label: String, val icon: AppIcon, val availabl
     FILM("Film", AppIcon.Filters, true),
     DETAILS("Details", AppIcon.Details, true),
     RETOUCH("Retouch", AppIcon.Retouch, true),
+    LIQUIFY("Liquify", AppIcon.Retouch, true),
+    BACKGROUND("Background", AppIcon.Color, true),
+    CREATIVE("Creative", AppIcon.Image, true),
+    UTILITIES("Utilities", AppIcon.Image, true),
+    GEOMETRY("Geometry", AppIcon.Crop, true),
 }
+private enum class ToolCategory(val label: String, val icon: AppIcon) {
+    CROP("Crop", AppIcon.Crop), ADJUST("Adjust", AppIcon.Light), FILTERS("Filters", AppIcon.Filters), DETAILS("Details", AppIcon.Details),
+    RETOUCH("Retouch", AppIcon.Retouch), GEOMETRY("Geometry", AppIcon.Rotate), CREATIVE("Creative", AppIcon.Image), UTILITIES("Utilities", AppIcon.More),
+}
+private val EditorTool.category: ToolCategory get() = when (this) {
+    EditorTool.CROP -> ToolCategory.CROP
+    EditorTool.ENHANCE, EditorTool.LIGHT, EditorTool.COLOR -> ToolCategory.ADJUST
+    EditorTool.FILTERS, EditorTool.FILM -> ToolCategory.FILTERS
+    EditorTool.DETAILS -> ToolCategory.DETAILS
+    EditorTool.RETOUCH, EditorTool.BACKGROUND -> ToolCategory.RETOUCH
+    EditorTool.LIQUIFY, EditorTool.GEOMETRY -> ToolCategory.GEOMETRY
+    EditorTool.CREATIVE -> ToolCategory.CREATIVE
+    EditorTool.UTILITIES -> ToolCategory.UTILITIES
+}
+private enum class GeometryGridMode(val label: String) { NONE("No grid"), THIRDS("Thirds"), GOLDEN("Golden") }
 
 @Composable
 fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
@@ -165,6 +208,14 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
     var showResetAllConfirmation by remember { mutableStateOf(false) }
     var pendingExport by remember { mutableStateOf(ExportOptions(ExportFormat.JPEG)) }
     var pendingShare by remember { mutableStateOf(false) }
+    var showUtilityChooser by remember { mutableStateOf(false) }
+    var showUtilityOptions by remember { mutableStateOf(false) }
+    var pendingUtilityMode by remember { mutableStateOf<UtilityMode?>(null) }
+    var pendingUtilitySources by remember { mutableStateOf<List<String>>(emptyList()) }
+    var pendingUtilityOptions by remember { mutableStateOf(UtilityOptions()) }
+    var showBatchOptions by remember { mutableStateOf(false) }
+    var pendingBatchOptions by remember { mutableStateOf(BatchOptions()) }
+    var geometryGrid by remember { mutableStateOf(GeometryGridMode.THIRDS) }
     val context = LocalContext.current
     val windowSize = LocalWindowInfo.current.containerSize
     val previewMaxDimension = remember(windowSize) {
@@ -184,8 +235,33 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
     val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
         uri?.let { viewModel.export(it.toString(), pendingExport, pendingShare) }
     }
+    val webpExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/webp")) { uri ->
+        uri?.let { viewModel.export(it.toString(), pendingExport, pendingShare) }
+    }
     val lutImporter = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.importLut(it.toString()) }
+    }
+    val backgroundPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.setBackgroundImage(it.toString()) }
+    }
+    val stickerPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.addStickerLayer(it.toString()) }
+    }
+    val utilityDestination = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
+        val mode = pendingUtilityMode
+        if (uri != null && mode != null) viewModel.runUtility(mode, pendingUtilitySources, uri.toString(), pendingUtilityOptions)
+    }
+    val batchDestination = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) viewModel.runBatch(pendingUtilitySources, uri.toString(), pendingBatchOptions)
+    }
+    val utilityPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(50)) { uris ->
+        val mode = pendingUtilityMode ?: return@rememberLauncherForActivityResult
+        if (uris.size !in mode.minimumImages..mode.maximumImages) {
+            viewModel.showMessage("${mode.label} needs ${mode.minimumImages}${if (mode.minimumImages == mode.maximumImages) "" else "-${mode.maximumImages}"} image(s)")
+        } else {
+            pendingUtilitySources = uris.map(Uri::toString)
+            if (mode == UtilityMode.BATCH) showBatchOptions = true else showUtilityOptions = true
+        }
     }
 
     LaunchedEffect(state.message) {
@@ -213,11 +289,34 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                 showExportDialog = false
                 pendingExport = options
                 pendingShare = share
-                if (options.format == ExportFormat.JPEG) jpegExporter.launch(exportName("jpg"))
-                else pngExporter.launch(exportName("png"))
+                when (options.format) {
+                    ExportFormat.JPEG -> jpegExporter.launch(exportName("jpg"))
+                    ExportFormat.PNG -> pngExporter.launch(exportName("png"))
+                    ExportFormat.WEBP -> webpExporter.launch(exportName("webp"))
+                }
             },
         )
     }
+
+    if (showUtilityChooser) UtilityChooserDialog(
+        onDismiss = { showUtilityChooser = false },
+        onSelected = { mode ->
+            showUtilityChooser = false; pendingUtilityMode = mode
+            utilityPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        },
+    )
+    if (showUtilityOptions) UtilityOptionsDialog(
+        mode = requireNotNull(pendingUtilityMode),
+        onDismiss = { showUtilityOptions = false },
+        onRun = { options ->
+            showUtilityOptions = false; pendingUtilityOptions = options
+            utilityDestination.launch("Restovue_${pendingUtilityMode!!.name.lowercase()}_${System.currentTimeMillis()}.png")
+        },
+    )
+    if (showBatchOptions) BatchOptionsDialog(
+        onDismiss = { showBatchOptions = false },
+        onRun = { options -> showBatchOptions = false; pendingBatchOptions = options; batchDestination.launch(null) },
+    )
 
     if (showResetAllConfirmation) {
         AlertDialog(
@@ -257,8 +356,20 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                         sourceIdentity = state.sourceIdentity,
                         retouch = state.retouch,
                         retouchActive = selectedTool == EditorTool.RETOUCH,
+                        liquify = state.liquify,
+                        liquifyActive = selectedTool == EditorTool.LIQUIFY,
+                        background = state.background,
+                        backgroundActive = selectedTool == EditorTool.BACKGROUND,
+                        geometryActive = selectedTool == EditorTool.GEOMETRY || selectedTool == EditorTool.CROP,
+                        geometryRect = state.edits.cropRect,
+                        geometryAspect = state.edits.cropAspect,
+                        geometryCustomRatio = state.edits.customCropRatio,
+                        geometryGrid = geometryGrid,
                         localEditOverlay = state.localEditOverlay,
                         onBrushStroke = viewModel::commitBrushStroke,
+                        onLiquifyStroke = viewModel::commitLiquifyStroke,
+                        onBackgroundStroke = viewModel::commitBackgroundStroke,
+                        onCropRectChange = viewModel::updateCropRect,
                         onLightPlaced = viewModel::commitLightAt,
                         onViewportChanged = viewModel::updatePreviewViewport,
                         onZoomChanged = viewModel::requestZoomDetail,
@@ -272,6 +383,11 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                             onToggleCollapsed = { toolPanelCollapsed = !toolPanelCollapsed },
                             onResetImage = { showResetAllConfirmation = true },
                             onImportLut = { lutImporter.launch(arrayOf("application/octet-stream", "text/plain", "*/*")) },
+                            onImportBackground = { backgroundPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                            onUtilities = { showUtilityChooser = true },
+                            onImportSticker = { stickerPicker.launch(arrayOf("image/png", "image/webp", "image/*")) },
+                            geometryGrid = geometryGrid,
+                            onGeometryGridChanged = { geometryGrid = it },
                         )
                         ToolNavigation(selectedTool, onSelected = {
                             if (it != EditorTool.DETAILS) viewModel.setSharpenMaskPreview(false)
@@ -284,6 +400,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                         onAbout = { showAbout = true },
                         onDeveloperClick = { openDeveloperWebsite(context, developerUrl) },
                         onImport = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        onUtilities = { showUtilityChooser = true },
                     )
                 }
             }
@@ -451,6 +568,7 @@ private fun ColumnScope.EmptyEditor(
     onImport: () -> Unit,
     onAbout: () -> Unit,
     onDeveloperClick: () -> Unit,
+    onUtilities: () -> Unit,
 ) {
     Box(Modifier.fillMaxWidth().weight(1f).padding(28.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -472,6 +590,7 @@ private fun ColumnScope.EmptyEditor(
                 colors = ButtonDefaults.buttonColors(containerColor = RestoreXAccent, contentColor = Color(0xFF251A00)),
                 shape = RoundedCornerShape(14.dp),
             ) { Text("Choose photo", fontWeight = FontWeight.SemiBold) }
+            TextButton(onClick = onUtilities) { Text("Collage, HDR, panorama and utilities", color = RestoreXAccent) }
             TextButton(onClick = onAbout) { Text("About Restovue", color = RestoreXAccent) }
             if (isBusy) CircularProgressIndicator(color = RestoreXAccent, modifier = Modifier.size(24.dp))
         }
@@ -551,8 +670,20 @@ private fun ColumnScope.ImageWorkspace(
     sourceIdentity: Long,
     retouch: RetouchUiState,
     retouchActive: Boolean,
+    liquify: LiquifyUiState,
+    liquifyActive: Boolean,
+    background: BackgroundUiState,
+    backgroundActive: Boolean,
+    geometryActive: Boolean,
+    geometryRect: NormalizedRect,
+    geometryAspect: CropAspect,
+    geometryCustomRatio: Float?,
+    geometryGrid: GeometryGridMode,
     localEditOverlay: List<LocalEditOperation>,
     onBrushStroke: (List<NormalizedPoint>) -> Unit,
+    onLiquifyStroke: (List<NormalizedPoint>) -> Unit,
+    onBackgroundStroke: (List<NormalizedPoint>) -> Unit,
+    onCropRectChange: (NormalizedRect) -> Unit,
     onLightPlaced: (NormalizedPoint) -> Unit,
     onViewportChanged: (Int, Int) -> Unit,
     onZoomChanged: (Float) -> Unit,
@@ -563,6 +694,7 @@ private fun ColumnScope.ImageWorkspace(
     var scaleMode by remember(sourceIdentity) { mutableStateOf(CanvasScaleMode.FIT) }
     var split by remember { mutableFloatStateOf(0.5f) }
     var activeStroke by remember { mutableStateOf<List<NormalizedPoint>>(emptyList()) }
+    var activeCropCorner by remember { mutableStateOf<Int?>(null) }
     val (editedBitmap, originalBitmap) = rememberRasterPair(edited, original)
 
     fun coordinates(currentZoom: Float = zoom, currentPan: FloatPoint = pan): EditorCoordinates? {
@@ -585,6 +717,23 @@ private fun ColumnScope.ImageWorkspace(
             (imagePoint.y / mapping.imageSize.height).coerceIn(0f, 1f),
         )
     }
+    fun aspectBounds(): NormalizedRect {
+        val ratio = when (geometryAspect) {
+            CropAspect.ORIGINAL, CropAspect.FREE -> return NormalizedRect()
+            CropAspect.CUSTOM -> geometryCustomRatio ?: return NormalizedRect()
+            else -> geometryAspect.width.toFloat() / geometryAspect.height
+        }
+        val imageRatio = edited.width.toFloat() / edited.height
+        return if (imageRatio > ratio) {
+            val normalizedWidth = ratio / imageRatio; NormalizedRect((1f - normalizedWidth) / 2f, 0f, (1f + normalizedWidth) / 2f, 1f)
+        } else {
+            val normalizedHeight = imageRatio / ratio; NormalizedRect(0f, (1f - normalizedHeight) / 2f, 1f, (1f + normalizedHeight) / 2f)
+        }
+    }
+    fun displayedCropRect(): NormalizedRect {
+        val base = aspectBounds()
+        return NormalizedRect(base.left + geometryRect.left * base.width, base.top + geometryRect.top * base.height, base.left + geometryRect.right * base.width, base.top + geometryRect.bottom * base.height)
+    }
 
     Box(
         Modifier.fillMaxWidth().weight(1f).background(RestoreXBackground)
@@ -593,8 +742,36 @@ private fun ColumnScope.ImageWorkspace(
                 onViewportChanged(it.width, it.height)
                 coordinates()?.let { mapping -> pan = mapping.clampedPan(pan) }
             }
-            .pointerInput(edited.width, edited.height, viewport, retouchActive, retouch.tool, retouch.selectingCloneSource) {
-                if (!retouchActive || retouch.tool == RetouchTool.NONE) {
+            .pointerInput(geometryActive, geometryRect, geometryAspect, geometryCustomRatio, viewport, edited.width, edited.height) {
+                if (geometryActive) detectDragGestures(
+                    onDragStart = { offset ->
+                        val point = normalizedImagePoint(offset) ?: return@detectDragGestures
+                        val display = displayedCropRect()
+                        val corners = listOf(display.left to display.top, display.right to display.top, display.right to display.bottom, display.left to display.bottom)
+                        activeCropCorner = corners.indices.minBy { index -> val c = corners[index]; (point.x - c.first) * (point.x - c.first) + (point.y - c.second) * (point.y - c.second) }
+                    },
+                    onDrag = { change, _ ->
+                        val point = normalizedImagePoint(change.position) ?: return@detectDragGestures
+                        val gap = .02f; val display = displayedCropRect(); val base = aspectBounds()
+                        fun rawX(value: Float) = ((value - base.left) / base.width).coerceIn(0f, 1f)
+                        fun rawY(value: Float) = ((value - base.top) / base.height).coerceIn(0f, 1f)
+                        val updated = when (activeCropCorner) {
+                            0 -> NormalizedRect(rawX(point.x.coerceAtMost(display.right - gap)), rawY(point.y.coerceAtMost(display.bottom - gap)), geometryRect.right, geometryRect.bottom)
+                            1 -> NormalizedRect(geometryRect.left, rawY(point.y.coerceAtMost(display.bottom - gap)), rawX(point.x.coerceAtLeast(display.left + gap)), geometryRect.bottom)
+                            2 -> NormalizedRect(geometryRect.left, geometryRect.top, rawX(point.x.coerceAtLeast(display.left + gap)), rawY(point.y.coerceAtLeast(display.top + gap)))
+                            3 -> NormalizedRect(rawX(point.x.coerceAtMost(display.right - gap)), geometryRect.top, geometryRect.right, rawY(point.y.coerceAtLeast(display.top + gap)))
+                            else -> geometryRect
+                        }
+                        onCropRectChange(updated); change.consume()
+                    },
+                    onDragEnd = { activeCropCorner = null },
+                    onDragCancel = { activeCropCorner = null },
+                )
+            }
+            .pointerInput(edited.width, edited.height, viewport, retouchActive, retouch.tool, retouch.selectingCloneSource, liquifyActive, liquify.type, backgroundActive, background.brushMode, geometryActive) {
+                val painting = liquifyActive || backgroundActive || (retouchActive && retouch.tool != RetouchTool.NONE)
+                if (geometryActive) Unit
+                else if (!painting) {
                     detectTransformGestures { centroid, gesturePan, gestureZoom, _ ->
                         val old = coordinates() ?: return@detectTransformGestures
                         val targetZoom = (zoom * gestureZoom).coerceIn(1f, 6f)
@@ -642,14 +819,16 @@ private fun ColumnScope.ImageWorkspace(
                         }
                         if (!navigating && stroke.isNotEmpty()) {
                             if (retouch.tool == RetouchTool.RADIAL || retouch.tool == RetouchTool.LINEAR) onLightPlaced(stroke.first())
+                            else if (liquifyActive) onLiquifyStroke(stroke)
+                            else if (backgroundActive) onBackgroundStroke(stroke)
                             else onBrushStroke(stroke)
                         }
                         activeStroke = emptyList()
                     }
                 }
             }
-            .pointerInput(edited.width, edited.height, viewport, retouchActive, retouch.tool) {
-                if (!retouchActive || retouch.tool == RetouchTool.NONE) {
+            .pointerInput(edited.width, edited.height, viewport, retouchActive, retouch.tool, liquifyActive, backgroundActive) {
+                if (!liquifyActive && !backgroundActive && (!retouchActive || retouch.tool == RetouchTool.NONE)) {
                     detectTapGestures(onDoubleTap = { point ->
                         val mapping = coordinates() ?: return@detectTapGestures
                         val targetZoom = if (zoom > 1.05f) 1f else 2.5f
@@ -669,9 +848,10 @@ private fun ColumnScope.ImageWorkspace(
                 holdOriginal -> drawMappedImage(originalBitmap, mapping)
                 splitComparison -> clipRect(right = size.width * split) { drawMappedImage(originalBitmap, mapping) }
             }
-            if (retouchActive && retouch.showMaskOverlay) {
+            if ((retouchActive && retouch.showMaskOverlay) || liquifyActive || backgroundActive) {
                 drawLocalEditOverlay(localEditOverlay, mapping, edited.width, edited.height)
             }
+            if (geometryActive) drawCropOverlay(displayedCropRect(), geometryGrid, mapping, edited.width, edited.height)
             if (retouchActive && (retouch.tool == RetouchTool.CLONE || retouch.tool == RetouchTool.HEAL)) {
                 retouch.cloneSourceVisible?.let { source ->
                     val mapped = mapping.imageToViewport(FloatPoint(source.x * edited.width, source.y * edited.height))
@@ -681,8 +861,8 @@ private fun ColumnScope.ImageWorkspace(
                     drawLine(RestoreXAccent, Offset(mapped.x, mapped.y - 8.dp.toPx()), Offset(mapped.x, mapped.y + 8.dp.toPx()), 1.5.dp.toPx())
                 }
             }
-            if (retouchActive && activeStroke.isNotEmpty()) {
-                drawActiveStroke(activeStroke, retouch.brush.radius, mapping, edited.width, edited.height)
+            if ((retouchActive || liquifyActive || backgroundActive) && activeStroke.isNotEmpty()) {
+                drawActiveStroke(activeStroke, when { liquifyActive -> liquify.radius; backgroundActive -> background.radius; else -> retouch.brush.radius }, mapping, edited.width, edited.height)
             }
         }
 
@@ -827,6 +1007,26 @@ private fun DrawScope.drawLocalEditOverlay(
                     drawLine(RestoreXAccent, Offset(mapped.x, mapped.y - 7.dp.toPx()), Offset(mapped.x, mapped.y + 7.dp.toPx()), 1.5.dp.toPx())
                 }
             }
+            is LiquifyStroke -> {
+                val radius = operation.radius * minOf(imageWidth, imageHeight) * mapping.displayScale
+                val points = operation.points.map { point ->
+                    mapping.imageToViewport(FloatPoint(point.x * imageWidth, point.y * imageHeight)).let { Offset(it.x, it.y) }
+                }
+                points.zipWithNext().forEach { (start, end) ->
+                    drawLine(RestoreXAccent.copy(alpha = .3f), start, end, radius * 2f, StrokeCap.Round)
+                }
+                points.lastOrNull()?.let { drawCircle(RestoreXAccent.copy(alpha = .45f), radius.coerceAtLeast(2f), it) }
+            }
+            is BackgroundMaskStroke -> {
+                val radius = operation.radius * minOf(imageWidth, imageHeight) * mapping.displayScale
+                val color = if (operation.mode == BackgroundBrushMode.REMOVE) Color.Red else Color.Green
+                val points = operation.points.map { point ->
+                    mapping.imageToViewport(FloatPoint(point.x * imageWidth, point.y * imageHeight)).let { Offset(it.x, it.y) }
+                }
+                points.zipWithNext().forEach { (start, end) -> drawLine(color.copy(alpha = .28f), start, end, radius * 2f, StrokeCap.Round) }
+                points.forEach { drawCircle(color.copy(alpha = .2f), radius.coerceAtLeast(2f), it) }
+            }
+            is BackgroundFill -> Unit
             is RadialLight -> {
                 val center = mapping.imageToViewport(FloatPoint(operation.center.x * imageWidth, operation.center.y * imageHeight))
                 val ellipseWidth = operation.width * imageWidth * 2f * mapping.displayScale
@@ -873,6 +1073,26 @@ private fun DrawScope.drawActiveStroke(
     mapped.lastOrNull()?.let { drawCircle(RestoreXAccent.copy(alpha = .32f), radius.coerceAtLeast(2f), it) }
 }
 
+private fun DrawScope.drawCropOverlay(rect: NormalizedRect, grid: GeometryGridMode, mapping: EditorCoordinates, imageWidth: Int, imageHeight: Int) {
+    fun mapped(x: Float, y: Float): Offset = mapping.imageToViewport(FloatPoint(x * imageWidth, y * imageHeight)).let { Offset(it.x, it.y) }
+    val topLeft = mapped(rect.left, rect.top); val bottomRight = mapped(rect.right, rect.bottom)
+    val cropWidth = bottomRight.x - topLeft.x; val cropHeight = bottomRight.y - topLeft.y
+    val shade = Color.Black.copy(alpha = .55f)
+    drawRect(shade, Offset.Zero, Size(size.width, topLeft.y.coerceAtLeast(0f)))
+    drawRect(shade, Offset(0f, bottomRight.y), Size(size.width, (size.height - bottomRight.y).coerceAtLeast(0f)))
+    drawRect(shade, Offset(0f, topLeft.y), Size(topLeft.x.coerceAtLeast(0f), cropHeight))
+    drawRect(shade, Offset(bottomRight.x, topLeft.y), Size((size.width - bottomRight.x).coerceAtLeast(0f), cropHeight))
+    drawRect(RestoreXText, topLeft, Size(cropWidth, cropHeight), style = Stroke(1.5.dp.toPx()))
+    val fractions = when (grid) { GeometryGridMode.NONE -> emptyList(); GeometryGridMode.THIRDS -> listOf(1f / 3f, 2f / 3f); GeometryGridMode.GOLDEN -> listOf(.382f, .618f) }
+    fractions.forEach { fraction ->
+        drawLine(RestoreXText.copy(alpha = .7f), Offset(topLeft.x + cropWidth * fraction, topLeft.y), Offset(topLeft.x + cropWidth * fraction, bottomRight.y), 1.dp.toPx())
+        drawLine(RestoreXText.copy(alpha = .7f), Offset(topLeft.x, topLeft.y + cropHeight * fraction), Offset(bottomRight.x, topLeft.y + cropHeight * fraction), 1.dp.toPx())
+    }
+    listOf(topLeft, Offset(bottomRight.x, topLeft.y), bottomRight, Offset(topLeft.x, bottomRight.y)).forEach { corner ->
+        drawCircle(RestoreXAccent, 7.dp.toPx(), corner); drawCircle(Color.Black, 3.dp.toPx(), corner)
+    }
+}
+
 @Composable
 private fun ComparisonLabel(text: String, modifier: Modifier) {
     Text(
@@ -895,6 +1115,11 @@ private fun ContextualPanel(
     onToggleCollapsed: () -> Unit,
     onResetImage: () -> Unit,
     onImportLut: () -> Unit,
+    onImportBackground: () -> Unit,
+    onUtilities: () -> Unit,
+    geometryGrid: GeometryGridMode,
+    onGeometryGridChanged: (GeometryGridMode) -> Unit,
+    onImportSticker: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().background(RestoreXPanel)) {
         Row(
@@ -916,8 +1141,106 @@ private fun ContextualPanel(
             EditorTool.FILM -> FilmPanel(state, viewModel)
             EditorTool.DETAILS -> DetailsPanel(state, viewModel)
             EditorTool.RETOUCH -> RetouchPanel(state, viewModel)
+            EditorTool.LIQUIFY -> LiquifyPanel(state, viewModel)
+            EditorTool.BACKGROUND -> BackgroundPanel(state, viewModel, onImportBackground)
+            EditorTool.CREATIVE -> CreativePanel(state, viewModel, onImportSticker)
+            EditorTool.UTILITIES -> UtilitiesPanel(state, viewModel, onUtilities)
+            EditorTool.GEOMETRY -> GeometryPanel(state, viewModel, geometryGrid, onGeometryGridChanged)
         }
         }
+    }
+}
+
+private enum class GeometryControl(val label: String) {
+    STRAIGHTEN("Straighten"), FREE_CROP("Free Crop"), CUSTOM_RATIO("Custom Ratio"),
+    H_KEYSTONE("Horizontal"), V_KEYSTONE("Vertical"), CORNERS("Corners"),
+}
+
+private enum class CropEdge(val label: String) { LEFT("Left"), TOP("Top"), RIGHT("Right"), BOTTOM("Bottom") }
+private enum class QuadCorner(val label: String) { TOP_LEFT("Top Left"), TOP_RIGHT("Top Right"), BOTTOM_RIGHT("Bottom Right"), BOTTOM_LEFT("Bottom Left") }
+
+@Composable
+private fun GeometryPanel(state: EditorUiState, viewModel: EditorViewModel, grid: GeometryGridMode, onGridChanged: (GeometryGridMode) -> Unit) {
+    var selected by remember { mutableStateOf(GeometryControl.STRAIGHTEN) }
+    var cropEdge by remember { mutableStateOf(CropEdge.LEFT) }
+    var corner by remember { mutableStateOf(QuadCorner.TOP_LEFT) }
+    var cornerAxis by remember { mutableStateOf("X") }
+    PanelHeader("Geometry", actionLabel = "Reset", onResetAll = viewModel::resetGeometry)
+    HorizontalTextSelector(GeometryGridMode.entries, grid, { it.label }, onGridChanged)
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        item { CompactToolButton("Rotate CW", AppIcon.Rotate, false, viewModel::rotateClockwise) }
+        item { CompactToolButton("Rotate CCW", AppIcon.Rotate, false, viewModel::rotateCounterClockwise) }
+        item { CompactToolButton("Rotate 180", AppIcon.Rotate, false, viewModel::rotate180) }
+        item { CompactToolButton("Flip H", AppIcon.Compare, state.edits.flipHorizontal, viewModel::flipHorizontal) }
+        item { CompactToolButton("Flip V", AppIcon.Compare, state.edits.flipVertical, viewModel::flipVertical) }
+    }
+    HorizontalTextSelector(GeometryControl.entries, selected, { it.label }) { selected = it }
+    when (selected) {
+        GeometryControl.STRAIGHTEN -> AdjustmentSlider(
+            "Angle", state.edits.fineRotationDegrees, -45f..45f, 0f,
+            onChange = viewModel::updateFineRotation,
+            onCommit = {},
+            onReset = { viewModel.updateFineRotation(0f) },
+            valueFormatter = { "${String.format(Locale.ROOT, "%.1f", it)}°" },
+        )
+        GeometryControl.FREE_CROP -> {
+            HorizontalTextSelector(CropEdge.entries, cropEdge, { it.label }) { cropEdge = it }
+            val rect = state.edits.cropRect
+            val value = when (cropEdge) { CropEdge.LEFT -> rect.left; CropEdge.TOP -> rect.top; CropEdge.RIGHT -> rect.right; CropEdge.BOTTOM -> rect.bottom }
+            val range = when (cropEdge) {
+                CropEdge.LEFT -> 0f..(rect.right - .02f).coerceAtLeast(0f)
+                CropEdge.TOP -> 0f..(rect.bottom - .02f).coerceAtLeast(0f)
+                CropEdge.RIGHT -> (rect.left + .02f).coerceAtMost(1f)..1f
+                CropEdge.BOTTOM -> (rect.top + .02f).coerceAtMost(1f)..1f
+            }
+            fun update(v: Float) = viewModel.updateCropRect(when (cropEdge) {
+                CropEdge.LEFT -> rect.copy(left = v); CropEdge.TOP -> rect.copy(top = v)
+                CropEdge.RIGHT -> rect.copy(right = v); CropEdge.BOTTOM -> rect.copy(bottom = v)
+            })
+            AdjustmentSlider(cropEdge.label, value, range, if (cropEdge == CropEdge.LEFT || cropEdge == CropEdge.TOP) 0f else 1f, ::update, {}, { update(if (cropEdge == CropEdge.LEFT || cropEdge == CropEdge.TOP) 0f else 1f) })
+        }
+        GeometryControl.CUSTOM_RATIO -> {
+            val ratio = state.edits.customCropRatio ?: 1f
+            AdjustmentSlider("Ratio", ratio, .2f..5f, 1f, { viewModel.setCustomCropRatio(it) }, {}, { viewModel.setCustomCropRatio(1f) }, valueFormatter = { String.format(Locale.ROOT, "%.2f", it) })
+            var pixelWidth by remember { mutableStateOf(state.edits.cropOutputWidth?.toString() ?: "") }
+            var pixelHeight by remember { mutableStateOf(state.edits.cropOutputHeight?.toString() ?: "") }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(pixelWidth, { pixelWidth = it.filter(Char::isDigit).take(5) }, label = { Text("Width px") }, modifier = Modifier.weight(1f), singleLine = true)
+                OutlinedTextField(pixelHeight, { pixelHeight = it.filter(Char::isDigit).take(5) }, label = { Text("Height px") }, modifier = Modifier.weight(1f), singleLine = true)
+                TextButton(enabled = (pixelWidth.toIntOrNull() ?: 0) > 0 && (pixelHeight.toIntOrNull() ?: 0) > 0, onClick = { viewModel.setCustomCropPixels(pixelWidth.toInt(), pixelHeight.toInt()) }) { Text("Set", color = RestoreXAccent) }
+            }
+        }
+        GeometryControl.H_KEYSTONE, GeometryControl.V_KEYSTONE -> {
+            val quad = state.edits.perspective
+            val horizontal = selected == GeometryControl.H_KEYSTONE
+            val current = if (horizontal) quad.topLeft.x else quad.topLeft.y
+            fun transform(v: Float): PerspectiveQuad = if (horizontal) {
+                quad.copy(topLeft = quad.topLeft.copy(x = v), topRight = quad.topRight.copy(x = 1f - v))
+            } else quad.copy(topLeft = quad.topLeft.copy(y = v), bottomLeft = quad.bottomLeft.copy(y = 1f - v))
+            AdjustmentSlider(selected.label, current, 0f..0.45f, 0f, { viewModel.updatePerspective(transform(it)) }, {}, { viewModel.updatePerspective(PerspectiveQuad()) })
+        }
+        GeometryControl.CORNERS -> {
+            HorizontalTextSelector(QuadCorner.entries, corner, { it.label }) { corner = it }
+            HorizontalTextSelector(listOf("X", "Y"), cornerAxis, { it }) { cornerAxis = it }
+            val quad = state.edits.perspective
+            val point = when (corner) { QuadCorner.TOP_LEFT -> quad.topLeft; QuadCorner.TOP_RIGHT -> quad.topRight; QuadCorner.BOTTOM_RIGHT -> quad.bottomRight; QuadCorner.BOTTOM_LEFT -> quad.bottomLeft }
+            val value = if (cornerAxis == "X") point.x else point.y
+            fun update(v: Float) {
+                val changed = if (cornerAxis == "X") point.copy(x = v) else point.copy(y = v)
+                viewModel.updatePerspective(when (corner) {
+                    QuadCorner.TOP_LEFT -> quad.copy(topLeft = changed); QuadCorner.TOP_RIGHT -> quad.copy(topRight = changed)
+                    QuadCorner.BOTTOM_RIGHT -> quad.copy(bottomRight = changed); QuadCorner.BOTTOM_LEFT -> quad.copy(bottomLeft = changed)
+                })
+            }
+            AdjustmentSlider("${corner.label} $cornerAxis", value, 0f..1f, if (cornerAxis == "X" && (corner == QuadCorner.TOP_RIGHT || corner == QuadCorner.BOTTOM_RIGHT) || cornerAxis == "Y" && (corner == QuadCorner.BOTTOM_LEFT || corner == QuadCorner.BOTTOM_RIGHT)) 1f else 0f, ::update, {}, { viewModel.updatePerspective(PerspectiveQuad()) })
+        }
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+        TextButton(onClick = viewModel::cancelGeometryDraft) { Text("Cancel", color = RestoreXMuted) }
+        TextButton(onClick = viewModel::commitGeometryDraft) { Text("Apply", color = RestoreXAccent) }
     }
 }
 
@@ -948,6 +1271,278 @@ private fun RetouchPanel(state: EditorUiState, viewModel: EditorViewModel) {
         Spacer(Modifier.weight(1f))
         Text("${state.edits.localEdits.size} edits", color = RestoreXMuted, fontSize = 11.sp)
     }
+}
+
+@Composable
+private fun LiquifyPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    val liquify = state.liquify
+    PanelHeader("Liquify", actionLabel = "Reset local edits", onResetAll = viewModel::resetLocalEdits)
+    HorizontalTextSelector(LiquifyType.entries, liquify.type, { type ->
+        when (type) {
+            LiquifyType.TWIRL_CLOCKWISE -> "Twirl +"
+            LiquifyType.TWIRL_COUNTERCLOCKWISE -> "Twirl -"
+            else -> type.name.lowercase().replaceFirstChar { it.uppercase() }
+        }
+    }) { type -> viewModel.updateLiquify { it.copy(type = type) } }
+    var control by remember { mutableStateOf("Size") }
+    HorizontalTextSelector(listOf("Size", "Strength", "Feather"), control, { it }) { control = it }
+    val value = when (control) {
+        "Size" -> liquify.radius
+        "Strength" -> liquify.strength
+        else -> liquify.feather
+    }
+    val range = if (control == "Size") .01f..0.25f else .05f..1f
+    val neutral = when (control) { "Size" -> .08f; "Strength" -> .35f; else -> .65f }
+    fun update(value: Float) = viewModel.updateLiquify { current -> when (control) {
+        "Size" -> current.copy(radius = value)
+        "Strength" -> current.copy(strength = value)
+        else -> current.copy(feather = value)
+    } }
+    AdjustmentSlider(control, value, range, neutral, ::update, {}, { update(neutral) })
+    Text(
+        "Drag with one finger to deform. Use two fingers to pan and zoom. Restore paints the source shape back locally.",
+        color = RestoreXMuted,
+        fontSize = 10.sp,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp),
+    )
+}
+
+@Composable
+private fun BackgroundPanel(state: EditorUiState, viewModel: EditorViewModel, onImportBackground: () -> Unit) {
+    val background = state.background
+    PanelHeader("Manual background", actionLabel = "Reset local edits", onResetAll = viewModel::resetLocalEdits)
+    HorizontalTextSelector(BackgroundBrushMode.entries, background.brushMode, {
+        if (it == BackgroundBrushMode.REMOVE) "Remove" else "Restore"
+    }) { mode -> viewModel.updateBackground { it.copy(brushMode = mode) } }
+    var brushControl by remember { mutableStateOf("Size") }
+    HorizontalTextSelector(listOf("Size", "Hardness", "Opacity"), brushControl, { it }) { brushControl = it }
+    val brushValue = when (brushControl) { "Size" -> background.radius; "Hardness" -> background.hardness; else -> background.opacity }
+    val brushNeutral = when (brushControl) { "Size" -> .06f; "Hardness" -> .55f; else -> 1f }
+    fun updateBrush(value: Float) = viewModel.updateBackground { current -> when (brushControl) {
+        "Size" -> current.copy(radius = value); "Hardness" -> current.copy(hardness = value); else -> current.copy(opacity = value)
+    } }
+    AdjustmentSlider(brushControl, brushValue, if (brushControl == "Size") .005f..0.25f else 0f..1f, brushNeutral, ::updateBrush, {}, { updateBrush(brushNeutral) })
+    HorizontalTextSelector(BackgroundFillMode.entries, background.fillMode, { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } }) {
+        mode -> viewModel.updateBackground { it.copy(fillMode = mode) }
+    }
+    if (background.fillMode == BackgroundFillMode.IMAGE) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = onImportBackground) { Text(if (background.imageUri == null) "Choose image" else "Replace image", color = RestoreXAccent) }
+            Text(if (background.imageUri == null) "No background selected" else "Background ready", color = RestoreXMuted, fontSize = 10.sp)
+        }
+        var imageControl by remember { mutableStateOf("Scale") }
+        HorizontalTextSelector(listOf("Scale", "Horizontal", "Vertical", "Blur"), imageControl, { it }) { imageControl = it }
+        val imageValue = when (imageControl) { "Scale" -> background.imageScale; "Horizontal" -> background.offsetX; "Vertical" -> background.offsetY; else -> background.blur }
+        val imageRange = when (imageControl) { "Scale" -> .25f..4f; "Horizontal", "Vertical" -> -1f..1f; else -> 0f..1f }
+        fun updateImage(v: Float) = viewModel.updateBackground { current -> when (imageControl) {
+            "Scale" -> current.copy(imageScale = v); "Horizontal" -> current.copy(offsetX = v); "Vertical" -> current.copy(offsetY = v); else -> current.copy(blur = v)
+        } }
+        AdjustmentSlider(imageControl, imageValue, imageRange, if (imageControl == "Scale") 1f else 0f, ::updateImage, viewModel::commitBackgroundFill, { updateImage(if (imageControl == "Scale") 1f else 0f) })
+    }
+    if (background.fillMode != BackgroundFillMode.TRANSPARENT) {
+        val colors = listOf("White" to 0xFFFFFFFF.toInt(), "Black" to 0xFF000000.toInt(), "Gray" to 0xFF777777.toInt(), "Amber" to 0xFFFFB323.toInt())
+        val selected = colors.minBy { (_, value) -> kotlin.math.abs((value and 0xFFFFFF) - (background.startColor and 0xFFFFFF)) }
+        HorizontalTextSelector(colors, selected, { it.first }) { choice -> viewModel.updateBackground { it.copy(startColor = choice.second) } }
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+        TextButton(onClick = viewModel::commitBackgroundFill) { Text("Apply background", color = RestoreXAccent) }
+    }
+    Text("Paint with one finger; two fingers navigate. Transparent mode exports alpha with PNG.", color = RestoreXMuted, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp))
+}
+
+@Composable
+private fun UtilitiesPanel(state: EditorUiState, viewModel: EditorViewModel, onOpen: () -> Unit) {
+    PanelHeader("Advanced utilities")
+    Text("Create collages, merge bracketed HDR captures, stitch ordered panoramas, generate passport sheets, or clean documents and signatures.", color = RestoreXMuted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+    Button(onClick = onOpen, modifier = Modifier.padding(horizontal = 16.dp), colors = ButtonDefaults.buttonColors(containerColor = RestoreXAccent, contentColor = Color(0xFF251A00))) { Text("Choose utility") }
+    var presetName by remember { mutableStateOf("") }
+    var renamingPreset by remember { mutableStateOf<Long?>(null) }
+    var renameText by remember { mutableStateOf("") }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        OutlinedTextField(presetName, { presetName = it.take(60) }, label = { Text("Preset name") }, singleLine = true, modifier = Modifier.weight(1f))
+        TextButton(enabled = presetName.isNotBlank(), onClick = { viewModel.saveCurrentPreset(presetName); presetName = "" }) { Text("Save", color = RestoreXAccent) }
+    }
+    state.savedPresets.forEach { preset ->
+        Row(Modifier.fillMaxWidth().height(46.dp).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (renamingPreset == preset.id) OutlinedTextField(renameText, { renameText = it.take(60) }, singleLine = true, modifier = Modifier.weight(1f))
+            else Text(preset.name, color = RestoreXText, fontSize = 11.sp, modifier = Modifier.weight(1f))
+            TextButton(onClick = { viewModel.applySavedPreset(preset.id) }) { Text("Apply", color = RestoreXAccent) }
+            TextButton(onClick = {
+                if (renamingPreset == preset.id) { viewModel.renameSavedPreset(preset.id, renameText); renamingPreset = null }
+                else { renamingPreset = preset.id; renameText = preset.name }
+            }) { Text(if (renamingPreset == preset.id) "Save" else "Rename", color = RestoreXMuted) }
+            TextButton(onClick = { viewModel.deleteSavedPreset(preset.id) }) { Text("Delete", color = RestoreXMuted) }
+        }
+    }
+}
+
+@Composable
+private fun UtilityChooserDialog(onDismiss: () -> Unit, onSelected: (UtilityMode) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = RestoreXPanelRaised,
+        title = { Text("Utilities", color = RestoreXText) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                UtilityMode.entries.forEach { mode ->
+                    TextButton(onClick = { onSelected(mode) }, modifier = Modifier.fillMaxWidth()) {
+                        Text("${mode.label}  •  ${mode.minimumImages}${if (mode.minimumImages == mode.maximumImages) "" else "-${mode.maximumImages}"} image(s)", color = RestoreXText, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                Text("HDR requires genuine bracketed exposures. Panorama expects ordered overlapping captures. Passport presets remain manually editable and are not a compliance guarantee.", color = RestoreXMuted, fontSize = 10.sp)
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+@Composable
+private fun UtilityOptionsDialog(mode: UtilityMode, onDismiss: () -> Unit, onRun: (UtilityOptions) -> Unit) {
+    val passport = mode == UtilityMode.PASSPORT_INDIA || mode == UtilityMode.PASSPORT_JAPAN
+    var width by remember(mode) { mutableStateOf(if (passport) "1200" else "2400") }
+    var height by remember(mode) { mutableStateOf(if (passport) "1800" else "1600") }
+    var spacing by remember(mode) { mutableStateOf("20") }
+    var dpi by remember(mode) { mutableStateOf("300") }
+    var copies by remember(mode) { mutableStateOf("8") }
+    var photoWidthMm by remember(mode) { mutableStateOf("35") }; var photoHeightMm by remember(mode) { mutableStateOf("45") }
+    val parsedWidth = width.toIntOrNull(); val parsedHeight = height.toIntOrNull(); val parsedSpacing = spacing.toIntOrNull(); val parsedDpi = dpi.toIntOrNull(); val parsedCopies = copies.toIntOrNull()
+    val photoWmm = photoWidthMm.toFloatOrNull(); val photoHmm = photoHeightMm.toFloatOrNull()
+    val valid = parsedWidth in 64..12000 && parsedHeight in 64..12000 && parsedSpacing in 0..1000 && parsedDpi in 72..1200 && parsedCopies in 1..100 && (!passport || (photoWmm ?: 0f) in 10f..100f && (photoHmm ?: 0f) in 10f..100f)
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = RestoreXPanelRaised,
+        title = { Text(mode.label, color = RestoreXText) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                if (mode == UtilityMode.COLLAGE || passport) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(width, { width = it.filter(Char::isDigit).take(5) }, label = { Text("Output width") }, modifier = Modifier.weight(1f), singleLine = true)
+                        OutlinedTextField(height, { height = it.filter(Char::isDigit).take(5) }, label = { Text("Output height") }, modifier = Modifier.weight(1f), singleLine = true)
+                    }
+                    OutlinedTextField(spacing, { spacing = it.filter(Char::isDigit).take(4) }, label = { Text("Spacing / margin px") }, singleLine = true)
+                }
+                if (passport) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(photoWidthMm, { photoWidthMm = it.filter { c -> c.isDigit() || c == '.' }.take(5) }, label = { Text("Photo width mm") }, modifier = Modifier.weight(1f), singleLine = true)
+                        OutlinedTextField(photoHeightMm, { photoHeightMm = it.filter { c -> c.isDigit() || c == '.' }.take(5) }, label = { Text("Photo height mm") }, modifier = Modifier.weight(1f), singleLine = true)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(dpi, { dpi = it.filter(Char::isDigit).take(4) }, label = { Text("DPI") }, modifier = Modifier.weight(1f), singleLine = true)
+                        OutlinedTextField(copies, { copies = it.filter(Char::isDigit).take(3) }, label = { Text("Copies") }, modifier = Modifier.weight(1f), singleLine = true)
+                    }
+                    Text("Default sheet is 4 × 6 inches at 300 DPI. India and Japan start at editable 35 × 45 mm photo dimensions.", color = RestoreXMuted, fontSize = 10.sp)
+                }
+                if (mode == UtilityMode.HDR_NATURAL || mode == UtilityMode.HDR_DRAMATIC) Text("Select exposures from darkest to brightest. This performs true multi-image exposure fusion.", color = RestoreXMuted, fontSize = 10.sp)
+                if (mode == UtilityMode.PANORAMA) Text("Select images from left to right. Insufficient overlap is reported instead of exporting a distorted result.", color = RestoreXMuted, fontSize = 10.sp)
+            }
+        },
+        confirmButton = { Button(enabled = valid, onClick = { onRun(UtilityOptions(requireNotNull(parsedWidth), requireNotNull(parsedHeight), requireNotNull(parsedSpacing), requireNotNull(parsedDpi), requireNotNull(parsedCopies), photoWmm ?: 35f, photoHmm ?: 45f)) }) { Text("Choose destination") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+@Composable
+private fun BatchOptionsDialog(onDismiss: () -> Unit, onRun: (BatchOptions) -> Unit) {
+    var format by remember { mutableStateOf(BatchFormat.JPEG) }; var quality by remember { mutableFloatStateOf(90f) }
+    var width by remember { mutableStateOf("") }; var height by remember { mutableStateOf("") }; var turns by remember { mutableStateOf(0) }
+    var removeMetadata by remember { mutableStateOf(false) }; var prefix by remember { mutableStateOf("Restovue_") }
+    val w = width.toIntOrNull(); val h = height.toIntOrNull(); val valid = (width.isBlank() || (w ?: 0) > 0) && (height.isBlank() || (h ?: 0) > 0) && prefix.length <= 40
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = RestoreXPanelRaised, title = { Text("Batch editor", color = RestoreXText) },
+        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            HorizontalTextSelector(BatchFormat.entries, format, { it.name }) { format = it }
+            if (format != BatchFormat.PNG) AdjustmentSlider("Quality", quality, 20f..100f, 90f, { quality = it }, {}, { quality = 90f }, valueFormatter = { it.roundToInt().toString() })
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(width, { width = it.filter(Char::isDigit).take(5) }, label = { Text("Max width") }, modifier = Modifier.weight(1f), singleLine = true)
+                OutlinedTextField(height, { height = it.filter(Char::isDigit).take(5) }, label = { Text("Max height") }, modifier = Modifier.weight(1f), singleLine = true)
+            }
+            HorizontalTextSelector(listOf(0, 1, 2, 3), turns, { "${it * 90}°" }) { turns = it }
+            OutlinedTextField(prefix, { prefix = it.filter { c -> c.isLetterOrDigit() || c == '_' || c == '-' }.take(40) }, label = { Text("Filename prefix") }, singleLine = true)
+            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(removeMetadata, { removeMetadata = it }); Text("Remove metadata", color = RestoreXText, fontSize = 12.sp) }
+            Text("Images are processed sequentially. Current adjustments and filter are applied; local brushes and creative overlays are excluded to avoid coordinate mismatches.", color = RestoreXMuted, fontSize = 10.sp)
+        } },
+        confirmButton = { Button(enabled = valid, onClick = { onRun(BatchOptions(format, quality.roundToInt(), w, h, turns, removeMetadata, prefix)) }) { Text("Choose output folder") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+@Composable
+private fun CreativePanel(state: EditorUiState, viewModel: EditorViewModel, onImportSticker: () -> Unit) {
+    var section by remember { mutableStateOf("Text") }
+    var text by remember { mutableStateOf("") }
+    PanelHeader("Creative", actionLabel = "Reset creative", onResetAll = viewModel::resetCreative)
+    HorizontalTextSelector(listOf("Text", "Shapes", "Stickers", "Frame"), section, { it }) { section = it }
+    when (section) {
+        "Text" -> {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(text, { text = it.take(500) }, label = { Text("Text or emoji") }, singleLine = true, modifier = Modifier.weight(1f))
+                TextButton(enabled = text.isNotBlank(), onClick = { viewModel.addTextLayer(text); text = "" }) { Text("Add", color = RestoreXAccent) }
+            }
+        }
+        "Shapes" -> HorizontalTextSelector(ShapeType.entries, ShapeType.RECTANGLE, { it.name.lowercase().replace('_', ' ').replaceFirstChar { c -> c.uppercase() } }) { viewModel.addShapeLayer(it) }
+        "Stickers" -> Button(onClick = onImportSticker, modifier = Modifier.padding(horizontal = 16.dp)) { Text("Import PNG sticker") }
+        else -> FrameControls(state.edits.frame, viewModel)
+    }
+    if (section != "Frame" && state.edits.creativeLayers.isNotEmpty()) {
+        val selected = state.edits.creativeLayers.firstOrNull { it.id == state.selectedCreativeLayerId } ?: state.edits.creativeLayers.last()
+        LaunchedEffect(selected.id) { viewModel.selectCreativeLayer(selected.id) }
+        HorizontalTextSelector(state.edits.creativeLayers, selected, { layer -> when (layer) {
+            is TextLayer -> layer.text.take(12); is ShapeLayer -> layer.type.name.lowercase().replaceFirstChar { it.uppercase() }; is StickerLayer -> "Sticker"
+        } }) { viewModel.selectCreativeLayer(it.id) }
+        CreativeLayerControls(selected, viewModel)
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+            TextButton(onClick = { viewModel.moveSelectedCreativeLayer(-1) }) { Text("Back", color = RestoreXMuted) }
+            TextButton(onClick = { viewModel.moveSelectedCreativeLayer(1) }) { Text("Front", color = RestoreXMuted) }
+            TextButton(onClick = viewModel::deleteSelectedCreativeLayer) { Text("Delete", color = Color.Red) }
+        }
+    }
+}
+
+@Composable
+private fun CreativeLayerControls(layer: CreativeLayer, viewModel: EditorViewModel) {
+    var control by remember(layer.id) { mutableStateOf("X") }
+    val options = if (layer is TextLayer) listOf("X", "Y", "Size", "Rotate", "Opacity", "Shadow", "Outline") else listOf("X", "Y", "Width", "Height", "Rotate", "Opacity")
+    HorizontalTextSelector(options, control, { it }) { control = it }
+    val value = when (control) {
+        "X" -> layer.center.x; "Y" -> layer.center.y; "Rotate" -> layer.rotationDegrees; "Opacity" -> layer.opacity
+        "Size" -> (layer as TextLayer).size; "Shadow" -> (layer as TextLayer).shadow; "Outline" -> (layer as TextLayer).outline
+        "Width" -> if (layer is ShapeLayer) layer.width else (layer as StickerLayer).width
+        else -> if (layer is ShapeLayer) layer.height else (layer as StickerLayer).height
+    }
+    val range = when (control) { "Rotate" -> -180f..180f; "Size" -> .01f..0.4f; "Width", "Height" -> .01f..1f; else -> 0f..1f }
+    fun update(v: Float) = viewModel.updateCreativeLayer { current -> when (current) {
+        is TextLayer -> when (control) {
+            "X" -> current.copy(center = current.center.copy(x = v)); "Y" -> current.copy(center = current.center.copy(y = v)); "Size" -> current.copy(size = v)
+            "Rotate" -> current.copy(rotationDegrees = v); "Opacity" -> current.copy(opacity = v); "Shadow" -> current.copy(shadow = v); else -> current.copy(outline = v)
+        }
+        is ShapeLayer -> when (control) {
+            "X" -> current.copy(center = current.center.copy(x = v)); "Y" -> current.copy(center = current.center.copy(y = v)); "Width" -> current.copy(width = v)
+            "Height" -> current.copy(height = v); "Rotate" -> current.copy(rotationDegrees = v); else -> current.copy(opacity = v)
+        }
+        is StickerLayer -> when (control) {
+            "X" -> current.copy(center = current.center.copy(x = v)); "Y" -> current.copy(center = current.center.copy(y = v)); "Width" -> current.copy(width = v)
+            "Height" -> current.copy(height = v); "Rotate" -> current.copy(rotationDegrees = v); else -> current.copy(opacity = v)
+        }
+    } }
+    AdjustmentSlider(control, value, range, if (control == "Opacity") 1f else 0f, ::update, viewModel::commitCreativeLayer, { update(if (control == "Opacity") 1f else 0f) })
+    if (layer is TextLayer) {
+        HorizontalTextSelector(TextFont.entries, layer.font, { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } }) { font ->
+            viewModel.updateCreativeLayer { (it as TextLayer).copy(font = font) }; viewModel.commitCreativeLayer()
+        }
+    }
+}
+
+@Composable
+private fun FrameControls(frame: FrameSettings, viewModel: EditorViewModel) {
+    HorizontalTextSelector(FrameStyle.entries, frame.style, { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } }) { style ->
+        viewModel.updateFrame(frame.copy(style = style), commitNow = true)
+    }
+    var control by remember { mutableStateOf("Thickness") }
+    HorizontalTextSelector(listOf("Thickness", "Corner", "Shadow"), control, { it }) { control = it }
+    val value = when (control) { "Thickness" -> frame.thickness; "Corner" -> frame.cornerRadius; else -> frame.shadow }
+    val range = when (control) { "Thickness" -> 0f..0.2f; "Corner" -> 0f..0.3f; else -> 0f..1f }
+    fun update(v: Float) = viewModel.updateFrame(when (control) { "Thickness" -> frame.copy(thickness = v); "Corner" -> frame.copy(cornerRadius = v); else -> frame.copy(shadow = v) })
+    AdjustmentSlider(control, value, range, 0f, ::update, { viewModel.updateFrame(frame, commitNow = true) }, { update(0f) })
 }
 
 @Composable
@@ -1144,6 +1739,10 @@ private fun CropPanel(state: EditorUiState, viewModel: EditorViewModel) {
                 onClick = { viewModel.setCrop(aspect) },
             )
         }
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+        TextButton(onClick = viewModel::cancelGeometryDraft) { Text("Cancel", color = RestoreXMuted) }
+        TextButton(onClick = viewModel::commitGeometryDraft) { Text("Apply", color = RestoreXAccent) }
     }
 }
 
@@ -1698,19 +2297,33 @@ private fun CompactToolButton(label: String, icon: AppIcon, selected: Boolean, o
 
 @Composable
 private fun ToolNavigation(selected: EditorTool, onSelected: (EditorTool) -> Unit) {
+    var category by remember(selected.category) { mutableStateOf(selected.category) }
     HorizontalDivider(color = Color(0xFF2A2B2F))
-    Row(
-        Modifier.fillMaxWidth().background(RestoreXPanel).horizontalScroll(rememberScrollState())
-            .navigationBarsPadding().padding(horizontal = 4.dp, vertical = 5.dp),
-    ) {
-        EditorTool.entries.forEach { tool ->
+    Column(Modifier.fillMaxWidth().background(RestoreXPanel).navigationBarsPadding()) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 3.dp)) {
+        ToolCategory.entries.forEach { item ->
+            val active = item == category
+            Column(
+                modifier = Modifier.width(72.dp).height(50.dp).clickable {
+                    category = item; EditorTool.entries.firstOrNull { it.category == item && it.available }?.let(onSelected)
+                }.semantics { contentDescription = "${item.label} tools" },
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+            ) {
+                AppIconCanvas(item.icon, if (active) RestoreXAccent else RestoreXMuted, Modifier.size(20.dp))
+                Text(item.label, color = if (active) RestoreXAccent else RestoreXMuted, fontSize = 9.sp, maxLines = 1)
+            }
+        }
+    }
+    val categoryTools = EditorTool.entries.filter { it.category == category }
+    if (categoryTools.size > 1) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 2.dp)) {
+        categoryTools.forEach { tool ->
             val tint = when {
                 !tool.available -> RestoreXDisabled
                 tool == selected -> RestoreXAccent
                 else -> RestoreXMuted
             }
             Column(
-                modifier = Modifier.width(68.dp).height(58.dp)
+                modifier = Modifier.width(88.dp).height(34.dp)
                     .clickable(enabled = tool.available) { onSelected(tool) }
                     .semantics {
                         contentDescription = if (tool.available) tool.label else "${tool.label}, unavailable"
@@ -1718,11 +2331,10 @@ private fun ToolNavigation(selected: EditorTool, onSelected: (EditorTool) -> Uni
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                AppIconCanvas(tool.icon, tint, Modifier.size(22.dp))
-                Spacer(Modifier.height(4.dp))
                 Text(tool.label, color = tint, fontSize = 10.sp, maxLines = 1)
             }
         }
+    }
     }
 }
 
@@ -1831,10 +2443,13 @@ private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolea
     var maxHeight by remember { mutableStateOf("") }
     var shareAfterExport by remember { mutableStateOf(false) }
     var preserveMetadata by remember { mutableStateOf(true) }
+    var targetKb by remember { mutableStateOf("") }
     val widthValue = maxWidth.toIntOrNull()
     val heightValue = maxHeight.toIntOrNull()
+    val targetValue = targetKb.toIntOrNull()
     val dimensionsValid = (maxWidth.isBlank() || (widthValue ?: 0) > 0) &&
-        (maxHeight.isBlank() || (heightValue ?: 0) > 0)
+        (maxHeight.isBlank() || (heightValue ?: 0) > 0) &&
+        (targetKb.isBlank() || (targetValue ?: 0) in 10..50_000)
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = RestoreXPanelRaised,
@@ -1870,6 +2485,15 @@ private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolea
                     )
                 }
                 Text("Custom dimensions fit within these bounds without distortion or upscaling.", color = RestoreXMuted, fontSize = 11.sp)
+                if (format != ExportFormat.PNG) {
+                    OutlinedTextField(
+                        value = targetKb,
+                        onValueChange = { targetKb = it.filter(Char::isDigit).take(5) },
+                        label = { Text("Optional target KB") },
+                        supportingText = { Text("Uses the highest fitting quality, then proportionally reduces dimensions if necessary.") },
+                        singleLine = true,
+                    )
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = shareAfterExport, onCheckedChange = { shareAfterExport = it })
                     Text("Open Android share sheet after saving", color = RestoreXText, fontSize = 12.sp)
@@ -1883,7 +2507,7 @@ private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolea
         confirmButton = {
             Button(enabled = dimensionsValid, onClick = {
                 onExport(
-                    ExportOptions(format, quality.roundToInt(), widthValue, heightValue, preserveMetadata),
+                    ExportOptions(format, quality.roundToInt(), widthValue, heightValue, preserveMetadata, targetValue),
                     shareAfterExport,
                 )
             }) { Text("Save to device") }

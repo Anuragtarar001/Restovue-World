@@ -20,6 +20,16 @@ import com.restorex.app.domain.model.ImageSource
 import com.restorex.app.domain.model.LutSelection
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.model.BrushEditType
+import com.restorex.app.domain.model.BackgroundBrushMode
+import com.restorex.app.domain.model.BackgroundFill
+import com.restorex.app.domain.model.BackgroundFillMode
+import com.restorex.app.domain.model.BackgroundMaskStroke
+import com.restorex.app.domain.model.CreativeLayer
+import com.restorex.app.domain.model.FrameSettings
+import com.restorex.app.domain.model.ShapeLayer
+import com.restorex.app.domain.model.ShapeType
+import com.restorex.app.domain.model.TextLayer
+import com.restorex.app.domain.model.StickerLayer
 import com.restorex.app.domain.model.BrushSettings
 import com.restorex.app.domain.model.BrushStroke
 import com.restorex.app.domain.model.LinearLight
@@ -27,12 +37,23 @@ import com.restorex.app.domain.model.LocalLighting
 import com.restorex.app.domain.model.LocalEditOperation
 import com.restorex.app.domain.model.NormalizedPoint
 import com.restorex.app.domain.model.RadialLight
+import com.restorex.app.domain.model.NormalizedRect
+import com.restorex.app.domain.model.PerspectiveQuad
+import com.restorex.app.domain.model.LiquifyStroke
+import com.restorex.app.domain.model.LiquifyType
 import com.restorex.app.domain.usecase.ExportImage
 import com.restorex.app.domain.usecase.LoadImage
 import com.restorex.app.domain.usecase.RenderEdits
 import com.restorex.app.domain.usecase.RenderSharpenMask
 import com.restorex.app.data.LutStore
 import com.restorex.app.data.PerformanceDiagnostics
+import com.restorex.app.data.AndroidUtilityProcessor
+import com.restorex.app.domain.model.UtilityMode
+import com.restorex.app.domain.model.UtilityOptions
+import com.restorex.app.domain.model.BatchOptions
+import com.restorex.app.data.AndroidBatchProcessor
+import com.restorex.app.domain.repository.PresetRepository
+import com.restorex.app.domain.model.SavedPreset
 import androidx.core.net.toUri
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -79,6 +100,28 @@ data class RetouchUiState(
     val invert: Boolean = false,
 )
 
+data class LiquifyUiState(
+    val type: LiquifyType = LiquifyType.PUSH,
+    val radius: Float = .08f,
+    val strength: Float = .35f,
+    val feather: Float = .65f,
+)
+
+data class BackgroundUiState(
+    val brushMode: BackgroundBrushMode = BackgroundBrushMode.REMOVE,
+    val fillMode: BackgroundFillMode = BackgroundFillMode.TRANSPARENT,
+    val radius: Float = .06f,
+    val hardness: Float = .55f,
+    val opacity: Float = 1f,
+    val startColor: Int = 0xFFFFFFFF.toInt(),
+    val endColor: Int = 0xFFB0B0B0.toInt(),
+    val imageUri: String? = null,
+    val imageScale: Float = 1f,
+    val offsetX: Float = 0f,
+    val offsetY: Float = 0f,
+    val blur: Float = 0f,
+)
+
 data class EditorUiState(
     val preview: RasterImage? = null,
     val originalPreview: RasterImage? = null,
@@ -89,6 +132,10 @@ data class EditorUiState(
     val sourceIdentity: Long = 0L,
     val showSharpenMask: Boolean = false,
     val retouch: RetouchUiState = RetouchUiState(),
+    val liquify: LiquifyUiState = LiquifyUiState(),
+    val background: BackgroundUiState = BackgroundUiState(),
+    val selectedCreativeLayerId: Long? = null,
+    val savedPresets: List<SavedPreset> = emptyList(),
     val localEditOverlay: List<LocalEditOperation> = emptyList(),
     val isBusy: Boolean = false,
     val isRendering: Boolean = false,
@@ -110,8 +157,11 @@ class EditorViewModel(
     private val filterCatalog: FilterCatalog,
     private val lutStore: LutStore,
     private val memoryPressure: MemoryPressureRegistry,
+    private val utilityProcessor: AndroidUtilityProcessor,
+    private val batchProcessor: AndroidBatchProcessor,
+    private val presetRepository: PresetRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(EditorUiState(presets = filterCatalog.presets))
+    private val _uiState = MutableStateFlow(EditorUiState(presets = filterCatalog.presets, savedPresets = presetRepository.load()))
     val uiState: StateFlow<EditorUiState> = _uiState.asStateFlow()
 
     private var sourceRef: ImageSource? = null
@@ -120,6 +170,7 @@ class EditorViewModel(
     private var session = EditSession()
     private var renderJob: Job? = null
     private var exportJob: Job? = null
+    private var utilityJob: Job? = null
     private var previewResizeJob: Job? = null
     private val thumbnailJobs = ConcurrentHashMap<String, Job>()
     private var thumbnailSource: RasterImage? = null
@@ -271,8 +322,63 @@ class EditorViewModel(
 
     fun rotateClockwise() = commit(session.draft.rotatedClockwise())
 
-    fun setCrop(aspect: CropAspect) = commit(session.draft.copy(cropAspect = aspect))
-    fun resetGeometry() = commit(session.draft.copy(cropAspect = CropAspect.ORIGINAL, quarterTurnsClockwise = 0))
+    fun rotateCounterClockwise() = commit(session.draft.copy(quarterTurnsClockwise = (session.draft.quarterTurnsClockwise + 3) % 4))
+    fun rotate180() = commit(session.draft.copy(quarterTurnsClockwise = (session.draft.quarterTurnsClockwise + 2) % 4))
+    fun flipHorizontal() = commit(session.draft.copy(flipHorizontal = !session.draft.flipHorizontal))
+    fun flipVertical() = commit(session.draft.copy(flipVertical = !session.draft.flipVertical))
+
+    fun updateFineRotation(value: Float) {
+        session.updateDraft { it.copy(fineRotationDegrees = value.coerceIn(-45f, 45f)) }
+        publishEdits(RenderQuality.INTERACTIVE)
+    }
+
+    fun updateCropRect(value: NormalizedRect) {
+        session.updateDraft { it.copy(cropRect = value) }
+        _uiState.update { it.copy(edits = session.draft) }
+    }
+
+    fun updatePerspective(value: PerspectiveQuad) {
+        session.updateDraft { it.copy(perspective = value) }
+        publishEdits(RenderQuality.INTERACTIVE)
+    }
+
+    fun setCustomCropRatio(value: Float) {
+        session.updateDraft { it.copy(cropAspect = CropAspect.CUSTOM, customCropRatio = value.coerceIn(.05f, 20f)) }
+        publishEdits(RenderQuality.INTERACTIVE)
+    }
+    fun setCustomCropPixels(width: Int, height: Int) {
+        if (width !in 1..20000 || height !in 1..20000) return
+        session.updateDraft { it.copy(cropAspect = CropAspect.CUSTOM, customCropRatio = width.toFloat() / height, cropOutputWidth = width, cropOutputHeight = height) }
+        _uiState.update { it.copy(edits = session.draft) }
+    }
+
+    fun commitGeometryDraft() {
+        session.commitDraft()
+        reportBoundedHistoryIfNeeded()
+        publishEdits(RenderQuality.SETTLED)
+    }
+
+    fun cancelGeometryDraft() {
+        session.discardDraft()
+        publishEdits(RenderQuality.SETTLED)
+    }
+
+    fun setCrop(aspect: CropAspect) {
+        session.updateDraft { it.copy(cropAspect = aspect) }
+        _uiState.update { it.copy(edits = session.draft) }
+    }
+    fun resetGeometry() = commit(session.draft.copy(
+        cropAspect = CropAspect.ORIGINAL,
+        quarterTurnsClockwise = 0,
+        cropRect = NormalizedRect(),
+        customCropRatio = null,
+        flipHorizontal = false,
+        flipVertical = false,
+        fineRotationDegrees = 0f,
+        perspective = PerspectiveQuad(),
+        cropOutputWidth = null,
+        cropOutputHeight = null,
+    ))
 
     fun applyPreset(id: String) {
         val preset = filterCatalog.find(id) ?: return
@@ -360,6 +466,123 @@ class EditorViewModel(
 
     fun updateRetouch(transform: (RetouchUiState) -> RetouchUiState) = _uiState.update {
         it.copy(retouch = transform(it.retouch))
+    }
+
+    fun updateLiquify(transform: (LiquifyUiState) -> LiquifyUiState) = _uiState.update {
+        it.copy(liquify = transform(it.liquify))
+    }
+
+    fun commitLiquifyStroke(visiblePoints: List<NormalizedPoint>) {
+        if (visiblePoints.isEmpty()) return
+        if (session.draft.localEdits.size >= EditState.MAX_LOCAL_OPERATIONS) {
+            _uiState.update { it.copy(message = "Local edit limit reached; undo or reset local edits to continue") }
+            return
+        }
+        val mapper = sourceCoordinateMapper() ?: return
+        val settings = _uiState.value.liquify
+        val operation = LiquifyStroke(
+            id = nextLocalEditId++,
+            type = settings.type,
+            points = visiblePoints.decimated(BrushStroke.MAX_POINTS_PER_STROKE).map(mapper::visibleToSource),
+            radius = mapper.visibleWidthToSource(settings.radius).coerceIn(.005f, .5f),
+            strength = settings.strength,
+            feather = settings.feather,
+        )
+        commit(session.draft.copy(localEdits = session.draft.localEdits + operation))
+    }
+
+    fun updateBackground(transform: (BackgroundUiState) -> BackgroundUiState) = _uiState.update {
+        it.copy(background = transform(it.background))
+    }
+
+    fun commitBackgroundStroke(visiblePoints: List<NormalizedPoint>) {
+        if (visiblePoints.isEmpty() || session.draft.localEdits.size >= EditState.MAX_LOCAL_OPERATIONS) return
+        val mapper = sourceCoordinateMapper() ?: return
+        val settings = _uiState.value.background
+        val operation = BackgroundMaskStroke(
+            nextLocalEditId++, settings.brushMode,
+            visiblePoints.decimated(BrushStroke.MAX_POINTS_PER_STROKE).map(mapper::visibleToSource),
+            mapper.visibleWidthToSource(settings.radius).coerceIn(.002f, .5f), settings.hardness, settings.opacity,
+        )
+        commit(session.draft.copy(localEdits = session.draft.localEdits + operation))
+    }
+
+    fun commitBackgroundFill() {
+        val settings = _uiState.value.background
+        if (settings.fillMode == BackgroundFillMode.IMAGE && settings.imageUri == null) {
+            _uiState.update { it.copy(message = "Choose a background image first") }
+            return
+        }
+        val withoutPreviousFill = session.draft.localEdits.filterNot { it is BackgroundFill }
+        commit(session.draft.copy(localEdits = withoutPreviousFill + BackgroundFill(
+            nextLocalEditId++, settings.fillMode, settings.startColor, settings.endColor, settings.opacity,
+            settings.imageUri, settings.imageScale, settings.offsetX, settings.offsetY, settings.blur,
+        )))
+    }
+
+    fun setBackgroundImage(uri: String) {
+        _uiState.update { it.copy(background = it.background.copy(fillMode = BackgroundFillMode.IMAGE, imageUri = uri)) }
+        commitBackgroundFill()
+    }
+
+    fun addTextLayer(text: String) {
+        if (text.isBlank() || session.draft.creativeLayers.size >= EditState.MAX_CREATIVE_LAYERS) return
+        val layer = TextLayer(nextLocalEditId++, text.trim(), zIndex = session.draft.creativeLayers.size)
+        commit(session.draft.copy(creativeLayers = session.draft.creativeLayers + layer))
+        _uiState.update { it.copy(selectedCreativeLayerId = layer.id) }
+    }
+
+    fun addShapeLayer(type: ShapeType) {
+        if (session.draft.creativeLayers.size >= EditState.MAX_CREATIVE_LAYERS) return
+        val layer = ShapeLayer(nextLocalEditId++, type, zIndex = session.draft.creativeLayers.size)
+        commit(session.draft.copy(creativeLayers = session.draft.creativeLayers + layer))
+        _uiState.update { it.copy(selectedCreativeLayerId = layer.id) }
+    }
+
+    fun addStickerLayer(uri: String) {
+        if (session.draft.creativeLayers.size >= EditState.MAX_CREATIVE_LAYERS) return
+        val layer = StickerLayer(nextLocalEditId++, uri, zIndex = session.draft.creativeLayers.size)
+        commit(session.draft.copy(creativeLayers = session.draft.creativeLayers + layer)); _uiState.update { it.copy(selectedCreativeLayerId = layer.id) }
+    }
+
+    fun selectCreativeLayer(id: Long?) = _uiState.update { it.copy(selectedCreativeLayerId = id) }
+
+    fun updateCreativeLayer(transform: (CreativeLayer) -> CreativeLayer) {
+        val id = _uiState.value.selectedCreativeLayerId ?: return
+        session.updateDraft { edits -> edits.copy(creativeLayers = edits.creativeLayers.map { if (it.id == id) transform(it) else it }) }
+        publishEdits(RenderQuality.INTERACTIVE)
+    }
+
+    fun commitCreativeLayer() {
+        session.commitDraft(); reportBoundedHistoryIfNeeded(); publishEdits(RenderQuality.SETTLED)
+    }
+
+    fun deleteSelectedCreativeLayer() {
+        val id = _uiState.value.selectedCreativeLayerId ?: return
+        commit(session.draft.copy(creativeLayers = session.draft.creativeLayers.filterNot { it.id == id }))
+        _uiState.update { it.copy(selectedCreativeLayerId = null) }
+    }
+
+    fun moveSelectedCreativeLayer(delta: Int) {
+        val id = _uiState.value.selectedCreativeLayerId ?: return
+        val layers = session.draft.creativeLayers.toMutableList(); val index = layers.indexOfFirst { it.id == id }
+        if (index < 0) return
+        val target = (index + delta).coerceIn(0, layers.lastIndex)
+        if (target == index) return
+        val item = layers.removeAt(index); layers.add(target, item)
+        commit(session.draft.copy(creativeLayers = layers.mapIndexed { z, layer -> when (layer) {
+            is TextLayer -> layer.copy(zIndex = z); is ShapeLayer -> layer.copy(zIndex = z); is StickerLayer -> layer.copy(zIndex = z)
+        } }))
+    }
+
+    fun updateFrame(value: FrameSettings, commitNow: Boolean = false) {
+        session.updateDraft { it.copy(frame = value) }
+        if (commitNow) { session.commitDraft(); reportBoundedHistoryIfNeeded(); publishEdits(RenderQuality.SETTLED) }
+        else publishEdits(RenderQuality.INTERACTIVE)
+    }
+
+    fun resetCreative() = commit(session.draft.copy(creativeLayers = emptyList(), frame = FrameSettings())).also {
+        _uiState.update { state -> state.copy(selectedCreativeLayerId = null) }
     }
 
     fun beginCloneSourceSelection() = _uiState.update {
@@ -537,6 +760,61 @@ class EditorViewModel(
         }
     }
 
+    fun runUtility(mode: UtilityMode, sources: List<String>, destination: String, options: UtilityOptions = UtilityOptions()) {
+        utilityJob?.cancel()
+        utilityJob = viewModelScope.launch {
+            _uiState.update { it.copy(isBusy = true, message = "${mode.label} processing started") }
+            try {
+                utilityProcessor.process(mode, sources, destination, options)
+                _uiState.update { it.copy(isBusy = false, message = "${mode.label} saved successfully") }
+            } catch (cancelled: CancellationException) {
+                _uiState.update { it.copy(isBusy = false, message = "${mode.label} cancelled") }; throw cancelled
+            } catch (error: Throwable) {
+                _uiState.update { it.copy(isBusy = false, message = error.userMessage("${mode.label} failed")) }
+            }
+        }
+    }
+
+    fun cancelUtility() { utilityJob?.cancel() }
+    fun showMessage(message: String) = _uiState.update { it.copy(message = message) }
+
+    fun runBatch(sources: List<String>, destinationTree: String, options: BatchOptions) {
+        utilityJob?.cancel()
+        utilityJob = viewModelScope.launch {
+            _uiState.update { it.copy(isBusy = true) }
+            try {
+                val result = batchProcessor.process(sources, destinationTree, options, session.draft) { done, total ->
+                    _uiState.update { it.copy(message = if (done == total) null else "Batch $done of $total") }
+                }
+                _uiState.update { it.copy(isBusy = false, message = "Batch saved ${result.completed} image(s)${if (result.failures.isEmpty()) "" else "; ${result.failures.size} failed"}") }
+            } catch (cancelled: CancellationException) { _uiState.update { it.copy(isBusy = false, message = "Batch cancelled") }; throw cancelled }
+            catch (error: Throwable) { _uiState.update { it.copy(isBusy = false, message = error.userMessage("Batch failed")) } }
+        }
+    }
+
+    fun saveCurrentPreset(name: String) {
+        if (name.isBlank()) return
+        val current = _uiState.value.savedPresets
+        val preset = SavedPreset(System.currentTimeMillis(), name.trim().take(60), session.draft.adjustments, session.draft.filter.presetId, session.draft.filter.intensity)
+        val updated = (current + preset).takeLast(100); presetRepository.save(updated); _uiState.update { it.copy(savedPresets = updated, message = "Preset saved") }
+    }
+
+    fun applySavedPreset(id: Long) {
+        val preset = _uiState.value.savedPresets.firstOrNull { it.id == id } ?: return
+        val catalogPreset = filterCatalog.find(preset.filterPresetId)
+        commit(session.draft.copy(adjustments = preset.adjustments, filter = if (catalogPreset != null) FilterSelection(catalogPreset.id, preset.filterIntensity, catalogPreset.adjustments) else FilterSelection()))
+    }
+
+    fun renameSavedPreset(id: Long, name: String) {
+        if (name.isBlank()) return
+        val updated = _uiState.value.savedPresets.map { if (it.id == id) it.copy(name = name.trim().take(60)) else it }
+        presetRepository.save(updated); _uiState.update { it.copy(savedPresets = updated) }
+    }
+
+    fun deleteSavedPreset(id: Long) {
+        val updated = _uiState.value.savedPresets.filterNot { it.id == id }; presetRepository.save(updated); _uiState.update { it.copy(savedPresets = updated) }
+    }
+
     fun cancelExport() { exportJob?.cancel() }
 
     fun consumeMessage() = _uiState.update { it.copy(message = null) }
@@ -627,6 +905,7 @@ class EditorViewModel(
     override fun onCleared() {
         renderJob?.cancel()
         exportJob?.cancel()
+        utilityJob?.cancel()
         thumbnailJobs.values.forEach(Job::cancel)
         thumbnailJobs.clear()
         previewCache.clear()
@@ -671,7 +950,11 @@ class EditorViewModel(
 
     private fun sourceCoordinateMapper(): SourceCoordinateMapper? {
         val source = sourceRaster ?: return null
-        return SourceCoordinateMapper(source.width, source.height, session.draft.quarterTurnsClockwise, session.draft.cropAspect)
+        return SourceCoordinateMapper(
+            source.width, source.height, session.draft.quarterTurnsClockwise, session.draft.cropAspect,
+            session.draft.cropRect, session.draft.flipHorizontal, session.draft.flipVertical,
+            session.draft.customCropRatio, session.draft.fineRotationDegrees, session.draft.perspective,
+        )
     }
 
     private fun refreshRetouchCoordinates(retouch: RetouchUiState): RetouchUiState {
@@ -698,6 +981,15 @@ class EditorViewModel(
                     center = mapper.sourceToVisible(operation.center),
                     rotationDegrees = mapper.sourceRotationToVisible(operation.rotationDegrees),
                 )
+                is LiquifyStroke -> operation.copy(
+                    points = operation.points.map(mapper::sourceToVisible),
+                    radius = mapper.sourceWidthToVisible(operation.radius),
+                )
+                is BackgroundMaskStroke -> operation.copy(
+                    points = operation.points.map(mapper::sourceToVisible),
+                    radius = mapper.sourceWidthToVisible(operation.radius),
+                )
+                is BackgroundFill -> operation
             }
         }
     }
@@ -727,6 +1019,9 @@ class EditorViewModel(
             container.filterCatalog,
             container.lutStore,
             container.memoryPressure,
+            container.utilityProcessor,
+            container.batchProcessor,
+            container.presetRepository,
         ) as T
     }
 

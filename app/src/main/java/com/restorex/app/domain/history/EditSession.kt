@@ -23,6 +23,11 @@ class EditSession(initial: EditState = EditState()) {
         return draft
     }
 
+    fun discardDraft(): EditState {
+        draft = history.current
+        return draft
+    }
+
     fun commit(value: EditState): EditState {
         draft = history.commit(value)
         return draft

@@ -1,10 +1,17 @@
 package com.restorex.app.data
 
 import com.restorex.app.domain.model.BrushEditType
+import com.restorex.app.domain.model.BackgroundBrushMode
+import com.restorex.app.domain.model.BackgroundFill
+import com.restorex.app.domain.model.BackgroundFillMode
+import com.restorex.app.domain.model.BackgroundMaskStroke
+import com.restorex.app.domain.model.BrushSettings
 import com.restorex.app.domain.model.BrushStroke
 import com.restorex.app.domain.model.LinearLight
 import com.restorex.app.domain.model.LocalEditOperation
 import com.restorex.app.domain.model.LocalLighting
+import com.restorex.app.domain.model.LiquifyStroke
+import com.restorex.app.domain.model.LiquifyType
 import com.restorex.app.domain.model.RadialLight
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.model.degreesToRadians
@@ -32,7 +39,11 @@ object CpuLocalEditPipeline {
     ): RasterImage {
         if (operations.isEmpty()) return source
         val pixels = if (reuseSourcePixels) source.argb else source.argb.copyOf()
+        val restoreReference = if (reuseSourcePixels && operations.any { it is LiquifyStroke && it.type == LiquifyType.RESTORE }) {
+            source.argb.copyOf()
+        } else source.argb
         val localLight = SparseLightMask(source.width, source.height)
+        var backgroundFill: BackgroundFill? = null
         operations.forEachIndexed { index, operation ->
             if (shouldCancel()) throw CancellationException("Local render superseded")
             when (operation) {
@@ -56,11 +67,128 @@ object CpuLocalEditPipeline {
                 }
                 is RadialLight -> applyRadial(pixels, source.width, source.height, operation, shouldCancel)
                 is LinearLight -> applyLinear(pixels, source.width, source.height, operation, shouldCancel)
+                is LiquifyStroke -> applyLiquify(pixels, restoreReference, source.width, source.height, operation, shouldCancel)
+                is BackgroundMaskStroke -> applyBackgroundMask(pixels, source.width, source.height, operation, shouldCancel)
+                is BackgroundFill -> backgroundFill = operation
             }
             if (index and 7 == 0 && shouldCancel()) throw CancellationException("Local render superseded")
         }
         localLight.applyTo(pixels, shouldCancel)
+        backgroundFill?.let { applyBackgroundFill(pixels, source.width, source.height, it, shouldCancel) }
         return RasterImage(source.width, source.height, pixels, source.scaleFromOriginal)
+    }
+
+    private fun applyBackgroundMask(
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        stroke: BackgroundMaskStroke,
+        shouldCancel: () -> Boolean,
+    ) {
+        val maskStroke = BrushStroke(
+            stroke.id, BrushEditType.SMOOTH, stroke.points,
+            BrushSettings(stroke.radius, stroke.hardness, stroke.opacity, 1f),
+        )
+        StrokeMask.create(maskStroke, width, height).forEach(shouldCancel) { x, y, coverage ->
+            val index = y * width + x
+            val color = pixels[index]
+            val alpha = color ushr 24 and 0xFF
+            val target = if (stroke.mode == BackgroundBrushMode.REMOVE) 0 else 255
+            val next = (alpha + (target - alpha) * coverage * stroke.opacity).roundToInt().coerceIn(0, 255)
+            pixels[index] = (color and 0x00FFFFFF) or (next shl 24)
+        }
+    }
+
+    private fun applyBackgroundFill(
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        fill: BackgroundFill,
+        shouldCancel: () -> Boolean,
+    ) {
+        if (fill.mode == BackgroundFillMode.TRANSPARENT || fill.mode == BackgroundFillMode.IMAGE) return
+        for (y in 0 until height) {
+            if (y and 31 == 0 && shouldCancel()) throw CancellationException("Background render superseded")
+            val t = if (height <= 1) 0f else y.toFloat() / (height - 1)
+            val background = if (fill.mode == BackgroundFillMode.SOLID) fill.startColor else blend(fill.startColor, fill.endColor, t)
+            for (x in 0 until width) {
+                val index = y * width + x
+                val foreground = pixels[index]
+                val alpha = (foreground ushr 24 and 0xFF) / 255f
+                val amount = (1f - alpha) * fill.opacity
+                val composited = blend(background, foreground or (0xFF shl 24), alpha)
+                pixels[index] = blend(foreground, composited, amount).let { it or (0xFF shl 24) }
+            }
+        }
+    }
+
+    private fun applyLiquify(
+        pixels: IntArray,
+        original: IntArray,
+        width: Int,
+        height: Int,
+        stroke: LiquifyStroke,
+        shouldCancel: () -> Boolean,
+    ) {
+        val snapshot = pixels.copyOf()
+        val points = stroke.points.map { it.x * (width - 1) to it.y * (height - 1) }
+        val radius = stroke.radius * min(width, height)
+        val left = floor(points.minOf { it.first } - radius).toInt().coerceAtLeast(0)
+        val top = floor(points.minOf { it.second } - radius).toInt().coerceAtLeast(0)
+        val right = ceil(points.maxOf { it.first } + radius).toInt().coerceAtMost(width - 1)
+        val bottom = ceil(points.maxOf { it.second } + radius).toInt().coerceAtMost(height - 1)
+        val center = points.last()
+        val pushX = points.last().first - points.first().first
+        val pushY = points.last().second - points.first().second
+        for (y in top..bottom) {
+            if (y and 15 == 0 && shouldCancel()) throw CancellationException("Liquify render superseded")
+            for (x in left..right) {
+                val nearest = points.minBy { (px, py) -> (x - px) * (x - px) + (y - py) * (y - py) }
+                val distance = hypot(x - nearest.first, y - nearest.second)
+                if (distance > radius) continue
+                val edgeStart = radius * (1f - stroke.feather)
+                val weight = if (distance <= edgeStart) 1f else 1f - smoothStep(edgeStart, radius, distance)
+                val amount = weight * stroke.strength
+                val index = y * width + x
+                if (stroke.type == LiquifyType.RESTORE) {
+                    pixels[index] = blend(pixels[index], original[index], amount)
+                    continue
+                }
+                var sx = x.toFloat(); var sy = y.toFloat()
+                when (stroke.type) {
+                    LiquifyType.PUSH -> { sx -= pushX * amount; sy -= pushY * amount }
+                    LiquifyType.PINCH, LiquifyType.SHRINK -> {
+                        sx = center.first + (x - center.first) * (1f + amount * .65f)
+                        sy = center.second + (y - center.second) * (1f + amount * .65f)
+                    }
+                    LiquifyType.EXPAND -> {
+                        sx = center.first + (x - center.first) * (1f - amount * .45f)
+                        sy = center.second + (y - center.second) * (1f - amount * .45f)
+                    }
+                    LiquifyType.TWIRL_CLOCKWISE, LiquifyType.TWIRL_COUNTERCLOCKWISE -> {
+                        val direction = if (stroke.type == LiquifyType.TWIRL_CLOCKWISE) -1f else 1f
+                        val angle = direction * amount * .7f
+                        val dx = x - center.first; val dy = y - center.second
+                        sx = center.first + cos(angle) * dx - sin(angle) * dy
+                        sy = center.second + sin(angle) * dx + cos(angle) * dy
+                    }
+                    LiquifyType.RESTORE -> Unit
+                }
+                pixels[index] = sample(snapshot, width, height, sx, sy)
+            }
+        }
+    }
+
+    private fun sample(pixels: IntArray, width: Int, height: Int, x: Float, y: Float): Int {
+        val cx = x.coerceIn(0f, width - 1f); val cy = y.coerceIn(0f, height - 1f)
+        val x0 = floor(cx).toInt(); val y0 = floor(cy).toInt(); val x1 = min(x0 + 1, width - 1); val y1 = min(y0 + 1, height - 1)
+        val fx = cx - x0; val fy = cy - y0
+        fun channel(shift: Int): Float {
+            val a = pixels[y0 * width + x0] ushr shift and 0xFF; val b = pixels[y0 * width + x1] ushr shift and 0xFF
+            val c = pixels[y1 * width + x0] ushr shift and 0xFF; val d = pixels[y1 * width + x1] ushr shift and 0xFF
+            return (a + (b - a) * fx) * (1f - fy) + (c + (d - c) * fx) * fy
+        }
+        return pack(channel(24).roundToInt(), channel(16), channel(8), channel(0))
     }
 
     private fun applyClone(pixels: IntArray, width: Int, height: Int, stroke: BrushStroke, shouldCancel: () -> Boolean) {

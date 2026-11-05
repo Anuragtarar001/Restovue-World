@@ -21,6 +21,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.CancellationException
 import kotlin.math.roundToInt
 import kotlin.math.min
+import java.io.ByteArrayOutputStream
 
 class AndroidImageRepository(
     private val resolver: ContentResolver,
@@ -59,19 +60,24 @@ class AndroidImageRepository(
         fullSource = null
         renderContext.ensureActive()
         val renderedBitmap = rendered.toBitmap()
-        val outputBitmap = resizeForExport(renderedBitmap, options)
+        val effectiveOptions = options.copy(maxWidth = options.maxWidth ?: edits.cropOutputWidth, maxHeight = options.maxHeight ?: edits.cropOutputHeight)
+        val outputBitmap = resizeForExport(renderedBitmap, effectiveOptions)
         try {
+            val compressFormat = when (options.format) {
+                ExportFormat.JPEG -> Bitmap.CompressFormat.JPEG
+                ExportFormat.PNG -> Bitmap.CompressFormat.PNG
+                ExportFormat.WEBP -> Bitmap.CompressFormat.WEBP
+            }
+            val encoded = if (options.targetKilobytes != null && options.format != ExportFormat.PNG) {
+                encodeToTarget(outputBitmap, compressFormat, options.jpegQuality, options.targetKilobytes)
+            } else null
             resolver.openOutputStream(destinationUri, "w").use { stream ->
                 requireNotNull(stream) { "Unable to open export destination" }
-                val compressFormat = when (options.format) {
-                    ExportFormat.JPEG -> Bitmap.CompressFormat.JPEG
-                    ExportFormat.PNG -> Bitmap.CompressFormat.PNG
-                }
-                val quality = if (options.format == ExportFormat.JPEG) options.jpegQuality else 100
-                check(outputBitmap.compress(compressFormat, quality, stream)) { "Image encoding failed" }
+                if (encoded != null) stream.write(encoded.bytes)
+                else check(outputBitmap.compress(compressFormat, if (options.format == ExportFormat.PNG) 100 else options.jpegQuality, stream)) { "Image encoding failed" }
             }
             if (options.preserveMetadata) {
-                copyMetadata(sourceUri, destinationUri, outputBitmap.width, outputBitmap.height)
+                copyMetadata(sourceUri, destinationUri, encoded?.width ?: outputBitmap.width, encoded?.height ?: outputBitmap.height)
             }
         } catch (cancelled: CancellationException) {
             runCatching { resolver.delete(destinationUri, null, null) }
@@ -79,6 +85,36 @@ class AndroidImageRepository(
         } finally {
             outputBitmap.recycle()
             if (outputBitmap !== renderedBitmap) renderedBitmap.recycle()
+        }
+    }
+
+    private data class EncodedTarget(val bytes: ByteArray, val width: Int, val height: Int)
+
+    private fun encodeToTarget(bitmap: Bitmap, format: Bitmap.CompressFormat, preferredQuality: Int, targetKb: Int): EncodedTarget {
+        val targetBytes = targetKb * 1024L
+        var working = bitmap
+        var ownsWorking = false
+        try {
+            repeat(12) {
+                var low = 1; var high = preferredQuality; var best: ByteArray? = null
+                repeat(7) {
+                    if (low <= high) {
+                        val quality = (low + high) / 2
+                        val bytes = ByteArrayOutputStream((targetBytes.coerceAtMost(4L * 1024 * 1024)).toInt()).use { output ->
+                            check(working.compress(format, quality, output)) { "Image encoding failed" }; output.toByteArray()
+                        }
+                        if (bytes.size <= targetBytes) { best = bytes; low = quality + 1 } else high = quality - 1
+                    }
+                }
+                if (best != null) return EncodedTarget(requireNotNull(best), working.width, working.height)
+                if (min(working.width, working.height) <= 320) return@repeat
+                val next = working.scale((working.width * .85f).roundToInt().coerceAtLeast(1), (working.height * .85f).roundToInt().coerceAtLeast(1))
+                if (ownsWorking) working.recycle()
+                working = next; ownsWorking = true
+            }
+            throw IllegalArgumentException("Target size cannot be reached within the minimum output dimensions")
+        } finally {
+            if (ownsWorking) working.recycle()
         }
     }
 

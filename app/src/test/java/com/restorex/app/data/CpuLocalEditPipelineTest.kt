@@ -1,9 +1,15 @@
 package com.restorex.app.data
 
 import com.restorex.app.domain.model.BrushEditType
+import com.restorex.app.domain.model.BackgroundBrushMode
+import com.restorex.app.domain.model.BackgroundFill
+import com.restorex.app.domain.model.BackgroundFillMode
+import com.restorex.app.domain.model.BackgroundMaskStroke
 import com.restorex.app.domain.model.BrushSettings
 import com.restorex.app.domain.model.BrushStroke
 import com.restorex.app.domain.model.LinearLight
+import com.restorex.app.domain.model.LiquifyStroke
+import com.restorex.app.domain.model.LiquifyType
 import com.restorex.app.domain.model.NormalizedPoint
 import com.restorex.app.domain.model.RadialLight
 import com.restorex.app.domain.model.RasterImage
@@ -132,6 +138,67 @@ class CpuLocalEditPipelineTest {
         CpuLocalEditPipeline.apply(source, listOf(stroke(BrushEditType.DODGE, listOf(point(12, 12, source)))))
 
         assertArrayEquals(original, source.argb)
+    }
+
+    @Test
+    fun liquifyPushChangesOnlyItsBoundedBrushRegion() {
+        val source = RasterImage(40, 30, IntArray(40 * 30) { index ->
+            val x = index % 40
+            rgb(x * 6, x * 3, x)
+        })
+        val push = LiquifyStroke(
+            id = 9,
+            type = LiquifyType.PUSH,
+            points = listOf(point(15, 15, source), point(22, 15, source)),
+            radius = .2f,
+            strength = .8f,
+        )
+
+        val output = CpuLocalEditPipeline.apply(source, listOf(push))
+
+        assertTrue(output[20, 15] != source[20, 15])
+        assertEquals(source[1, 1], output[1, 1])
+        assertArrayEquals(source.argb, source.argb.copyOf())
+    }
+
+    @Test
+    fun liquifyRestoreMovesAnEarlierDeformationTowardTheSource() {
+        val source = RasterImage(40, 30, IntArray(40 * 30) { index ->
+            val x = index % 40
+            rgb(x * 6, x * 3, x)
+        })
+        val points = listOf(point(15, 15, source), point(22, 15, source))
+        val pushed = LiquifyStroke(10, LiquifyType.PUSH, points, .2f, 1f)
+        val restored = LiquifyStroke(11, LiquifyType.RESTORE, listOf(point(20, 15, source)), .2f, 1f)
+
+        val deformed = CpuLocalEditPipeline.apply(source, listOf(pushed))
+        val repaired = CpuLocalEditPipeline.apply(source, listOf(pushed, restored))
+
+        assertTrue(abs(red(repaired[20, 15]) - red(source[20, 15])) < abs(red(deformed[20, 15]) - red(source[20, 15])))
+    }
+
+    @Test
+    fun backgroundRemovalCreatesAlphaOnlyInsideThePaintedMask() {
+        val source = solid(32, 32, 120)
+        val remove = BackgroundMaskStroke(20, BackgroundBrushMode.REMOVE, listOf(point(16, 16, source)), .2f, .7f, 1f)
+
+        val output = CpuLocalEditPipeline.apply(source, listOf(remove))
+
+        assertTrue((output[16, 16] ushr 24) < 20)
+        assertEquals(255, output[1, 1] ushr 24)
+    }
+
+    @Test
+    fun solidBackgroundCompositesRemovedPixelsAndKeepsOpaqueForeground() {
+        val source = solid(32, 32, 120)
+        val remove = BackgroundMaskStroke(21, BackgroundBrushMode.REMOVE, listOf(point(16, 16, source)), .2f, .7f, 1f)
+        val fill = BackgroundFill(22, BackgroundFillMode.SOLID, rgb(10, 20, 220))
+
+        val output = CpuLocalEditPipeline.apply(source, listOf(remove, fill))
+
+        assertTrue((output[16, 16] and 0xFF) > 180)
+        assertEquals(255, output[16, 16] ushr 24)
+        assertEquals(source[1, 1], output[1, 1])
     }
 
     private fun stroke(
