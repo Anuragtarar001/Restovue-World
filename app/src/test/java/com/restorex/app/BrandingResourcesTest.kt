@@ -18,6 +18,7 @@ class BrandingResourcesTest {
         assertTrue(manifest.contains("android:roundIcon=\"@mipmap/ic_launcher_round\""))
         assertTrue(strings.contains("Restovue : Photo Editor"))
         assertTrue(strings.contains("NextGen TechEdge Solutions"))
+        assertTrue(strings.contains("https://www.nextgentechedge.com/"))
         assertTrue(build.contains("applicationId = \"com.restorex.app\""))
         assertFalse(manifest.contains("android.permission.INTERNET"))
         assertTrue(File(root, "src/main/res/drawable-nodpi/restovue_logo.png").isFile)

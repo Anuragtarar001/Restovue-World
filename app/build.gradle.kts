@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+val uploadStoreFile = providers.environmentVariable("RESTOVUE_UPLOAD_STORE_FILE").orNull
+val uploadStorePassword = providers.environmentVariable("RESTOVUE_UPLOAD_STORE_PASSWORD").orNull
+val uploadKeyAlias = providers.environmentVariable("RESTOVUE_UPLOAD_KEY_ALIAS").orNull
+val uploadKeyPassword = providers.environmentVariable("RESTOVUE_UPLOAD_KEY_PASSWORD").orNull
+val hasUploadSigning = listOf(uploadStoreFile, uploadStorePassword, uploadKeyAlias, uploadKeyPassword).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.restorex.app"
     compileSdk = 36
@@ -12,8 +18,8 @@ android {
         applicationId = "com.restorex.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.7.1"
+        versionCode = 9
+        versionName = "0.9.0-rc1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -27,8 +33,18 @@ android {
     }
 
     buildTypes {
+        if (hasUploadSigning) {
+            signingConfigs.create("upload") {
+                storeFile = file(requireNotNull(uploadStoreFile))
+                storePassword = requireNotNull(uploadStorePassword)
+                keyAlias = requireNotNull(uploadKeyAlias)
+                keyPassword = requireNotNull(uploadKeyPassword)
+            }
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            if (hasUploadSigning) signingConfig = signingConfigs.getByName("upload")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

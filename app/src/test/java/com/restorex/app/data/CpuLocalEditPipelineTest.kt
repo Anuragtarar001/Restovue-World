@@ -178,6 +178,39 @@ class CpuLocalEditPipelineTest {
     }
 
     @Test
+    fun everyNonRestoreLiquifyModeProducesABoundedDeterministicWarp() {
+        val source = RasterImage(48, 40, IntArray(48 * 40) { index ->
+            val x = index % 48
+            val y = index / 48
+            rgb((x * 19 + y * 7) and 255, (x * 5 + y * 23) and 255, (x * 13 + y * 11) and 255)
+        })
+        val modes = listOf(
+            LiquifyType.PINCH,
+            LiquifyType.EXPAND,
+            LiquifyType.SHRINK,
+            LiquifyType.TWIRL_CLOCKWISE,
+            LiquifyType.TWIRL_COUNTERCLOCKWISE,
+        )
+
+        modes.forEachIndexed { index, mode ->
+            val operation = LiquifyStroke(
+                id = 30L + index,
+                type = mode,
+                points = listOf(point(24, 20, source)),
+                radius = .28f,
+                strength = .85f,
+                feather = .6f,
+            )
+            val first = CpuLocalEditPipeline.apply(source, listOf(operation))
+            val second = CpuLocalEditPipeline.apply(source, listOf(operation))
+
+            assertTrue("$mode must change pixels", first.argb.indices.any { first.argb[it] != source.argb[it] })
+            assertEquals("$mode must stay inside its brush", source[1, 1], first[1, 1])
+            assertArrayEquals("$mode must be deterministic", first.argb, second.argb)
+        }
+    }
+
+    @Test
     fun backgroundRemovalCreatesAlphaOnlyInsideThePaintedMask() {
         val source = solid(32, 32, 120)
         val remove = BackgroundMaskStroke(20, BackgroundBrushMode.REMOVE, listOf(point(16, 16, source)), .2f, .7f, 1f)
