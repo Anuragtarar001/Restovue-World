@@ -12,6 +12,8 @@ import com.restorex.app.domain.model.BatchOptions
 import com.restorex.app.domain.model.EditState
 import com.restorex.app.domain.model.RasterImage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -24,10 +26,8 @@ class AndroidBatchProcessor(private val resolver: ContentResolver, private val p
 
     suspend fun process(sources: List<String>, destinationTree: String, options: BatchOptions, edits: EditState, onProgress: (Int, Int) -> Unit): Result = withContext(Dispatchers.IO) {
         require(sources.size in 2..50)
-        val failures = mutableListOf<String>(); var completed = 0
-        sources.forEachIndexed { index, source ->
-            coroutineContext.ensureActive()
-            runCatching {
+        runSequentialBatch(sources, onProgress) { index, source ->
+                coroutineContext.ensureActive()
                 val decoded = decode(source, options)
                 val rotated = rotate(decoded, options.quarterTurns)
                 val batchEdits = EditState(adjustments = edits.adjustments, filter = edits.filter, lut = edits.lut)
@@ -35,18 +35,26 @@ class AndroidBatchProcessor(private val resolver: ContentResolver, private val p
                 val bitmap = rendered.toBitmap()
                 try {
                     val name = "${options.prefix}${(index + 1).toString().padStart(3, '0')}.${options.format.extension}"
-                    val uri = DocumentsContract.createDocument(resolver, destinationTree.toUri(), options.format.mimeType, name)
+                    val treeUri = destinationTree.toUri()
+                    val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+                    val uri = DocumentsContract.createDocument(resolver, parent, options.format.mimeType, name)
                         ?: error("Cannot create $name")
                     resolver.openOutputStream(uri, "w").use { stream ->
-                        requireNotNull(stream); val format = when (options.format) { BatchFormat.JPEG -> Bitmap.CompressFormat.JPEG; BatchFormat.PNG -> Bitmap.CompressFormat.PNG; BatchFormat.WEBP -> Bitmap.CompressFormat.WEBP }
-                        check(bitmap.compress(format, if (options.format == BatchFormat.PNG) 100 else options.quality, stream))
+                        requireNotNull(stream)
+                        val format = compressFormat(options.format)
+                        val encoded = options.targetKilobytes?.let { AndroidTargetSizeEncoder.encode(bitmap, format, options.quality, it) }
+                        if (encoded != null) stream.write(encoded.bytes)
+                        else check(bitmap.compress(format, if (options.format == BatchFormat.PNG) 100 else options.quality, stream))
                     }
                     if (!options.removeMetadata) copyMetadata(source.toUri(), uri)
                 } finally { bitmap.recycle() }
-            }.onSuccess { completed++ }.onFailure { failures += "Image ${index + 1}: ${it.message ?: "failed"}" }
-            onProgress(index + 1, sources.size)
         }
-        Result(completed, failures)
+    }
+
+    private fun compressFormat(format: BatchFormat): Bitmap.CompressFormat = when (format) {
+        BatchFormat.JPEG -> Bitmap.CompressFormat.JPEG
+        BatchFormat.PNG -> Bitmap.CompressFormat.PNG
+        BatchFormat.WEBP -> Bitmap.CompressFormat.WEBP
     }
 
     private fun copyMetadata(source: android.net.Uri, destination: android.net.Uri) {
@@ -76,4 +84,27 @@ class AndroidBatchProcessor(private val resolver: ContentResolver, private val p
         val output = Bitmap.createBitmap(input, 0, 0, input.width, input.height, matrix, true); input.recycle()
         return output.toRaster(source.scaleFromOriginal).also { output.recycle() }
     }
+}
+
+/** Sequential execution keeps peak image memory bounded and continues after per-item failures. */
+internal suspend fun <T> runSequentialBatch(
+    items: List<T>,
+    onProgress: (completedItems: Int, totalItems: Int) -> Unit,
+    action: suspend (index: Int, item: T) -> Unit,
+): AndroidBatchProcessor.Result {
+    val failures = mutableListOf<String>()
+    var completed = 0
+    items.forEachIndexed { index, item ->
+        currentCoroutineContext().ensureActive()
+        try {
+            action(index, item)
+            completed++
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Throwable) {
+            failures += "Image ${index + 1}: ${error.message ?: "failed"}"
+        }
+        onProgress(index + 1, items.size)
+    }
+    return AndroidBatchProcessor.Result(completed, failures)
 }

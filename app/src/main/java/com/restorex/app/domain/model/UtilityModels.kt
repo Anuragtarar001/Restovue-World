@@ -7,7 +7,11 @@ enum class UtilityMode(val label: String, val minimumImages: Int, val maximumIma
     BATCH("Batch editor", 2, 50),
 }
 
-enum class BatchFormat(val mimeType: String, val extension: String) { JPEG("image/jpeg", "jpg"), PNG("image/png", "png"), WEBP("image/webp", "webp") }
+enum class BatchFormat(val mimeType: String, val extension: String) {
+    JPEG("image/jpeg", "jpg"),
+    PNG("image/png", "png"),
+    WEBP("image/webp", "webp"),
+}
 data class BatchOptions(
     val format: BatchFormat = BatchFormat.JPEG,
     val quality: Int = 90,
@@ -16,8 +20,15 @@ data class BatchOptions(
     val quarterTurns: Int = 0,
     val removeMetadata: Boolean = false,
     val prefix: String = "Restovue_",
+    val targetKilobytes: Int? = null,
 ) {
-    init { require(quality in 1..100 && quarterTurns in 0..3 && prefix.length <= 40); require(maxWidth == null || maxWidth > 0); require(maxHeight == null || maxHeight > 0) }
+    init {
+        require(quality in 1..100 && quarterTurns in 0..3 && prefix.length <= 40)
+        require(maxWidth == null || maxWidth > 0)
+        require(maxHeight == null || maxHeight > 0)
+        require(targetKilobytes == null || targetKilobytes in 10..50_000)
+        require(targetKilobytes == null || format != BatchFormat.PNG) { "PNG cannot target a lossy file size" }
+    }
 }
 
 data class UtilityOptions(

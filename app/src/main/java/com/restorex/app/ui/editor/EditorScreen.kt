@@ -358,6 +358,9 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                         holdOriginal = holdOriginal,
                         splitComparison = splitComparison,
                         isRendering = state.isRendering || state.isBusy,
+                        processingLabel = state.busyLabel,
+                        processingCancellable = state.isUtilityProcessing,
+                        onCancelProcessing = viewModel::cancelUtility,
                         sourceIdentity = state.sourceIdentity,
                         retouch = state.retouch,
                         retouchActive = selectedTool == EditorTool.RETOUCH,
@@ -402,6 +405,9 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                 } else {
                     EmptyEditor(
                         isBusy = state.isBusy,
+                        busyLabel = state.busyLabel,
+                        canCancel = state.isUtilityProcessing,
+                        onCancel = viewModel::cancelUtility,
                         onAbout = { showAbout = true },
                         onDeveloperClick = { openDeveloperWebsite(context, developerUrl) },
                         onImport = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
@@ -585,6 +591,9 @@ private fun CompareButton(
 @Composable
 private fun ColumnScope.EmptyEditor(
     isBusy: Boolean,
+    busyLabel: String?,
+    canCancel: Boolean,
+    onCancel: () -> Unit,
     onImport: () -> Unit,
     onAbout: () -> Unit,
     onDeveloperClick: () -> Unit,
@@ -612,7 +621,11 @@ private fun ColumnScope.EmptyEditor(
             ) { Text("Choose photo", fontWeight = FontWeight.SemiBold) }
             TextButton(onClick = onUtilities) { Text("Collage, HDR, panorama and utilities", color = RestoreXAccent) }
             TextButton(onClick = onAbout) { Text("About Restovue", color = RestoreXAccent) }
-            if (isBusy) CircularProgressIndicator(color = RestoreXAccent, modifier = Modifier.size(24.dp))
+            if (isBusy) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CircularProgressIndicator(color = RestoreXAccent, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                Text(busyLabel ?: "Processing", color = RestoreXText, fontSize = 12.sp)
+                if (canCancel) TextButton(onClick = onCancel) { Text("Cancel", color = RestoreXAccent) }
+            }
         }
     }
     Column(
@@ -687,6 +700,9 @@ private fun ColumnScope.ImageWorkspace(
     holdOriginal: Boolean,
     splitComparison: Boolean,
     isRendering: Boolean,
+    processingLabel: String?,
+    processingCancellable: Boolean,
+    onCancelProcessing: () -> Unit,
     sourceIdentity: Long,
     retouch: RetouchUiState,
     retouchActive: Boolean,
@@ -914,7 +930,13 @@ private fun ColumnScope.ImageWorkspace(
             }
         }
 
-        ProcessingBadge(isRendering, Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
+        ProcessingBadge(
+            isRendering,
+            processingLabel,
+            processingCancellable,
+            onCancelProcessing,
+            Modifier.align(Alignment.TopCenter).padding(top = 12.dp),
+        )
 
         Row(
             modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
@@ -935,7 +957,13 @@ private fun ColumnScope.ImageWorkspace(
 }
 
 @Composable
-private fun ProcessingBadge(isRendering: Boolean, modifier: Modifier = Modifier) {
+private fun ProcessingBadge(
+    isRendering: Boolean,
+    label: String?,
+    cancellable: Boolean,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(isRendering) {
         if (!isRendering) visible = false
@@ -951,7 +979,8 @@ private fun ProcessingBadge(isRendering: Boolean, modifier: Modifier = Modifier)
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             CircularProgressIndicator(color = RestoreXAccent, strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
-            Text("Processing", color = RestoreXText, fontSize = 12.sp)
+            Text(label ?: "Processing", color = RestoreXText, fontSize = 12.sp)
+            if (cancellable) TextButton(onClick = onCancel) { Text("Cancel", color = RestoreXAccent) }
         }
     }
 }
@@ -1466,22 +1495,32 @@ private fun BatchOptionsDialog(onDismiss: () -> Unit, onRun: (BatchOptions) -> U
     var format by remember { mutableStateOf(BatchFormat.JPEG) }; var quality by remember { mutableFloatStateOf(90f) }
     var width by remember { mutableStateOf("") }; var height by remember { mutableStateOf("") }; var turns by remember { mutableStateOf(0) }
     var removeMetadata by remember { mutableStateOf(false) }; var prefix by remember { mutableStateOf("Restovue_") }
-    val w = width.toIntOrNull(); val h = height.toIntOrNull(); val valid = (width.isBlank() || (w ?: 0) > 0) && (height.isBlank() || (h ?: 0) > 0) && prefix.length <= 40
+    var targetKb by remember { mutableStateOf("") }
+    val w = width.toIntOrNull(); val h = height.toIntOrNull(); val target = targetKb.toIntOrNull()
+    val valid = (width.isBlank() || (w ?: 0) > 0) && (height.isBlank() || (h ?: 0) > 0) && prefix.length <= 40 &&
+        (targetKb.isBlank() || (target ?: 0) in 10..50_000)
     AlertDialog(
         onDismissRequest = onDismiss, containerColor = RestoreXPanelRaised, title = { Text("Batch editor", color = RestoreXText) },
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            HorizontalTextSelector(BatchFormat.entries, format, { it.name }) { format = it }
+            HorizontalTextSelector(BatchFormat.entries, format, { it.name }) { format = it; if (it == BatchFormat.PNG) targetKb = "" }
             if (format != BatchFormat.PNG) AdjustmentSlider("Quality", quality, 20f..100f, 90f, { quality = it }, {}, { quality = 90f }, valueFormatter = { it.roundToInt().toString() })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(width, { width = it.filter(Char::isDigit).take(5) }, label = { Text("Max width") }, modifier = Modifier.weight(1f), singleLine = true)
                 OutlinedTextField(height, { height = it.filter(Char::isDigit).take(5) }, label = { Text("Max height") }, modifier = Modifier.weight(1f), singleLine = true)
             }
+            if (format != BatchFormat.PNG) OutlinedTextField(
+                targetKb,
+                { targetKb = it.filter(Char::isDigit).take(5) },
+                label = { Text("Optional target KB") },
+                supportingText = { Text("Quality is searched first; dimensions reduce only if necessary.") },
+                singleLine = true,
+            )
             HorizontalTextSelector(listOf(0, 1, 2, 3), turns, { "${it * 90}°" }) { turns = it }
             OutlinedTextField(prefix, { prefix = it.filter { c -> c.isLetterOrDigit() || c == '_' || c == '-' }.take(40) }, label = { Text("Filename prefix") }, singleLine = true)
             Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(removeMetadata, { removeMetadata = it }); Text("Remove metadata", color = RestoreXText, fontSize = 12.sp) }
             Text("Images are processed sequentially. Current adjustments and filter are applied; local brushes and creative overlays are excluded to avoid coordinate mismatches.", color = RestoreXMuted, fontSize = 10.sp)
         } },
-        confirmButton = { Button(enabled = valid, onClick = { onRun(BatchOptions(format, quality.roundToInt(), w, h, turns, removeMetadata, prefix)) }) { Text("Choose output folder") } },
+        confirmButton = { Button(enabled = valid, onClick = { onRun(BatchOptions(format, quality.roundToInt(), w, h, turns, removeMetadata, prefix, target)) }) { Text("Choose output folder") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
@@ -2480,8 +2519,8 @@ private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolea
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text("Export renders from the original photo. Blank dimensions preserve the edited resolution.", color = RestoreXMuted)
-                HorizontalTextSelector(ExportFormat.entries, format, { it.name }) { format = it }
-                if (format == ExportFormat.JPEG) {
+                HorizontalTextSelector(ExportFormat.entries, format, { it.name }) { format = it; if (it == ExportFormat.PNG) targetKb = "" }
+                if (format != ExportFormat.PNG) {
                     AdjustmentSlider(
                         "Quality", quality, 50f..100f, 95f,
                         onChange = { quality = it }, onCommit = {}, onReset = { quality = 95f },
@@ -2527,7 +2566,7 @@ private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolea
         confirmButton = {
             Button(enabled = dimensionsValid, onClick = {
                 onExport(
-                    ExportOptions(format, quality.roundToInt(), widthValue, heightValue, preserveMetadata, targetValue),
+                    ExportOptions(format, quality.roundToInt(), widthValue, heightValue, preserveMetadata, targetValue.takeIf { format != ExportFormat.PNG }),
                     shareAfterExport,
                 )
             }) { Text("Save to device") }

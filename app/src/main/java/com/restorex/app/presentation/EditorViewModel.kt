@@ -138,6 +138,8 @@ data class EditorUiState(
     val savedPresets: List<SavedPreset> = emptyList(),
     val localEditOverlay: List<LocalEditOperation> = emptyList(),
     val isBusy: Boolean = false,
+    val busyLabel: String? = null,
+    val isUtilityProcessing: Boolean = false,
     val isRendering: Boolean = false,
     val isExporting: Boolean = false,
     val canUndo: Boolean = false,
@@ -215,7 +217,7 @@ class EditorViewModel(
         previewResizeJob?.cancel()
         viewportPreviewDimension = previewMaxDimension
         viewModelScope.launch {
-            _uiState.update { it.copy(isBusy = true, message = null) }
+            _uiState.update { it.copy(isBusy = true, busyLabel = "Opening photo", message = null) }
             runCatching {
                 val source = ImageSource(uri)
                 val raster = loadImage(source, previewMaxDimension)
@@ -231,16 +233,18 @@ class EditorViewModel(
                 sourceIdentity++
                 raster
             }.onSuccess { raster ->
+                val retained = _uiState.value
                 _uiState.value = EditorUiState(
                     preview = raster,
                     originalPreview = raster,
                     presets = filterCatalog.presets,
-                    importedLuts = _uiState.value.importedLuts,
+                    importedLuts = retained.importedLuts,
+                    savedPresets = retained.savedPresets,
                     sourceIdentity = sourceIdentity,
                 )
             }.onFailure { error ->
                 if (error !is CancellationException) {
-                    _uiState.update { it.copy(isBusy = false, message = error.userMessage("Could not open image")) }
+                    _uiState.update { it.copy(isBusy = false, busyLabel = null, message = error.userMessage("Could not open image")) }
                 }
             }
         }
@@ -260,7 +264,12 @@ class EditorViewModel(
         reportedDiscardedHistory = 0
         previewCache.clear()
         thumbnailCache.clear()
-        _uiState.value = EditorUiState(presets = filterCatalog.presets, importedLuts = _uiState.value.importedLuts)
+        val retained = _uiState.value
+        _uiState.value = EditorUiState(
+            presets = filterCatalog.presets,
+            importedLuts = retained.importedLuts,
+            savedPresets = retained.savedPresets,
+        )
     }
 
     fun updatePreviewViewport(widthPx: Int, heightPx: Int) {
@@ -738,12 +747,13 @@ class EditorViewModel(
         exportJob?.cancel()
         previewResizeJob?.cancel()
         exportJob = viewModelScope.launch {
-            _uiState.update { it.copy(isBusy = true, isExporting = true, isRendering = false, message = null) }
+            _uiState.update { it.copy(isBusy = true, busyLabel = "Exporting", isExporting = true, isRendering = false, message = null) }
             try {
                 exportImage(source, edits, destination, options)
                 _uiState.update {
                     it.copy(
                         isBusy = false,
+                        busyLabel = null,
                         isExporting = false,
                         message = "${options.format.name} exported",
                         shareUri = destination.takeIf { shareAfterExport },
@@ -751,9 +761,9 @@ class EditorViewModel(
                     )
                 }
             } catch (cancelled: CancellationException) {
-                _uiState.update { it.copy(isBusy = false, isExporting = false, message = "Export cancelled") }
+                _uiState.update { it.copy(isBusy = false, busyLabel = null, isExporting = false, message = "Export cancelled") }
             } catch (error: Throwable) {
-                _uiState.update { it.copy(isBusy = false, isExporting = false, message = error.userMessage("Export failed")) }
+                _uiState.update { it.copy(isBusy = false, busyLabel = null, isExporting = false, message = error.userMessage("Export failed")) }
             } finally {
                 if (sourceRef != null) scheduleRender(RenderQuality.SETTLED)
             }
@@ -763,14 +773,14 @@ class EditorViewModel(
     fun runUtility(mode: UtilityMode, sources: List<String>, destination: String, options: UtilityOptions = UtilityOptions()) {
         utilityJob?.cancel()
         utilityJob = viewModelScope.launch {
-            _uiState.update { it.copy(isBusy = true, message = "${mode.label} processing started") }
+            _uiState.update { it.copy(isBusy = true, busyLabel = mode.label, isUtilityProcessing = true, message = "${mode.label} processing started") }
             try {
                 utilityProcessor.process(mode, sources, destination, options)
-                _uiState.update { it.copy(isBusy = false, message = "${mode.label} saved successfully") }
+                _uiState.update { it.copy(isBusy = false, busyLabel = null, isUtilityProcessing = false, message = "${mode.label} saved successfully") }
             } catch (cancelled: CancellationException) {
-                _uiState.update { it.copy(isBusy = false, message = "${mode.label} cancelled") }; throw cancelled
+                _uiState.update { it.copy(isBusy = false, busyLabel = null, isUtilityProcessing = false, message = "${mode.label} cancelled") }; throw cancelled
             } catch (error: Throwable) {
-                _uiState.update { it.copy(isBusy = false, message = error.userMessage("${mode.label} failed")) }
+                _uiState.update { it.copy(isBusy = false, busyLabel = null, isUtilityProcessing = false, message = error.userMessage("${mode.label} failed")) }
             }
         }
     }
@@ -781,14 +791,14 @@ class EditorViewModel(
     fun runBatch(sources: List<String>, destinationTree: String, options: BatchOptions) {
         utilityJob?.cancel()
         utilityJob = viewModelScope.launch {
-            _uiState.update { it.copy(isBusy = true) }
+            _uiState.update { it.copy(isBusy = true, busyLabel = "Batch 0 of ${sources.size}", isUtilityProcessing = true) }
             try {
                 val result = batchProcessor.process(sources, destinationTree, options, session.draft) { done, total ->
-                    _uiState.update { it.copy(message = if (done == total) null else "Batch $done of $total") }
+                    _uiState.update { it.copy(busyLabel = "Batch $done of $total") }
                 }
-                _uiState.update { it.copy(isBusy = false, message = "Batch saved ${result.completed} image(s)${if (result.failures.isEmpty()) "" else "; ${result.failures.size} failed"}") }
-            } catch (cancelled: CancellationException) { _uiState.update { it.copy(isBusy = false, message = "Batch cancelled") }; throw cancelled }
-            catch (error: Throwable) { _uiState.update { it.copy(isBusy = false, message = error.userMessage("Batch failed")) } }
+                _uiState.update { it.copy(isBusy = false, busyLabel = null, isUtilityProcessing = false, message = "Batch saved ${result.completed} image(s)${if (result.failures.isEmpty()) "" else "; ${result.failures.size} failed"}") }
+            } catch (cancelled: CancellationException) { _uiState.update { it.copy(isBusy = false, busyLabel = null, isUtilityProcessing = false, message = "Batch cancelled") }; throw cancelled }
+            catch (error: Throwable) { _uiState.update { it.copy(isBusy = false, busyLabel = null, isUtilityProcessing = false, message = error.userMessage("Batch failed")) } }
         }
     }
 
