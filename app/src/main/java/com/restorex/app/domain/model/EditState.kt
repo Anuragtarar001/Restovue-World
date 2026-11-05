@@ -191,13 +191,19 @@ data class EditState(
     val cropAspect: CropAspect = CropAspect.ORIGINAL,
     val filter: FilterSelection = FilterSelection(),
     val lut: LutSelection? = null,
+    val localEdits: List<LocalEditOperation> = emptyList(),
 ) {
-    init { require(quarterTurnsClockwise in 0..3) }
+    init {
+        require(quarterTurnsClockwise in 0..3)
+        require(localEdits.size <= MAX_LOCAL_OPERATIONS)
+    }
     fun rotatedClockwise() = copy(quarterTurnsClockwise = (quarterTurnsClockwise + 1) % 4)
     val effectiveAdjustments get() = adjustments.blendedWith(filter.adjustments, filter.intensity)
-    fun geometryOnly() = copy(adjustments = Adjustments(), filter = FilterSelection(), lut = null)
+    fun geometryOnly() = copy(adjustments = Adjustments(), filter = FilterSelection(), lut = null, localEdits = emptyList())
     val isOriginal get() = adjustments.isNeutral && quarterTurnsClockwise == 0 && cropAspect == CropAspect.ORIGINAL &&
-        filter.isOriginal && (lut == null || lut.intensity == 0f)
+        filter.isOriginal && (lut == null || lut.intensity == 0f) && localEdits.isEmpty()
+
+    companion object { const val MAX_LOCAL_OPERATIONS = 500 }
 }
 
 data class FilterSelection(

@@ -10,9 +10,21 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Assert.assertThrows
+import kotlinx.coroutines.CancellationException
 import kotlin.math.abs
 
 class CpuImagePipelineTest {
+    @Test
+    fun obsoleteRenderCanCancelDuringPixelProcessing() {
+        val source = RasterImage(512, 512, IntArray(512 * 512) { rgb(it % 255, it / 3 % 255, it / 7 % 255) })
+        var checks = 0
+
+        assertThrows(CancellationException::class.java) {
+            CpuImagePipeline.apply(source, Adjustments(exposure = .5f), shouldCancel = { ++checks > 2 })
+        }
+    }
+
     @Test
     fun exposureUsesEvGain() {
         val source = solid(1, 1, rgb(64, 64, 64))

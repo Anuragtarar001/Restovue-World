@@ -14,6 +14,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +49,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -74,17 +81,20 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -104,10 +114,19 @@ import com.restorex.app.domain.model.ExportFormat
 import com.restorex.app.domain.model.FilterCategory
 import com.restorex.app.domain.model.HslColorRange
 import com.restorex.app.domain.model.RasterImage
+import com.restorex.app.domain.model.BrushEditType
+import com.restorex.app.domain.model.BrushStroke
+import com.restorex.app.domain.model.LinearLight
+import com.restorex.app.domain.model.LocalEditOperation
+import com.restorex.app.domain.model.NormalizedPoint
+import com.restorex.app.domain.model.RadialLight
 import com.restorex.app.R
 import com.restorex.app.presentation.EditorUiState
 import com.restorex.app.presentation.EditorViewModel
 import com.restorex.app.presentation.EditorChromeState
+import com.restorex.app.presentation.PreviewSizing
+import com.restorex.app.presentation.RetouchTool
+import com.restorex.app.presentation.RetouchUiState
 import com.restorex.app.ui.theme.RestoreXAccent
 import com.restorex.app.ui.theme.RestoreXBackground
 import com.restorex.app.ui.theme.RestoreXDisabled
@@ -119,6 +138,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 private enum class EditorTool(val label: String, val icon: AppIcon, val available: Boolean) {
     CROP("Crop", AppIcon.Crop, true),
@@ -128,7 +148,7 @@ private enum class EditorTool(val label: String, val icon: AppIcon, val availabl
     FILTERS("Filters", AppIcon.Filters, true),
     FILM("Film", AppIcon.Filters, true),
     DETAILS("Details", AppIcon.Details, true),
-    RETOUCH("Retouch", AppIcon.Retouch, false),
+    RETOUCH("Retouch", AppIcon.Retouch, true),
 }
 
 @Composable
@@ -146,10 +166,17 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
     var pendingExport by remember { mutableStateOf(ExportOptions(ExportFormat.JPEG)) }
     var pendingShare by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val windowSize = LocalWindowInfo.current.containerSize
+    val previewMaxDimension = remember(windowSize) {
+        PreviewSizing.maxDimensionForViewport(
+            windowSize.width.coerceAtLeast(1),
+            windowSize.height.coerceAtLeast(1),
+        )
+    }
     val developerUrl = stringResource(R.string.developer_website_url)
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        uri?.let { viewModel.importImage(it.toString()) }
+        uri?.let { viewModel.importImage(it.toString(), previewMaxDimension) }
     }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         uri?.let { viewModel.export(it.toString(), pendingExport, pendingShare) }
@@ -228,6 +255,13 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                         splitComparison = splitComparison,
                         isRendering = state.isRendering || state.isBusy,
                         sourceIdentity = state.sourceIdentity,
+                        retouch = state.retouch,
+                        retouchActive = selectedTool == EditorTool.RETOUCH,
+                        localEditOverlay = state.localEditOverlay,
+                        onBrushStroke = viewModel::commitBrushStroke,
+                        onLightPlaced = viewModel::commitLightAt,
+                        onViewportChanged = viewModel::updatePreviewViewport,
+                        onZoomChanged = viewModel::requestZoomDetail,
                     )
                     if (chrome.showBottomTools) {
                         ContextualPanel(
@@ -273,7 +307,25 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                 onToggleFullScreen = { fullScreen = !fullScreen },
                 modifier = Modifier.align(Alignment.TopCenter).zIndex(10f).statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
             )
+            if (state.isExporting) ExportProgressOverlay(
+                onCancel = viewModel::cancelExport,
+                modifier = Modifier.align(Alignment.Center).zIndex(20f),
+            )
         }
+    }
+}
+
+@Composable
+private fun ExportProgressOverlay(onCancel: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier.background(Color(0xF21C1D20), RoundedCornerShape(18.dp)).padding(horizontal = 24.dp, vertical = 18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        CircularProgressIndicator(color = RestoreXAccent, strokeWidth = 3.dp, modifier = Modifier.size(36.dp))
+        Text("Exporting full-resolution photo", color = RestoreXText, fontWeight = FontWeight.SemiBold)
+        Text("Processing stays on this device", color = RestoreXMuted, fontSize = 11.sp)
+        TextButton(onClick = onCancel) { Text("Cancel export", color = RestoreXAccent) }
     }
 }
 
@@ -291,6 +343,7 @@ private fun EditorTopBar(
     onToggleFullScreen: () -> Unit,
     modifier: Modifier,
 ) {
+    var overflowExpanded by remember { mutableStateOf(false) }
     Row(
         modifier.fillMaxWidth().background(Color(0xE61C1D20), RoundedCornerShape(16.dp)).height(56.dp).padding(horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -300,25 +353,57 @@ private fun EditorTopBar(
             stringResource(R.string.app_name_short),
             modifier = Modifier.weight(1f).padding(start = 4.dp),
             color = RestoreXText,
-            fontSize = 18.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
         )
         ToolIconButton(AppIcon.Undo, "Undo", enabled = state.canUndo, onClick = onUndo)
-        ToolIconButton(AppIcon.Redo, "Redo", enabled = state.canRedo, onClick = onRedo)
         CompareButton(
             enabled = state.hasImage,
             selected = splitComparison,
             onHeld = onHoldOriginal,
             onClick = onToggleSplit,
         )
-        ToolIconButton(
+        if (fullScreen) ToolIconButton(
             AppIcon.Fullscreen,
-            if (fullScreen) "Exit Full Screen" else "Enter Full Screen",
+            "Exit Full Screen",
             enabled = state.hasImage,
             onClick = onToggleFullScreen,
         )
-        TextButton(onClick = onExport, enabled = state.hasImage && !state.isBusy, contentPadding = PaddingValues(6.dp)) {
-            Text("Export", color = if (state.hasImage) RestoreXAccent else RestoreXDisabled, fontWeight = FontWeight.SemiBold)
+        Box(
+            Modifier.width(56.dp).height(48.dp)
+                .clickable(enabled = state.hasImage && !state.isBusy, onClick = onExport)
+                .semantics { contentDescription = "Export photo" },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                "Export",
+                color = if (state.hasImage && !state.isBusy) RestoreXAccent else RestoreXDisabled,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
+        }
+        Box {
+            ToolIconButton(AppIcon.More, "More editor actions", onClick = { overflowExpanded = true })
+            DropdownMenu(
+                expanded = overflowExpanded,
+                onDismissRequest = { overflowExpanded = false },
+                containerColor = RestoreXPanelRaised,
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Redo", color = if (state.canRedo) RestoreXText else RestoreXDisabled) },
+                    enabled = state.canRedo,
+                    onClick = { overflowExpanded = false; onRedo() },
+                )
+                if (!fullScreen) DropdownMenuItem(
+                    text = { Text("Enter Full Screen", color = if (state.hasImage) RestoreXText else RestoreXDisabled) },
+                    enabled = state.hasImage,
+                    onClick = { overflowExpanded = false; onToggleFullScreen() },
+                )
+            }
         }
     }
 }
@@ -464,14 +549,21 @@ private fun ColumnScope.ImageWorkspace(
     splitComparison: Boolean,
     isRendering: Boolean,
     sourceIdentity: Long,
+    retouch: RetouchUiState,
+    retouchActive: Boolean,
+    localEditOverlay: List<LocalEditOperation>,
+    onBrushStroke: (List<NormalizedPoint>) -> Unit,
+    onLightPlaced: (NormalizedPoint) -> Unit,
+    onViewportChanged: (Int, Int) -> Unit,
+    onZoomChanged: (Float) -> Unit,
 ) {
     var viewport by remember { mutableStateOf(IntSize.Zero) }
-    var zoom by remember(sourceIdentity, edited.width, edited.height) { mutableFloatStateOf(1f) }
-    var pan by remember(sourceIdentity, edited.width, edited.height) { mutableStateOf(FloatPoint(0f, 0f)) }
+    var zoom by remember(sourceIdentity) { mutableFloatStateOf(1f) }
+    var pan by remember(sourceIdentity) { mutableStateOf(FloatPoint(0f, 0f)) }
     var scaleMode by remember(sourceIdentity) { mutableStateOf(CanvasScaleMode.FIT) }
     var split by remember { mutableFloatStateOf(0.5f) }
-    val editedBitmap = rememberRasterImage(edited)
-    val originalBitmap = rememberRasterImage(original)
+    var activeStroke by remember { mutableStateOf<List<NormalizedPoint>>(emptyList()) }
+    val (editedBitmap, originalBitmap) = rememberRasterPair(edited, original)
 
     fun coordinates(currentZoom: Float = zoom, currentPan: FloatPoint = pan): EditorCoordinates? {
         if (viewport.width <= 0 || viewport.height <= 0) return null
@@ -484,30 +576,89 @@ private fun ColumnScope.ImageWorkspace(
         )
     }
 
+    fun normalizedImagePoint(viewportPoint: Offset): NormalizedPoint? {
+        val mapping = coordinates() ?: return null
+        val imagePoint = mapping.viewportToImage(FloatPoint(viewportPoint.x, viewportPoint.y))
+        if (imagePoint.x !in 0f..mapping.imageSize.width || imagePoint.y !in 0f..mapping.imageSize.height) return null
+        return NormalizedPoint(
+            (imagePoint.x / mapping.imageSize.width).coerceIn(0f, 1f),
+            (imagePoint.y / mapping.imageSize.height).coerceIn(0f, 1f),
+        )
+    }
+
     Box(
         Modifier.fillMaxWidth().weight(1f).background(RestoreXBackground)
             .onSizeChanged {
                 viewport = it
+                onViewportChanged(it.width, it.height)
                 coordinates()?.let { mapping -> pan = mapping.clampedPan(pan) }
             }
-            .pointerInput(edited.width, edited.height, viewport) {
-                detectTransformGestures { centroid, gesturePan, gestureZoom, _ ->
-                    val old = coordinates() ?: return@detectTransformGestures
-                    val targetZoom = (zoom * gestureZoom).coerceIn(1f, 6f)
-                    val around = old.panForZoomAround(FloatPoint(centroid.x, centroid.y), targetZoom)
-                    val target = EditorCoordinates(old.imageSize, old.viewportSize, targetZoom, around, scaleMode)
-                    pan = target.clampedPan(FloatPoint(around.x + gesturePan.x, around.y + gesturePan.y))
-                    zoom = targetZoom
+            .pointerInput(edited.width, edited.height, viewport, retouchActive, retouch.tool, retouch.selectingCloneSource) {
+                if (!retouchActive || retouch.tool == RetouchTool.NONE) {
+                    detectTransformGestures { centroid, gesturePan, gestureZoom, _ ->
+                        val old = coordinates() ?: return@detectTransformGestures
+                        val targetZoom = (zoom * gestureZoom).coerceIn(1f, 6f)
+                        val around = old.panForZoomAround(FloatPoint(centroid.x, centroid.y), targetZoom)
+                        val target = EditorCoordinates(old.imageSize, old.viewportSize, targetZoom, around, scaleMode)
+                        pan = target.clampedPan(FloatPoint(around.x + gesturePan.x, around.y + gesturePan.y))
+                        zoom = targetZoom
+                        onZoomChanged(targetZoom)
+                    }
+                } else {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val stroke = mutableListOf<NormalizedPoint>()
+                        normalizedImagePoint(down.position)?.let { stroke += it.copy(pressure = down.pressure.coerceIn(0f, 1f)) }
+                        activeStroke = stroke.toList()
+                        var navigating = false
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val pressed = event.changes.filter { it.pressed }
+                            if (pressed.isEmpty()) break
+                            if (pressed.size >= 2) {
+                                navigating = true
+                                stroke.clear()
+                                activeStroke = emptyList()
+                                val old = coordinates() ?: continue
+                                val gestureZoom = event.calculateZoom()
+                                val gesturePan = event.calculatePan()
+                                val centroid = event.calculateCentroid()
+                                val targetZoom = (zoom * gestureZoom).coerceIn(1f, 6f)
+                                val around = old.panForZoomAround(FloatPoint(centroid.x, centroid.y), targetZoom)
+                                val target = EditorCoordinates(old.imageSize, old.viewportSize, targetZoom, around, scaleMode)
+                                pan = target.clampedPan(FloatPoint(around.x + gesturePan.x, around.y + gesturePan.y))
+                                zoom = targetZoom
+                                onZoomChanged(targetZoom)
+                                event.changes.forEach { it.consume() }
+                            } else if (!navigating) {
+                                val change = pressed.first()
+                                normalizedImagePoint(change.position)?.let { point ->
+                                    val withPressure = point.copy(pressure = change.pressure.coerceIn(0f, 1f))
+                                    if (stroke.lastOrNull() != withPressure) stroke += withPressure
+                                    activeStroke = stroke.toList()
+                                }
+                                change.consume()
+                            }
+                        }
+                        if (!navigating && stroke.isNotEmpty()) {
+                            if (retouch.tool == RetouchTool.RADIAL || retouch.tool == RetouchTool.LINEAR) onLightPlaced(stroke.first())
+                            else onBrushStroke(stroke)
+                        }
+                        activeStroke = emptyList()
+                    }
                 }
             }
-            .pointerInput(edited.width, edited.height, viewport) {
-                detectTapGestures(onDoubleTap = { point ->
-                    val mapping = coordinates() ?: return@detectTapGestures
-                    val targetZoom = if (zoom > 1.05f) 1f else 2.5f
-                    pan = if (targetZoom == 1f) FloatPoint(0f, 0f)
-                    else mapping.panForZoomAround(FloatPoint(point.x, point.y), targetZoom)
-                    zoom = targetZoom
-                })
+            .pointerInput(edited.width, edited.height, viewport, retouchActive, retouch.tool) {
+                if (!retouchActive || retouch.tool == RetouchTool.NONE) {
+                    detectTapGestures(onDoubleTap = { point ->
+                        val mapping = coordinates() ?: return@detectTapGestures
+                        val targetZoom = if (zoom > 1.05f) 1f else 2.5f
+                        pan = if (targetZoom == 1f) FloatPoint(0f, 0f)
+                        else mapping.panForZoomAround(FloatPoint(point.x, point.y), targetZoom)
+                        zoom = targetZoom
+                        onZoomChanged(targetZoom)
+                    })
+                }
             },
     ) {
         Canvas(Modifier.fillMaxSize().semantics { contentDescription = "Photo editing preview" }) {
@@ -517,6 +668,21 @@ private fun ColumnScope.ImageWorkspace(
             when {
                 holdOriginal -> drawMappedImage(originalBitmap, mapping)
                 splitComparison -> clipRect(right = size.width * split) { drawMappedImage(originalBitmap, mapping) }
+            }
+            if (retouchActive && retouch.showMaskOverlay) {
+                drawLocalEditOverlay(localEditOverlay, mapping, edited.width, edited.height)
+            }
+            if (retouchActive && (retouch.tool == RetouchTool.CLONE || retouch.tool == RetouchTool.HEAL)) {
+                retouch.cloneSourceVisible?.let { source ->
+                    val mapped = mapping.imageToViewport(FloatPoint(source.x * edited.width, source.y * edited.height))
+                    val radius = (retouch.brush.radius * minOf(edited.width, edited.height) * mapping.displayScale).coerceAtLeast(10.dp.toPx())
+                    drawCircle(RestoreXAccent, radius, Offset(mapped.x, mapped.y), style = Stroke(2.dp.toPx()))
+                    drawLine(RestoreXAccent, Offset(mapped.x - 8.dp.toPx(), mapped.y), Offset(mapped.x + 8.dp.toPx(), mapped.y), 1.5.dp.toPx())
+                    drawLine(RestoreXAccent, Offset(mapped.x, mapped.y - 8.dp.toPx()), Offset(mapped.x, mapped.y + 8.dp.toPx()), 1.5.dp.toPx())
+                }
+            }
+            if (retouchActive && activeStroke.isNotEmpty()) {
+                drawActiveStroke(activeStroke, retouch.brush.radius, mapping, edited.width, edited.height)
             }
         }
 
@@ -548,13 +714,7 @@ private fun ColumnScope.ImageWorkspace(
             }
         }
 
-        if (isRendering) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp).size(20.dp),
-                color = RestoreXAccent,
-                strokeWidth = 2.dp,
-            )
-        }
+        ProcessingBadge(isRendering, Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
 
         Row(
             modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
@@ -562,14 +722,36 @@ private fun ColumnScope.ImageWorkspace(
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             CanvasModeButton("Fit", scaleMode == CanvasScaleMode.FIT) {
-                scaleMode = CanvasScaleMode.FIT; zoom = 1f; pan = FloatPoint(0f, 0f)
+                scaleMode = CanvasScaleMode.FIT; zoom = 1f; pan = FloatPoint(0f, 0f); onZoomChanged(1f)
             }
             CanvasModeButton("Fill", scaleMode == CanvasScaleMode.FILL) {
-                scaleMode = CanvasScaleMode.FILL; zoom = 1f; pan = FloatPoint(0f, 0f)
+                scaleMode = CanvasScaleMode.FILL; zoom = 1f; pan = FloatPoint(0f, 0f); onZoomChanged(1f)
             }
             CanvasModeButton("1×", false, enabled = zoom > 1.001f || pan != FloatPoint(0f, 0f)) {
-                zoom = 1f; pan = FloatPoint(0f, 0f)
+                zoom = 1f; pan = FloatPoint(0f, 0f); onZoomChanged(1f)
             }
+        }
+    }
+}
+
+@Composable
+private fun ProcessingBadge(isRendering: Boolean, modifier: Modifier = Modifier) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(isRendering) {
+        if (!isRendering) visible = false
+        else {
+            delay(160)
+            visible = true
+        }
+    }
+    if (visible && isRendering) {
+        Row(
+            modifier.background(Color(0xE61C1D20), RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CircularProgressIndicator(color = RestoreXAccent, strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
+            Text("Processing", color = RestoreXText, fontSize = 12.sp)
         }
     }
 }
@@ -621,6 +803,76 @@ private fun DrawScope.drawMappedImage(bitmap: ImageBitmap, mapping: EditorCoordi
     )
 }
 
+private fun DrawScope.drawLocalEditOverlay(
+    operations: List<LocalEditOperation>,
+    mapping: EditorCoordinates,
+    imageWidth: Int,
+    imageHeight: Int,
+) {
+    operations.forEach { operation ->
+        when (operation) {
+            is BrushStroke -> {
+                val radius = operation.settings.radius * minOf(imageWidth, imageHeight) * mapping.displayScale
+                val points = operation.points.map { point ->
+                    mapping.imageToViewport(FloatPoint(point.x * imageWidth, point.y * imageHeight)).let { Offset(it.x, it.y) }
+                }
+                points.zipWithNext().forEach { (start, end) ->
+                    drawLine(RestoreXAccent.copy(alpha = .26f), start, end, radius * 2f, StrokeCap.Round)
+                }
+                points.forEach { drawCircle(RestoreXAccent.copy(alpha = .22f), radius.coerceAtLeast(2f), it) }
+                operation.sourceAnchor?.let { source ->
+                    val mapped = mapping.imageToViewport(FloatPoint(source.x * imageWidth, source.y * imageHeight))
+                    drawCircle(RestoreXAccent, radius.coerceAtLeast(8f), Offset(mapped.x, mapped.y), style = Stroke(2.dp.toPx()))
+                    drawLine(RestoreXAccent, Offset(mapped.x - 7.dp.toPx(), mapped.y), Offset(mapped.x + 7.dp.toPx(), mapped.y), 1.5.dp.toPx())
+                    drawLine(RestoreXAccent, Offset(mapped.x, mapped.y - 7.dp.toPx()), Offset(mapped.x, mapped.y + 7.dp.toPx()), 1.5.dp.toPx())
+                }
+            }
+            is RadialLight -> {
+                val center = mapping.imageToViewport(FloatPoint(operation.center.x * imageWidth, operation.center.y * imageHeight))
+                val ellipseWidth = operation.width * imageWidth * 2f * mapping.displayScale
+                val ellipseHeight = operation.height * imageHeight * 2f * mapping.displayScale
+                rotate(operation.rotationDegrees, Offset(center.x, center.y)) {
+                    drawOval(
+                        RestoreXAccent.copy(alpha = .8f),
+                        topLeft = Offset(center.x - ellipseWidth / 2f, center.y - ellipseHeight / 2f),
+                        size = Size(ellipseWidth, ellipseHeight),
+                        style = Stroke(2.dp.toPx()),
+                    )
+                }
+            }
+            is LinearLight -> {
+                val center = mapping.imageToViewport(FloatPoint(operation.center.x * imageWidth, operation.center.y * imageHeight))
+                val angle = Math.toRadians(operation.rotationDegrees.toDouble())
+                val direction = Offset(kotlin.math.sin(angle).toFloat(), -kotlin.math.cos(angle).toFloat())
+                val length = size.maxDimension
+                drawLine(
+                    RestoreXAccent.copy(alpha = .8f),
+                    Offset(center.x - direction.x * length, center.y - direction.y * length),
+                    Offset(center.x + direction.x * length, center.y + direction.y * length),
+                    2.dp.toPx(),
+                )
+            }
+        }
+    }
+}
+
+private fun DrawScope.drawActiveStroke(
+    points: List<NormalizedPoint>,
+    radiusFraction: Float,
+    mapping: EditorCoordinates,
+    imageWidth: Int,
+    imageHeight: Int,
+) {
+    val radius = radiusFraction * minOf(imageWidth, imageHeight) * mapping.displayScale
+    val mapped = points.map { point ->
+        mapping.imageToViewport(FloatPoint(point.x * imageWidth, point.y * imageHeight)).let { Offset(it.x, it.y) }
+    }
+    mapped.zipWithNext().forEach { (start, end) ->
+        drawLine(RestoreXAccent.copy(alpha = .38f), start, end, radius * 2f, StrokeCap.Round)
+    }
+    mapped.lastOrNull()?.let { drawCircle(RestoreXAccent.copy(alpha = .32f), radius.coerceAtLeast(2f), it) }
+}
+
 @Composable
 private fun ComparisonLabel(text: String, modifier: Modifier) {
     Text(
@@ -663,9 +915,196 @@ private fun ContextualPanel(
             EditorTool.FILTERS -> FilterPanel(state, viewModel, onImportLut)
             EditorTool.FILM -> FilmPanel(state, viewModel)
             EditorTool.DETAILS -> DetailsPanel(state, viewModel)
-            else -> Unit
+            EditorTool.RETOUCH -> RetouchPanel(state, viewModel)
         }
         }
+    }
+}
+
+@Composable
+private fun RetouchPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    val retouch = state.retouch
+    PanelHeader("Retouch", actionLabel = "Reset retouch", onResetAll = viewModel::resetLocalEdits)
+    HorizontalTextSelector(RetouchTool.entries, retouch.tool, { it.label }, viewModel::setRetouchTool)
+    when (retouch.tool) {
+        RetouchTool.NONE -> Text(
+            "Navigate with one finger, or choose a retouch tool. While painting, use two fingers to pan and zoom.",
+            color = RestoreXMuted,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        RetouchTool.RADIAL, RetouchTool.LINEAR -> RetouchLightingControls(retouch, viewModel)
+        else -> RetouchBrushControls(retouch, viewModel)
+    }
+    Row(
+        Modifier.fillMaxWidth().height(38.dp).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = retouch.showMaskOverlay,
+            onCheckedChange = { show -> viewModel.updateRetouch { it.copy(showMaskOverlay = show) } },
+        )
+        Text("Show mask overlay", color = RestoreXText, fontSize = 11.sp)
+        Spacer(Modifier.weight(1f))
+        Text("${state.edits.localEdits.size} edits", color = RestoreXMuted, fontSize = 11.sp)
+    }
+}
+
+@Composable
+private fun RetouchBrushControls(retouch: RetouchUiState, viewModel: EditorViewModel) {
+    if (retouch.tool == RetouchTool.CLONE || retouch.tool == RetouchTool.HEAL) {
+        Row(
+            Modifier.fillMaxWidth().height(42.dp).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = viewModel::beginCloneSourceSelection) {
+                Text(
+                    if (retouch.selectingCloneSource) "Tap source on photo"
+                    else if (retouch.tool == RetouchTool.HEAL) "Optional source" else "Set source",
+                    color = RestoreXAccent,
+                )
+            }
+            if (retouch.tool == RetouchTool.CLONE) {
+                Checkbox(
+                    checked = retouch.alignedSampling,
+                    onCheckedChange = { aligned -> viewModel.updateRetouch { it.copy(alignedSampling = aligned) } },
+                )
+                Text("Aligned", color = RestoreXText, fontSize = 11.sp)
+            }
+            if (retouch.cloneSource != null) Text("Source ready", color = RestoreXAccent, fontSize = 10.sp, modifier = Modifier.padding(start = 8.dp))
+            if (retouch.cloneSource != null) TextButton(onClick = viewModel::clearRetouchSource) { Text("Clear", color = RestoreXMuted, fontSize = 10.sp) }
+        }
+    }
+    AdjustmentSlider(
+        "Size", retouch.brush.radius, .002f..0.2f, .04f,
+        onChange = { value -> viewModel.updateBrushSettings { it.copy(radius = value) } },
+        onCommit = {},
+        onReset = { viewModel.updateBrushSettings { it.copy(radius = .04f) } },
+        valueFormatter = { "${(it * 100).roundToInt()}%" },
+    )
+    val showsStrength = retouch.tool != RetouchTool.ERASER && retouch.tool != RetouchTool.BRUSH_LIGHT
+    val controlOptions = if (showsStrength) listOf("Hardness", "Opacity", "Strength") else listOf("Hardness", "Opacity")
+    var selectedControl by remember(retouch.tool) { mutableStateOf(controlOptions.first()) }
+    if (selectedControl !in controlOptions) selectedControl = controlOptions.first()
+    HorizontalTextSelector(controlOptions, selectedControl, { it }) { selectedControl = it }
+    val controlValue = when (selectedControl) {
+        "Hardness" -> retouch.brush.hardness
+        "Opacity" -> retouch.brush.opacity
+        else -> kotlin.math.abs(retouch.brush.strength)
+    }
+    val controlRange = if (selectedControl == "Opacity" || selectedControl == "Strength") .05f..1f else 0f..1f
+    val controlNeutral = when (selectedControl) { "Hardness" -> .55f; "Opacity" -> 1f; else -> .35f }
+    fun updateControl(value: Float) = viewModel.updateBrushSettings { current -> when (selectedControl) {
+        "Hardness" -> current.copy(hardness = value)
+        "Opacity" -> current.copy(opacity = value)
+        else -> current.copy(strength = value)
+    } }
+    AdjustmentSlider(
+        selectedControl, controlValue, controlRange, controlNeutral,
+        onChange = ::updateControl,
+        onCommit = {},
+        onReset = { updateControl(controlNeutral) },
+    )
+    if (retouch.tool == RetouchTool.BRUSH_LIGHT) {
+        var lightControl by remember { mutableStateOf("Exposure") }
+        val lightOptions = listOf("Exposure", "Shadows", "Highlights", "Temperature", "Tint")
+        HorizontalTextSelector(lightOptions, lightControl, { it }) { lightControl = it }
+        val lightValue = when (lightControl) {
+            "Exposure" -> retouch.lightExposure
+            "Shadows" -> retouch.lightShadows
+            "Highlights" -> retouch.lightHighlights
+            "Temperature" -> retouch.lightTemperature
+            else -> retouch.lightTint
+        }
+        val lightRange = if (lightControl == "Exposure") -2f..2f else -1f..1f
+        fun updateLight(value: Float) = viewModel.updateRetouch { current -> when (lightControl) {
+            "Exposure" -> current.copy(lightExposure = value)
+            "Shadows" -> current.copy(lightShadows = value)
+            "Highlights" -> current.copy(lightHighlights = value)
+            "Temperature" -> current.copy(lightTemperature = value)
+            else -> current.copy(lightTint = value)
+        } }
+        AdjustmentSlider(
+            lightControl, lightValue, lightRange, 0f,
+            onChange = ::updateLight,
+            onCommit = {},
+            onReset = { updateLight(0f) },
+        )
+    }
+    Text(
+        when {
+            retouch.selectingCloneSource -> "Tap once to select the clone source."
+            retouch.tool == RetouchTool.HEAL -> "Tap blemishes or paint over a small unwanted area."
+            else -> "Paint with one finger. Use two fingers to navigate without painting."
+        },
+        color = RestoreXMuted,
+        fontSize = 10.sp,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp),
+    )
+}
+
+@Composable
+private fun RetouchLightingControls(retouch: RetouchUiState, viewModel: EditorViewModel) {
+    var selected by remember(retouch.tool) { mutableStateOf("Exposure") }
+    val options = if (retouch.tool == RetouchTool.RADIAL) {
+        listOf("Exposure", "Width", "Height", "Rotation", "Feather", "Highlights", "Shadows")
+    } else listOf("Exposure", "Rotation", "Feather", "Temperature", "Tint")
+    if (selected !in options) selected = options.first()
+    HorizontalTextSelector(options, selected, { it }) { selected = it }
+    val value = when (selected) {
+        "Exposure" -> retouch.lightExposure
+        "Width" -> retouch.radialWidth
+        "Height" -> retouch.radialHeight
+        "Rotation" -> retouch.rotation
+        "Feather" -> retouch.feather
+        "Highlights" -> retouch.lightHighlights
+        "Shadows" -> retouch.lightShadows
+        "Temperature" -> retouch.lightTemperature
+        else -> retouch.lightTint
+    }
+    val range = when (selected) {
+        "Exposure" -> -2f..2f
+        "Width", "Height" -> .05f..1f
+        "Rotation" -> -180f..180f
+        "Feather" -> .01f..1f
+        else -> -1f..1f
+    }
+    val neutral = when (selected) {
+        "Exposure" -> .5f
+        "Width" -> .35f
+        "Height" -> .25f
+        "Feather" -> .65f
+        else -> 0f
+    }
+    fun update(newValue: Float) = viewModel.updateRetouch { current -> when (selected) {
+        "Exposure" -> current.copy(lightExposure = newValue)
+        "Width" -> current.copy(radialWidth = newValue)
+        "Height" -> current.copy(radialHeight = newValue)
+        "Rotation" -> current.copy(rotation = newValue)
+        "Feather" -> current.copy(feather = newValue)
+        "Highlights" -> current.copy(lightHighlights = newValue)
+        "Shadows" -> current.copy(lightShadows = newValue)
+        "Temperature" -> current.copy(lightTemperature = newValue)
+        else -> current.copy(lightTint = newValue)
+    } }
+    AdjustmentSlider(
+        selected, value, range, neutral,
+        onChange = ::update,
+        onCommit = {},
+        onReset = { update(neutral) },
+        valueFormatter = if (selected == "Rotation") ({ "${it.roundToInt()}°" }) else null,
+    )
+    Row(
+        Modifier.fillMaxWidth().height(38.dp).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = retouch.invert,
+            onCheckedChange = { invert -> viewModel.updateRetouch { it.copy(invert = invert) } },
+        )
+        Text("Invert mask", color = RestoreXText, fontSize = 11.sp)
+        Spacer(Modifier.weight(1f))
+        Text("Tap photo to place", color = RestoreXAccent, fontSize = 11.sp)
     }
 }
 
@@ -1305,7 +1744,7 @@ private fun ToolIconButton(
 }
 
 private enum class AppIcon {
-    Back, Undo, Redo, Compare, Fullscreen, Crop, Enhance, Light, Color, Filters, Details, Retouch, Rotate, Reset, Image,
+    Back, Undo, Redo, Compare, Fullscreen, More, Crop, Enhance, Light, Color, Filters, Details, Retouch, Rotate, Reset, Image,
 }
 
 @Composable
@@ -1343,6 +1782,11 @@ private fun DrawScope.drawAppIcon(icon: AppIcon, tint: Color) {
             line(.62f, .15f, .85f, .15f); line(.85f, .15f, .85f, .38f)
             line(.15f, .62f, .15f, .85f); line(.15f, .85f, .38f, .85f)
             line(.62f, .85f, .85f, .85f); line(.85f, .85f, .85f, .62f)
+        }
+        AppIcon.More -> {
+            drawCircle(tint, size.width * .07f, Offset(size.width * .22f, center.y))
+            drawCircle(tint, size.width * .07f, center)
+            drawCircle(tint, size.width * .07f, Offset(size.width * .78f, center.y))
         }
         AppIcon.Crop -> { line(.22f, .08f, .22f, .72f); line(.22f, .72f, .86f, .72f); line(.78f, .92f, .78f, .28f); line(.78f, .28f, .14f, .28f) }
         AppIcon.Enhance -> { line(.5f, .08f, .5f, .92f); line(.08f, .5f, .92f, .5f); line(.2f, .2f, .8f, .8f); line(.8f, .2f, .2f, .8f) }
@@ -1449,6 +1893,22 @@ private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolea
 }
 
 private fun RasterImage.toBitmap(): Bitmap = Bitmap.createBitmap(argb, width, height, Bitmap.Config.ARGB_8888)
+
+@Composable
+private fun rememberRasterPair(edited: RasterImage, original: RasterImage): Pair<ImageBitmap, ImageBitmap> {
+    val bitmaps = remember(edited, original) {
+        val editedBitmap = edited.toBitmap()
+        val originalBitmap = if (edited === original) editedBitmap else original.toBitmap()
+        editedBitmap to originalBitmap
+    }
+    DisposableEffect(bitmaps) {
+        onDispose {
+            if (!bitmaps.first.isRecycled) bitmaps.first.recycle()
+            if (bitmaps.second !== bitmaps.first && !bitmaps.second.isRecycled) bitmaps.second.recycle()
+        }
+    }
+    return remember(bitmaps) { bitmaps.first.asImageBitmap() to bitmaps.second.asImageBitmap() }
+}
 
 @Composable
 private fun rememberRasterImage(raster: RasterImage): ImageBitmap {

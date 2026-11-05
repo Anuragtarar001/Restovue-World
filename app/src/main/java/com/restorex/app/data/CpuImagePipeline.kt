@@ -18,41 +18,57 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlinx.coroutines.CancellationException
 
 /** Deterministic, offline CPU renderer shared by preview and full-resolution export. */
 object CpuImagePipeline {
-    fun apply(source: RasterImage, adjustments: Adjustments, lut: CubeLut? = null, lutIntensity: Float = 0f): RasterImage {
+    fun apply(
+        source: RasterImage,
+        adjustments: Adjustments,
+        lut: CubeLut? = null,
+        lutIntensity: Float = 0f,
+        shouldCancel: () -> Boolean = { false },
+        reuseSourcePixels: Boolean = false,
+    ): RasterImage {
         if (adjustments.isNeutral && (lut == null || lutIntensity <= EPSILON)) return source
         val stats = ImageStatistics.from(source)
-        var pixels = IntArray(source.argb.size)
+        var pixels = if (reuseSourcePixels) source.argb else IntArray(source.argb.size)
         for (index in source.argb.indices) {
+            if (index and 0x3FFF == 0 && shouldCancel()) throw CancellationException("Preview render superseded")
             val x = index % source.width
             val y = index / source.width
             pixels[index] = transformPixel(source.argb[index], x, y, source.width, source.height, adjustments, stats, lut, lutIntensity)
         }
 
         if (adjustments.dehaze > EPSILON) {
-            pixels = applyDehaze(pixels, source.width, source.height, adjustments.dehaze)
+            checkCancelled(shouldCancel)
+            pixels = applyDehaze(pixels, source.width, source.height, adjustments.dehaze, shouldCancel)
         }
         if (adjustments.luminanceNoiseReduction > EPSILON || adjustments.colorNoiseReduction > EPSILON) {
+            checkCancelled(shouldCancel)
             pixels = reduceNoise(
                 pixels,
                 source.width,
                 source.height,
                 adjustments.luminanceNoiseReduction,
                 adjustments.colorNoiseReduction,
+                shouldCancel,
             )
         }
         if (adjustments.structure > EPSILON) {
-            pixels = applyStructure(pixels, source.width, source.height, adjustments.structure, source.scaleFromOriginal)
+            checkCancelled(shouldCancel)
+            pixels = applyStructure(pixels, source.width, source.height, adjustments.structure, source.scaleFromOriginal, shouldCancel)
         }
         if (abs(adjustments.clarity) > EPSILON) {
-            pixels = applyClarity(pixels, source.width, source.height, adjustments.clarity, source.scaleFromOriginal)
+            checkCancelled(shouldCancel)
+            pixels = applyClarity(pixels, source.width, source.height, adjustments.clarity, source.scaleFromOriginal, shouldCancel)
         }
         if (abs(adjustments.texture) > EPSILON) {
-            pixels = applyTexture(pixels, source.width, source.height, adjustments.texture, source.scaleFromOriginal)
+            checkCancelled(shouldCancel)
+            pixels = applyTexture(pixels, source.width, source.height, adjustments.texture, source.scaleFromOriginal, shouldCancel)
         }
         if (adjustments.sharpening > EPSILON) {
+            checkCancelled(shouldCancel)
             pixels = applySharpening(
                 pixels,
                 source.width,
@@ -61,9 +77,11 @@ object CpuImagePipeline {
                 adjustments.sharpeningRadius * source.scaleFromOriginal,
                 adjustments.sharpeningThreshold,
                 adjustments.sharpeningMasking,
+                shouldCancel,
             )
         }
         if (adjustments.film.chromaticAberration > EPSILON) {
+            checkCancelled(shouldCancel)
             pixels = applyChromaticAberration(pixels, source.width, source.height, adjustments.film.chromaticAberration)
         }
         return RasterImage(source.width, source.height, pixels, source.scaleFromOriginal)
@@ -79,7 +97,7 @@ object CpuImagePipeline {
         return RasterImage(source.width, source.height, pixels, source.scaleFromOriginal)
     }
 
-    private fun applyDehaze(pixels: IntArray, width: Int, height: Int, amount: Float): IntArray {
+    private fun applyDehaze(pixels: IntArray, width: Int, height: Int, amount: Float, shouldCancel: () -> Boolean): IntArray {
         var atmosphere = .7f
         var brightest = 0f
         pixels.forEach { color ->
@@ -89,6 +107,7 @@ object CpuImagePipeline {
         }
         return IntArray(pixels.size) { index ->
             val x = index % width; val yPos = index / width
+            if (x == 0 && yPos and 15 == 0) checkCancelled(shouldCancel)
             var dark = 1f
             for (dy in -1..1) for (dx in -1..1) {
                 val sample = channels(pixels[(yPos + dy).coerceIn(0, height - 1) * width + (x + dx).coerceIn(0, width - 1)])
@@ -105,41 +124,44 @@ object CpuImagePipeline {
         }
     }
 
-    private fun applyStructure(pixels: IntArray, width: Int, height: Int, amount: Float, scale: Float): IntArray {
+    private fun applyStructure(pixels: IntArray, width: Int, height: Int, amount: Float, scale: Float, shouldCancel: () -> Boolean): IntArray {
         val y = luminanceArray(pixels)
-        val fine = gaussianBlur(y, width, height, (.8f * scale).coerceAtLeast(.3f))
-        val medium = gaussianBlur(y, width, height, (2.4f * scale).coerceAtLeast(.65f))
-        val target = FloatArray(y.size) { index ->
+        val fine = gaussianBlur(y, width, height, (.8f * scale).coerceAtLeast(.3f), shouldCancel)
+        val medium = gaussianBlur(y, width, height, (2.4f * scale).coerceAtLeast(.65f), shouldCancel)
+        for (index in y.indices) {
+            if (index and 0x3FFF == 0) checkCancelled(shouldCancel)
             val fineBand = (y[index] - fine[index]).coerceIn(-.08f, .08f)
             val mediumBand = (y[index] - medium[index]).coerceIn(-.12f, .12f)
             val noiseGate = smoothStep(.004f, .025f, abs(fineBand))
-            y[index] + amount * (fineBand * .48f * noiseGate + mediumBand * .34f)
+            replaceLuminancePixel(pixels, index, y[index], y[index] + amount * (fineBand * .48f * noiseGate + mediumBand * .34f))
         }
-        return replaceLuminance(pixels, y, target)
+        return pixels
     }
 
-    private fun applyClarity(pixels: IntArray, width: Int, height: Int, amount: Float, scale: Float): IntArray {
+    private fun applyClarity(pixels: IntArray, width: Int, height: Int, amount: Float, scale: Float, shouldCancel: () -> Boolean): IntArray {
         val y = luminanceArray(pixels)
-        val blur = gaussianBlur(y, width, height, (4.5f * scale).coerceAtLeast(1f))
-        val target = FloatArray(y.size) { index ->
+        val blur = gaussianBlur(y, width, height, (4.5f * scale).coerceAtLeast(1f), shouldCancel)
+        for (index in y.indices) {
+            if (index and 0x3FFF == 0) checkCancelled(shouldCancel)
             val band = (y[index] - blur[index]).coerceIn(-.16f, .16f)
             val smoothProtection = smoothStep(.006f, .04f, abs(band))
-            y[index] + band * amount * .62f * smoothProtection
+            replaceLuminancePixel(pixels, index, y[index], y[index] + band * amount * .62f * smoothProtection)
         }
-        return replaceLuminance(pixels, y, target)
+        return pixels
     }
 
-    private fun applyTexture(pixels: IntArray, width: Int, height: Int, amount: Float, scale: Float): IntArray {
+    private fun applyTexture(pixels: IntArray, width: Int, height: Int, amount: Float, scale: Float, shouldCancel: () -> Boolean): IntArray {
         val y = luminanceArray(pixels)
-        val blur = gaussianBlur(y, width, height, (.65f * scale).coerceAtLeast(.3f))
+        val blur = gaussianBlur(y, width, height, (.65f * scale).coerceAtLeast(.3f), shouldCancel)
         val gradient = gradientMagnitude(y, width, height)
-        val target = FloatArray(y.size) { index ->
+        for (index in y.indices) {
+            if (index and 0x3FFF == 0) checkCancelled(shouldCancel)
             val band = (y[index] - blur[index]).coerceIn(-.07f, .07f)
             val edgeProtection = 1f - smoothStep(.12f, .35f, gradient[index]) * .72f
             val noiseGate = smoothStep(.003f, .018f, abs(band))
-            y[index] + band * amount * .78f * edgeProtection * noiseGate
+            replaceLuminancePixel(pixels, index, y[index], y[index] + band * amount * .78f * edgeProtection * noiseGate)
         }
-        return replaceLuminance(pixels, y, target)
+        return pixels
     }
 
     private fun applySharpening(
@@ -150,17 +172,20 @@ object CpuImagePipeline {
         radius: Float,
         threshold: Float,
         masking: Float,
+        shouldCancel: () -> Boolean,
     ): IntArray {
         val y = luminanceArray(pixels)
-        val blur = gaussianBlur(y, width, height, radius.coerceIn(.3f, 3f))
+        val blur = gaussianBlur(y, width, height, radius.coerceIn(.3f, 3f), shouldCancel)
         val eligibility = edgeMask(y, width, height, masking)
         val pixelThreshold = threshold * .12f // UI 0..100 maps to 0..30.6 levels in 8-bit space.
-        val target = FloatArray(y.size) { index ->
+        for (index in y.indices) {
+            if (index and 0x3FFF == 0) checkCancelled(shouldCancel)
             val detail = y[index] - blur[index]
-            if (abs(detail) <= pixelThreshold) y[index]
+            val target = if (abs(detail) <= pixelThreshold) y[index]
             else y[index] + detail.coerceIn(-.20f, .20f) * amount * eligibility[index]
+            replaceLuminancePixel(pixels, index, y[index], target)
         }
-        return replaceLuminance(pixels, y, target)
+        return pixels
     }
 
     private fun transformPixel(
@@ -371,7 +396,14 @@ object CpuImagePipeline {
         return value xor (value ushr 16)
     }
 
-    private fun reduceNoise(pixels: IntArray, width: Int, height: Int, luminanceAmount: Float, colorAmount: Float): IntArray {
+    private fun reduceNoise(
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        luminanceAmount: Float,
+        colorAmount: Float,
+        shouldCancel: () -> Boolean,
+    ): IntArray {
         val count = pixels.size
         val yValues = FloatArray(count)
         val cbValues = FloatArray(count)
@@ -388,6 +420,7 @@ object CpuImagePipeline {
         val denominator = 2f * sigmaRange * sigmaRange
         for (index in pixels.indices) {
             val x = index % width; val yPos = index / width
+            if (x == 0 && yPos and 15 == 0) checkCancelled(shouldCancel)
             var sumWeight = 0f; var sumY = 0f; var sumCb = 0f; var sumCr = 0f
             for (dy in -1..1) for (dx in -1..1) {
                 val sampleIndex = (yPos + dy).coerceIn(0, height - 1) * width + (x + dx).coerceIn(0, width - 1)
@@ -420,19 +453,24 @@ object CpuImagePipeline {
         luma((color ushr 16 and 0xFF) / 255f, (color ushr 8 and 0xFF) / 255f, (color and 0xFF) / 255f)
     }
 
-    private fun replaceLuminance(pixels: IntArray, original: FloatArray, target: FloatArray): IntArray =
-        IntArray(pixels.size) { index ->
-            val color = pixels[index]
-            val delta = target[index].coerceIn(0f, 1f) - original[index]
-            pack(
-                color ushr 24 and 0xFF,
-                (color ushr 16 and 0xFF) / 255f + delta,
-                (color ushr 8 and 0xFF) / 255f + delta,
-                (color and 0xFF) / 255f + delta,
-            )
-        }
+    private fun replaceLuminancePixel(pixels: IntArray, index: Int, original: Float, target: Float) {
+        val color = pixels[index]
+        val delta = target.coerceIn(0f, 1f) - original
+        pixels[index] = pack(
+            color ushr 24 and 0xFF,
+            (color ushr 16 and 0xFF) / 255f + delta,
+            (color ushr 8 and 0xFF) / 255f + delta,
+            (color and 0xFF) / 255f + delta,
+        )
+    }
 
-    private fun gaussianBlur(source: FloatArray, width: Int, height: Int, sigma: Float): FloatArray {
+    private fun gaussianBlur(
+        source: FloatArray,
+        width: Int,
+        height: Int,
+        sigma: Float,
+        shouldCancel: () -> Boolean = { false },
+    ): FloatArray {
         val safeSigma = sigma.coerceAtLeast(.3f)
         val radius = ceil(safeSigma * 2.5f).toInt().coerceIn(1, 8)
         val kernel = FloatArray(radius * 2 + 1)
@@ -445,12 +483,14 @@ object CpuImagePipeline {
         kernel.indices.forEach { kernel[it] /= kernelSum }
         val horizontal = FloatArray(source.size)
         for (y in 0 until height) for (x in 0 until width) {
+            if (x == 0 && y and 15 == 0) checkCancelled(shouldCancel)
             var sum = 0f
             for (offset in -radius..radius) sum += source[y * width + (x + offset).coerceIn(0, width - 1)] * kernel[offset + radius]
             horizontal[y * width + x] = sum
         }
         val output = FloatArray(source.size)
         for (y in 0 until height) for (x in 0 until width) {
+            if (x == 0 && y and 15 == 0) checkCancelled(shouldCancel)
             var sum = 0f
             for (offset in -radius..radius) sum += horizontal[(y + offset).coerceIn(0, height - 1) * width + x] * kernel[offset + radius]
             output[y * width + x] = sum
@@ -670,6 +710,10 @@ object CpuImagePipeline {
         return t * t * (3f - 2f * t)
     }
     private fun wrapHue(value: Float) = ((value % 360f) + 360f) % 360f
+
+    private fun checkCancelled(shouldCancel: () -> Boolean) {
+        if (shouldCancel()) throw CancellationException("Preview render superseded")
+    }
 
     private const val EPSILON = 0.0001f
     private const val LN_2 = 0.6931472f

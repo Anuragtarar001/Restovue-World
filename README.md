@@ -24,6 +24,11 @@ No internet permission, network client, cloud SDK, analytics, or remote model is
 - Luminance-oriented Structure, Clarity, Texture, and conservative dark-channel Dehaze
 - Luminance unsharp masking with amount, original-pixel radius, threshold, edge masking, and a preview-only mask view
 - Independent edge-preserving luminance and chroma noise reduction
+- Viewport-derived 1.5 MP settled previews and a separate 720 px interactive slider path
+- Byte-budgeted preview/filter caches, cooperative latest-state-wins rendering, memory-pressure cache release, and safe export preflight
+- Manual Heal, source-assisted Heal, Clone, Smooth, Dodge, Burn, brush lighting, radial lighting, and linear lighting
+- Sparse tiled brush masks with hardness, opacity, pressure, feathering, erasing, mask overlays, and compact undo/redo history
+- Versioned local-edit serialization using source-normalized coordinates that remain aligned through crop and rotation
 - JPEG (95 quality) and lossless PNG export
 - Extensible filter registry capped at 50 curated presets
 - Clean boundary for future bundled, offline NCNN restoration engines
@@ -41,9 +46,13 @@ The single app module is split by responsibility:
 
 OpenCV and C++ are not used in this slice: crop, rotate, and color transforms are fully supported by the platform bitmap pipeline. `OfflineRestorationEngine` is the integration boundary for a future bundled NCNN implementation.
 
-The render order is geometry (rotation and crop), tonal and color adjustments plus interpolated preset parameters, optional 3D LUT and deterministic film effects, Dehaze, luminance/chroma denoising, Structure, Clarity, Texture, luminance sharpening, and final chromatic aberration. Preview and export share the same deterministic algorithms; scale-dependent detail radii are derived from each raster's scale relative to the original image.
+The render order is source-normalized local retouching and selective lighting, geometry (rotation and crop), tonal and color adjustments plus interpolated preset parameters, optional 3D LUT and deterministic film effects, Dehaze, luminance/chroma denoising, Structure, Clarity, Texture, luminance sharpening, and final chromatic aberration. Preview and export share the same deterministic algorithms; scale-dependent detail radii are derived from each raster's scale relative to the original image.
 
 The Details workspace separates Structure, Sharpening, and Noise Reduction controls. Slider drafts render continuously, while release creates one history entry. Category resets preserve unrelated edits, and resetting the whole image requires confirmation.
+
+The editor uses two preview resolutions. Rapid slider drafts render from a 720 px working raster and are never inserted into the preview cache. Settled renders use the actual viewport, a 1.5 MP pixel budget, and optional bounded zoom refinement. Preview cache retention is capped at 14 MiB and filter thumbnails at 8 MiB. Full-resolution export owns and reuses its decoded pixel buffer, performs a heap-aware preflight before allocation, and asks for explicit smaller dimensions when a photograph is unsafe for the current device heap.
+
+GPU acceleration was evaluated for Phase 5 but not introduced: the project had no reusable OpenGL context, no connected device was available for defensible GPU/CPU profiling, and a second renderer would duplicate textures during the memory-repair phase. The bounded CPU path remains the single preview/export reference implementation and avoids CPU/GPU transfer overhead.
 
 ## Local toolchain baseline
 

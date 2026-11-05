@@ -11,6 +11,7 @@ class EditSession(initial: EditState = EditState()) {
 
     val canUndo: Boolean get() = history.canUndo
     val canRedo: Boolean get() = history.canRedo
+    val discardedUndoCount: Int get() = history.discardedUndoCount
 
     fun updateDraft(transform: (EditState) -> EditState): EditState {
         draft = transform(draft)

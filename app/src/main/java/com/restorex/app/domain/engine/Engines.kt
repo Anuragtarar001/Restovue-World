@@ -5,8 +5,8 @@ import com.restorex.app.domain.model.FilterPreset
 import com.restorex.app.domain.model.RasterImage
 
 interface ImageProcessor {
-    fun render(source: RasterImage, edits: EditState): RasterImage
-    fun renderSharpenMask(source: RasterImage, edits: EditState): RasterImage
+    fun render(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean = { false }): RasterImage
+    fun renderSharpenMask(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean = { false }): RasterImage
 }
 
 interface FilterCatalog {

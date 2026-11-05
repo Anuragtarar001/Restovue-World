@@ -7,7 +7,6 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
-import com.restorex.app.domain.engine.ImageProcessor
 import com.restorex.app.domain.model.EditState
 import com.restorex.app.domain.model.ExportFormat
 import com.restorex.app.domain.model.ExportOptions
@@ -16,16 +15,20 @@ import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.repository.ImageRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.CancellationException
 import kotlin.math.roundToInt
 import kotlin.math.min
 
 class AndroidImageRepository(
     private val resolver: ContentResolver,
-    private val processor: ImageProcessor,
+    private val processor: AndroidImageProcessor,
 ) : ImageRepository {
     override suspend fun load(source: ImageSource, maxDimension: Int): RasterImage = withContext(Dispatchers.IO) {
         require(maxDimension > 0)
-        decode(source.value.toUri(), maxDimension).let { decoded ->
+        decode(source.value.toUri(), maxDimension = maxDimension).let { decoded ->
             decoded.bitmap.toRaster(decoded.scaleFromOriginal).also { decoded.bitmap.recycle() }
         }
     }
@@ -38,10 +41,23 @@ class AndroidImageRepository(
     ) = withContext(Dispatchers.IO) {
         val sourceUri = source.value.toUri()
         val destinationUri = destination.toUri()
-        val fullSource = decode(sourceUri, Int.MAX_VALUE).let { decoded ->
+        val spatiallyExpensive = edits.effectiveAdjustments.run {
+            structure != 0f || clarity != 0f || texture != 0f || sharpening != 0f ||
+                luminanceNoiseReduction != 0f || colorNoiseReduction != 0f || dehaze != 0f
+        }
+        val safePixels = ExportMemoryPolicy.safePixelCount(Runtime.getRuntime().maxMemory(), spatiallyExpensive)
+        var fullSource: RasterImage? = decode(
+            sourceUri,
+            maxWidth = options.maxWidth,
+            maxHeight = options.maxHeight,
+            maxPixels = safePixels,
+        ).let { decoded ->
             decoded.bitmap.toRaster(decoded.scaleFromOriginal).also { decoded.bitmap.recycle() }
         }
-        val rendered = processor.render(fullSource, edits)
+        val renderContext = currentCoroutineContext()
+        val rendered = processor.renderForExport(requireNotNull(fullSource), edits) { !renderContext.isActive }
+        fullSource = null
+        renderContext.ensureActive()
         val renderedBitmap = rendered.toBitmap()
         val outputBitmap = resizeForExport(renderedBitmap, options)
         try {
@@ -57,6 +73,9 @@ class AndroidImageRepository(
             if (options.preserveMetadata) {
                 copyMetadata(sourceUri, destinationUri, outputBitmap.width, outputBitmap.height)
             }
+        } catch (cancelled: CancellationException) {
+            runCatching { resolver.delete(destinationUri, null, null) }
+            throw cancelled
         } finally {
             outputBitmap.recycle()
             if (outputBitmap !== renderedBitmap) renderedBitmap.recycle()
@@ -90,23 +109,40 @@ class AndroidImageRepository(
         }
     }
 
-    private fun decode(uri: Uri, maxDimension: Int): DecodedBitmap {
+    private fun decode(
+        uri: Uri,
+        maxDimension: Int = Int.MAX_VALUE,
+        maxWidth: Int? = null,
+        maxHeight: Int? = null,
+        maxPixels: Long = Long.MAX_VALUE,
+    ): DecodedBitmap {
         val source = ImageDecoder.createSource(resolver, uri)
         var originalLargest = 1
+        var originalWidth = 1
+        var originalHeight = 1
         val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
             decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             val width = info.size.width
             val height = info.size.height
+            originalWidth = width
+            originalHeight = height
             val largest = maxOf(width, height)
             originalLargest = largest
-            if (largest > maxDimension) {
-                val scale = maxDimension.toFloat() / largest
+            val dimensionScale = if (largest > maxDimension) maxDimension.toFloat() / largest else 1f
+            val widthScale = maxWidth?.let { it.toFloat() / width } ?: 1f
+            val heightScale = maxHeight?.let { it.toFloat() / height } ?: 1f
+            val scale = minOf(1f, dimensionScale, widthScale, heightScale)
+            val targetWidth = (width * scale).roundToInt().coerceAtLeast(1)
+            val targetHeight = (height * scale).roundToInt().coerceAtLeast(1)
+            ExportMemoryPolicy.requireSafe(targetWidth, targetHeight, maxPixels)
+            if (scale < .9999f) {
                 decoder.setTargetSize(
-                    (width * scale).roundToInt().coerceAtLeast(1),
-                    (height * scale).roundToInt().coerceAtLeast(1),
+                    targetWidth,
+                    targetHeight,
                 )
             }
         }
+        PerformanceDiagnostics.logDecode(bitmap, originalWidth, originalHeight)
         return DecodedBitmap(bitmap, maxOf(bitmap.width, bitmap.height).toFloat() / originalLargest)
     }
 

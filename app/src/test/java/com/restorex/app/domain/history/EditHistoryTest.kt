@@ -7,6 +7,19 @@ import org.junit.Test
 
 class EditHistoryTest {
     @Test
+    fun historyIsBoundedAndReportsDiscardedEntries() {
+        val history = EditHistory(0, maxUndoEntries = 3)
+        (1..6).forEach(history::commit)
+
+        assertEquals(3, history.undoCount)
+        assertEquals(3, history.discardedUndoCount)
+        assertEquals(5, history.undo())
+        assertEquals(4, history.undo())
+        assertEquals(3, history.undo())
+        assertEquals(3, history.undo())
+    }
+
+    @Test
     fun undoAndRedoWalkCommittedStates() {
         val history = EditHistory("original")
         history.commit("bright")

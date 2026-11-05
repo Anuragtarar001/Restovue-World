@@ -1,20 +1,38 @@
 package com.restorex.app
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
 import com.restorex.app.data.AndroidImageProcessor
 import com.restorex.app.data.AndroidImageRepository
 import com.restorex.app.data.DefaultFilterCatalog
 import com.restorex.app.data.LutStore
+import com.restorex.app.data.PerformanceDiagnostics
 import com.restorex.app.domain.usecase.ExportImage
 import com.restorex.app.domain.usecase.LoadImage
 import com.restorex.app.domain.usecase.RenderEdits
 import com.restorex.app.domain.usecase.RenderSharpenMask
+import com.restorex.app.presentation.MemoryPressureRegistry
 
 class RestoreXApplication : Application() {
-    val container by lazy { AppContainer(this) }
+    private val containerDelegate = lazy { AppContainer(this) }
+    val container by containerDelegate
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (containerDelegate.isInitialized()) container.memoryPressure.notify(level)
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        if (containerDelegate.isInitialized()) container.memoryPressure.notify(80)
+    }
 }
 
 class AppContainer(application: Application) {
+    init {
+        PerformanceDiagnostics.configure(application.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
+    }
+    val memoryPressure = MemoryPressureRegistry()
     val lutStore = LutStore(application.contentResolver, application.filesDir)
     private val processor = AndroidImageProcessor(lutStore)
     private val repository = AndroidImageRepository(application.contentResolver, processor)

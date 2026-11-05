@@ -3,12 +3,26 @@ package com.restorex.app.domain.history
 import com.restorex.app.domain.model.EditState
 import com.restorex.app.domain.model.FilterSelection
 import com.restorex.app.domain.model.Adjustments
+import com.restorex.app.domain.model.BrushEditType
+import com.restorex.app.domain.model.BrushStroke
+import com.restorex.app.domain.model.NormalizedPoint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EditSessionTest {
+    @Test
+    fun localOperationsUndoAsCompactStateDescriptions() {
+        val session = EditSession()
+        val operation = BrushStroke(1, BrushEditType.HEAL, listOf(NormalizedPoint(.5f, .5f)))
+        session.commit(EditState(localEdits = listOf(operation)))
+
+        assertEquals(1, session.draft.localEdits.size)
+        assertTrue(session.undo().localEdits.isEmpty())
+        assertEquals(operation, session.redo().localEdits.single())
+    }
+
     @Test
     fun sliderDraftsBecomeOneHistoryEntryWhenCommitted() {
         val session = EditSession()

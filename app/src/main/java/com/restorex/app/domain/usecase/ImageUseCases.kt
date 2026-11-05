@@ -12,11 +12,13 @@ class LoadImage(private val repository: ImageRepository) {
 }
 
 class RenderEdits(private val processor: ImageProcessor) {
-    operator fun invoke(source: RasterImage, edits: EditState) = processor.render(source, edits)
+    operator fun invoke(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean = { false }) =
+        processor.render(source, edits, shouldCancel)
 }
 
 class RenderSharpenMask(private val processor: ImageProcessor) {
-    operator fun invoke(source: RasterImage, edits: EditState) = processor.renderSharpenMask(source, edits)
+    operator fun invoke(source: RasterImage, edits: EditState, shouldCancel: () -> Boolean = { false }) =
+        processor.renderSharpenMask(source, edits, shouldCancel)
 }
 
 class ExportImage(private val repository: ImageRepository) {

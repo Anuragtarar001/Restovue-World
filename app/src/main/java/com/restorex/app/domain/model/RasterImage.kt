@@ -11,6 +11,8 @@ data class RasterImage(
         require(argb.size == width * height)
         require(scaleFromOriginal > 0f)
     }
+
+    val estimatedBytes: Long get() = argb.size.toLong() * Int.SIZE_BYTES
 }
 
 @JvmInline
