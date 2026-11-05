@@ -1,0 +1,1 @@
+Restovue original approved logo asset pack. All R icons are cropped from the previously approved Restovue logo, not redesigned. Android launcher sizes: 48 mdpi, 72 hdpi, 96 xhdpi, 144 xxhdpi, 192 xxxhdpi. Adaptive layers 432 px. Play Store icon 512 px. White tagline is designed for dark backgrounds.

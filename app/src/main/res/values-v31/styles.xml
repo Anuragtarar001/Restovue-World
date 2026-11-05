@@ -7,7 +7,7 @@
         <item name="android:navigationBarColor">#101114</item>
         <item name="android:statusBarColor">#101114</item>
         <item name="android:windowSplashScreenBackground">#101114</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/restovue_launcher_foreground</item>
         <item name="android:windowSplashScreenIconBackgroundColor">#1C1D20</item>
     </style>
 </resources>

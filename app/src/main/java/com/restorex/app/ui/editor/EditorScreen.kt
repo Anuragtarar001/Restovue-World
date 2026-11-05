@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -40,6 +42,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -87,10 +90,12 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -343,7 +348,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
         val chrome = EditorChromeState(fullScreen)
         Box(Modifier.fillMaxSize().padding(padding).background(RestoreXBackground)) {
             Column(Modifier.fillMaxSize()) {
-                if (!fullScreen || !state.hasImage) Spacer(Modifier.statusBarsPadding().height(64.dp))
+                if ((state.hasImage && !fullScreen) || showAbout) Spacer(Modifier.statusBarsPadding().height(64.dp))
                 if (showAbout) {
                     AboutScreen(onDeveloperClick = { openDeveloperWebsite(context, developerUrl) })
                 } else if (state.hasImage) {
@@ -404,7 +409,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                     )
                 }
             }
-            if (chrome.showTopToolbar) EditorTopBar(
+            if (state.hasImage && chrome.showTopToolbar) EditorTopBar(
                 state = state,
                 splitComparison = splitComparison,
                 fullScreen = fullScreen,
@@ -422,6 +427,10 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                 onToggleSplit = { splitComparison = !splitComparison },
                 onExport = { showExportDialog = true },
                 onToggleFullScreen = { fullScreen = !fullScreen },
+                modifier = Modifier.align(Alignment.TopCenter).zIndex(10f).statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
+            )
+            else if (showAbout) AboutTopBar(
+                onBack = { showAbout = false },
                 modifier = Modifier.align(Alignment.TopCenter).zIndex(10f).statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
             )
             if (state.isExporting) ExportProgressOverlay(
@@ -443,6 +452,17 @@ private fun ExportProgressOverlay(onCancel: () -> Unit, modifier: Modifier = Mod
         Text("Exporting full-resolution photo", color = RestoreXText, fontWeight = FontWeight.SemiBold)
         Text("Processing stays on this device", color = RestoreXMuted, fontSize = 11.sp)
         TextButton(onClick = onCancel) { Text("Cancel export", color = RestoreXAccent) }
+    }
+}
+
+@Composable
+private fun AboutTopBar(onBack: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier.fillMaxWidth().background(Color(0xE61C1D20), RoundedCornerShape(16.dp)).height(56.dp).padding(horizontal = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ToolIconButton(AppIcon.Back, "Back to Restovue home", onClick = onBack)
+        Text("About Restovue", color = RestoreXText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -572,12 +592,12 @@ private fun ColumnScope.EmptyEditor(
 ) {
     Box(Modifier.fillMaxWidth().weight(1f).padding(28.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Box(
-                Modifier.size(72.dp).background(RestoreXPanel, RoundedCornerShape(22.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                AppIconCanvas(AppIcon.Image, RestoreXAccent, Modifier.size(34.dp))
-            }
+            Image(
+                painter = painterResource(R.drawable.restovue_logo),
+                contentDescription = "Restovue : Photo Editor logo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().widthIn(max = 300.dp).aspectRatio(3f),
+            )
             Text("Edit beautifully. Stay private.", color = RestoreXText, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
             Text(
                 "Professional photo editing, completely on your device.",
