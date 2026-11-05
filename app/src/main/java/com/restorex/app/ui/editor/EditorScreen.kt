@@ -1,0 +1,1472 @@
+package com.restorex.app.ui.editor
+
+import android.graphics.Bitmap
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.net.toUri
+import com.restorex.app.domain.engine.EditorCoordinates
+import com.restorex.app.domain.engine.CanvasScaleMode
+import com.restorex.app.domain.engine.FloatPoint
+import com.restorex.app.domain.engine.FloatSize
+import com.restorex.app.domain.model.CropAspect
+import com.restorex.app.domain.model.AutoEnhanceMode
+import com.restorex.app.domain.model.ChannelBalance
+import com.restorex.app.domain.model.ExportOptions
+import com.restorex.app.domain.model.ExportFormat
+import com.restorex.app.domain.model.FilterCategory
+import com.restorex.app.domain.model.HslColorRange
+import com.restorex.app.domain.model.RasterImage
+import com.restorex.app.R
+import com.restorex.app.presentation.EditorUiState
+import com.restorex.app.presentation.EditorViewModel
+import com.restorex.app.presentation.EditorChromeState
+import com.restorex.app.ui.theme.RestoreXAccent
+import com.restorex.app.ui.theme.RestoreXBackground
+import com.restorex.app.ui.theme.RestoreXDisabled
+import com.restorex.app.ui.theme.RestoreXMuted
+import com.restorex.app.ui.theme.RestoreXPanel
+import com.restorex.app.ui.theme.RestoreXPanelRaised
+import com.restorex.app.ui.theme.RestoreXText
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.roundToInt
+
+private enum class EditorTool(val label: String, val icon: AppIcon, val available: Boolean) {
+    CROP("Crop", AppIcon.Crop, true),
+    ENHANCE("Enhance", AppIcon.Enhance, true),
+    LIGHT("Light", AppIcon.Light, true),
+    COLOR("Color", AppIcon.Color, true),
+    FILTERS("Filters", AppIcon.Filters, true),
+    FILM("Film", AppIcon.Filters, true),
+    DETAILS("Details", AppIcon.Details, true),
+    RETOUCH("Retouch", AppIcon.Retouch, false),
+}
+
+@Composable
+fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    var selectedTool by remember { mutableStateOf(EditorTool.LIGHT) }
+    var holdOriginal by remember { mutableStateOf(false) }
+    var splitComparison by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
+    var toolPanelCollapsed by remember { mutableStateOf(false) }
+    var fullScreen by remember { mutableStateOf(false) }
+    var showResetAllConfirmation by remember { mutableStateOf(false) }
+    var pendingExport by remember { mutableStateOf(ExportOptions(ExportFormat.JPEG)) }
+    var pendingShare by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val developerUrl = stringResource(R.string.developer_website_url)
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.importImage(it.toString()) }
+    }
+    val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
+        uri?.let { viewModel.export(it.toString(), pendingExport, pendingShare) }
+    }
+    val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
+        uri?.let { viewModel.export(it.toString(), pendingExport, pendingShare) }
+    }
+    val lutImporter = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.importLut(it.toString()) }
+    }
+
+    LaunchedEffect(state.message) {
+        state.message?.let {
+            snackbar.showSnackbar(it)
+            viewModel.consumeMessage()
+        }
+    }
+
+    LaunchedEffect(state.shareUri) {
+        val uri = state.shareUri ?: return@LaunchedEffect
+        val share = Intent(Intent.ACTION_SEND).apply {
+            type = state.shareMimeType ?: "image/*"
+            putExtra(Intent.EXTRA_STREAM, uri.toUri())
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(share, "Share Restovue export"))
+        viewModel.consumeShareRequest()
+    }
+
+    if (showExportDialog) {
+        ExportDialog(
+            onDismiss = { showExportDialog = false },
+            onExport = { options, share ->
+                showExportDialog = false
+                pendingExport = options
+                pendingShare = share
+                if (options.format == ExportFormat.JPEG) jpegExporter.launch(exportName("jpg"))
+                else pngExporter.launch(exportName("png"))
+            },
+        )
+    }
+
+    if (showResetAllConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showResetAllConfirmation = false },
+            containerColor = RestoreXPanelRaised,
+            title = { Text("Reset all edits?", color = RestoreXText) },
+            text = { Text("Every adjustment, crop, filter, LUT, and film effect will be reset. You can undo this action.", color = RestoreXMuted) },
+            confirmButton = {
+                Button(onClick = {
+                    showResetAllConfirmation = false
+                    viewModel.setSharpenMaskPreview(false)
+                    viewModel.resetAll()
+                }) { Text("Reset all") }
+            },
+            dismissButton = { TextButton(onClick = { showResetAllConfirmation = false }) { Text("Cancel") } },
+        )
+    }
+
+    Scaffold(
+        containerColor = RestoreXBackground,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbar, modifier = Modifier.navigationBarsPadding()) },
+    ) { padding ->
+        val chrome = EditorChromeState(fullScreen)
+        Box(Modifier.fillMaxSize().padding(padding).background(RestoreXBackground)) {
+            Column(Modifier.fillMaxSize()) {
+                if (!fullScreen || !state.hasImage) Spacer(Modifier.statusBarsPadding().height(64.dp))
+                if (showAbout) {
+                    AboutScreen(onDeveloperClick = { openDeveloperWebsite(context, developerUrl) })
+                } else if (state.hasImage) {
+                    ImageWorkspace(
+                        edited = state.preview!!,
+                        original = state.originalPreview ?: state.preview!!,
+                        holdOriginal = holdOriginal,
+                        splitComparison = splitComparison,
+                        isRendering = state.isRendering || state.isBusy,
+                        sourceIdentity = state.sourceIdentity,
+                    )
+                    if (chrome.showBottomTools) {
+                        ContextualPanel(
+                            selectedTool,
+                            state,
+                            viewModel,
+                            collapsed = toolPanelCollapsed,
+                            onToggleCollapsed = { toolPanelCollapsed = !toolPanelCollapsed },
+                            onResetImage = { showResetAllConfirmation = true },
+                            onImportLut = { lutImporter.launch(arrayOf("application/octet-stream", "text/plain", "*/*")) },
+                        )
+                        ToolNavigation(selectedTool, onSelected = {
+                            if (it != EditorTool.DETAILS) viewModel.setSharpenMaskPreview(false)
+                            selectedTool = it
+                        })
+                    }
+                } else {
+                    EmptyEditor(
+                        isBusy = state.isBusy,
+                        onAbout = { showAbout = true },
+                        onDeveloperClick = { openDeveloperWebsite(context, developerUrl) },
+                        onImport = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    )
+                }
+            }
+            if (chrome.showTopToolbar) EditorTopBar(
+                state = state,
+                splitComparison = splitComparison,
+                fullScreen = fullScreen,
+                onBack = {
+                    when {
+                        fullScreen -> fullScreen = false
+                        showAbout -> showAbout = false
+                        state.hasImage -> viewModel.clearImage()
+                        else -> onExit()
+                    }
+                },
+                onUndo = viewModel::undo,
+                onRedo = viewModel::redo,
+                onHoldOriginal = { holdOriginal = it },
+                onToggleSplit = { splitComparison = !splitComparison },
+                onExport = { showExportDialog = true },
+                onToggleFullScreen = { fullScreen = !fullScreen },
+                modifier = Modifier.align(Alignment.TopCenter).zIndex(10f).statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun EditorTopBar(
+    state: EditorUiState,
+    splitComparison: Boolean,
+    fullScreen: Boolean,
+    onBack: () -> Unit,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onHoldOriginal: (Boolean) -> Unit,
+    onToggleSplit: () -> Unit,
+    onExport: () -> Unit,
+    onToggleFullScreen: () -> Unit,
+    modifier: Modifier,
+) {
+    Row(
+        modifier.fillMaxWidth().background(Color(0xE61C1D20), RoundedCornerShape(16.dp)).height(56.dp).padding(horizontal = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ToolIconButton(AppIcon.Back, "Back", onClick = onBack)
+        Text(
+            stringResource(R.string.app_name_short),
+            modifier = Modifier.weight(1f).padding(start = 4.dp),
+            color = RestoreXText,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+        ToolIconButton(AppIcon.Undo, "Undo", enabled = state.canUndo, onClick = onUndo)
+        ToolIconButton(AppIcon.Redo, "Redo", enabled = state.canRedo, onClick = onRedo)
+        CompareButton(
+            enabled = state.hasImage,
+            selected = splitComparison,
+            onHeld = onHoldOriginal,
+            onClick = onToggleSplit,
+        )
+        ToolIconButton(
+            AppIcon.Fullscreen,
+            if (fullScreen) "Exit Full Screen" else "Enter Full Screen",
+            enabled = state.hasImage,
+            onClick = onToggleFullScreen,
+        )
+        TextButton(onClick = onExport, enabled = state.hasImage && !state.isBusy, contentPadding = PaddingValues(6.dp)) {
+            Text("Export", color = if (state.hasImage) RestoreXAccent else RestoreXDisabled, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
+private fun CompareButton(
+    enabled: Boolean,
+    selected: Boolean,
+    onHeld: (Boolean) -> Unit,
+    onClick: () -> Unit,
+) {
+    val description = "Before and after: hold for original, tap for split comparison"
+    Box(
+        modifier = Modifier.size(48.dp)
+            .semantics { contentDescription = description }
+            .pointerInput(enabled) {
+                if (enabled) {
+                    detectTapGestures(
+                        onPress = {
+                            onHeld(true)
+                            tryAwaitRelease()
+                            onHeld(false)
+                        },
+                        onTap = { onClick() },
+                    )
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        AppIconCanvas(
+            icon = AppIcon.Compare,
+            tint = when {
+                !enabled -> RestoreXDisabled
+                selected -> RestoreXAccent
+                else -> RestoreXText
+            },
+            modifier = Modifier.size(21.dp),
+        )
+    }
+}
+
+@Composable
+private fun ColumnScope.EmptyEditor(
+    isBusy: Boolean,
+    onImport: () -> Unit,
+    onAbout: () -> Unit,
+    onDeveloperClick: () -> Unit,
+) {
+    Box(Modifier.fillMaxWidth().weight(1f).padding(28.dp), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box(
+                Modifier.size(72.dp).background(RestoreXPanel, RoundedCornerShape(22.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                AppIconCanvas(AppIcon.Image, RestoreXAccent, Modifier.size(34.dp))
+            }
+            Text("Edit beautifully. Stay private.", color = RestoreXText, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Professional photo editing, completely on your device.",
+                color = RestoreXMuted,
+                textAlign = TextAlign.Center,
+            )
+            Button(
+                onClick = onImport,
+                enabled = !isBusy,
+                colors = ButtonDefaults.buttonColors(containerColor = RestoreXAccent, contentColor = Color(0xFF251A00)),
+                shape = RoundedCornerShape(14.dp),
+            ) { Text("Choose photo", fontWeight = FontWeight.SemiBold) }
+            TextButton(onClick = onAbout) { Text("About Restovue", color = RestoreXAccent) }
+            if (isBusy) CircularProgressIndicator(color = RestoreXAccent, modifier = Modifier.size(24.dp))
+        }
+    }
+    Column(
+        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(stringResource(R.string.app_name), color = RestoreXMuted, fontSize = 11.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Developed by ", color = RestoreXDisabled, fontSize = 11.sp)
+            Text(
+                stringResource(R.string.developer_name),
+                color = RestoreXAccent,
+                fontSize = 11.sp,
+                modifier = Modifier.clickable(onClick = onDeveloperClick).padding(vertical = 4.dp)
+                    .semantics { contentDescription = "Open developer website" },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.AboutScreen(onDeveloperClick: () -> Unit) {
+    val context = LocalContext.current
+    val packageInfo = remember { context.packageManager.getPackageInfo(context.packageName, 0) }
+    val version = packageInfo.versionName ?: "Unknown"
+    Column(
+        Modifier.fillMaxWidth().weight(1f).padding(horizontal = 24.dp, vertical = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text("About Restovue", color = RestoreXText, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        AboutSection("Application", stringResource(R.string.app_name))
+        AboutSection("Version", version)
+        Column {
+            Text("Developer", color = RestoreXMuted, fontSize = 12.sp)
+            Text(
+                stringResource(R.string.developer_name),
+                color = RestoreXAccent,
+                modifier = Modifier.clickable(onClick = onDeveloperClick).padding(vertical = 6.dp)
+                    .semantics { contentDescription = "Open developer website" },
+            )
+        }
+        AboutSection("Offline processing", stringResource(R.string.offline_statement))
+        AboutSection("Privacy", stringResource(R.string.privacy_statement))
+        AboutSection(
+            "Open-source licenses",
+            "AndroidX, Jetpack Compose, Kotlin Coroutines, and AndroidX ExifInterface are used under the Apache License 2.0. JUnit is used for testing under the Eclipse Public License 1.0.",
+        )
+        AboutSection("Build version", packageInfo.longVersionCode.toString())
+    }
+    Column(
+        Modifier.fillMaxWidth().navigationBarsPadding().padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(stringResource(R.string.app_name), color = RestoreXMuted, fontSize = 11.sp)
+        Text("Developed by ${stringResource(R.string.developer_name)}", color = RestoreXMuted, fontSize = 11.sp)
+    }
+}
+
+@Composable
+private fun AboutSection(title: String, body: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, color = RestoreXMuted, fontSize = 12.sp)
+        Text(body, color = RestoreXText, fontSize = 14.sp)
+    }
+}
+
+@Composable
+private fun ColumnScope.ImageWorkspace(
+    edited: RasterImage,
+    original: RasterImage,
+    holdOriginal: Boolean,
+    splitComparison: Boolean,
+    isRendering: Boolean,
+    sourceIdentity: Long,
+) {
+    var viewport by remember { mutableStateOf(IntSize.Zero) }
+    var zoom by remember(sourceIdentity, edited.width, edited.height) { mutableFloatStateOf(1f) }
+    var pan by remember(sourceIdentity, edited.width, edited.height) { mutableStateOf(FloatPoint(0f, 0f)) }
+    var scaleMode by remember(sourceIdentity) { mutableStateOf(CanvasScaleMode.FIT) }
+    var split by remember { mutableFloatStateOf(0.5f) }
+    val editedBitmap = rememberRasterImage(edited)
+    val originalBitmap = rememberRasterImage(original)
+
+    fun coordinates(currentZoom: Float = zoom, currentPan: FloatPoint = pan): EditorCoordinates? {
+        if (viewport.width <= 0 || viewport.height <= 0) return null
+        return EditorCoordinates(
+            imageSize = FloatSize(edited.width.toFloat(), edited.height.toFloat()),
+            viewportSize = FloatSize(viewport.width.toFloat(), viewport.height.toFloat()),
+            zoom = currentZoom,
+            pan = currentPan,
+            scaleMode = scaleMode,
+        )
+    }
+
+    Box(
+        Modifier.fillMaxWidth().weight(1f).background(RestoreXBackground)
+            .onSizeChanged {
+                viewport = it
+                coordinates()?.let { mapping -> pan = mapping.clampedPan(pan) }
+            }
+            .pointerInput(edited.width, edited.height, viewport) {
+                detectTransformGestures { centroid, gesturePan, gestureZoom, _ ->
+                    val old = coordinates() ?: return@detectTransformGestures
+                    val targetZoom = (zoom * gestureZoom).coerceIn(1f, 6f)
+                    val around = old.panForZoomAround(FloatPoint(centroid.x, centroid.y), targetZoom)
+                    val target = EditorCoordinates(old.imageSize, old.viewportSize, targetZoom, around, scaleMode)
+                    pan = target.clampedPan(FloatPoint(around.x + gesturePan.x, around.y + gesturePan.y))
+                    zoom = targetZoom
+                }
+            }
+            .pointerInput(edited.width, edited.height, viewport) {
+                detectTapGestures(onDoubleTap = { point ->
+                    val mapping = coordinates() ?: return@detectTapGestures
+                    val targetZoom = if (zoom > 1.05f) 1f else 2.5f
+                    pan = if (targetZoom == 1f) FloatPoint(0f, 0f)
+                    else mapping.panForZoomAround(FloatPoint(point.x, point.y), targetZoom)
+                    zoom = targetZoom
+                })
+            },
+    ) {
+        Canvas(Modifier.fillMaxSize().semantics { contentDescription = "Photo editing preview" }) {
+            drawCheckerboard()
+            val mapping = coordinates() ?: return@Canvas
+            drawMappedImage(editedBitmap, mapping)
+            when {
+                holdOriginal -> drawMappedImage(originalBitmap, mapping)
+                splitComparison -> clipRect(right = size.width * split) { drawMappedImage(originalBitmap, mapping) }
+            }
+        }
+
+        if (holdOriginal || splitComparison) {
+            ComparisonLabel(if (holdOriginal) "BEFORE" else "BEFORE", Modifier.align(Alignment.TopStart))
+            if (splitComparison) ComparisonLabel("AFTER", Modifier.align(Alignment.TopEnd))
+        }
+
+        if (splitComparison && viewport.width > 0) {
+            val density = LocalDensity.current
+            val handleWidth = with(density) { 40.dp.roundToPx() }
+            Box(
+                Modifier.fillMaxHeight().width(40.dp)
+                    .offset { IntOffset((viewport.width * split).roundToInt() - handleWidth / 2, 0) }
+                    .pointerInput(viewport.width) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            split = (split + dragAmount.x / viewport.width).coerceIn(0.05f, 0.95f)
+                        }
+                    }
+                    .semantics { contentDescription = "Before and after divider" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(Modifier.fillMaxHeight().width(2.dp).background(RestoreXAccent))
+                Box(
+                    Modifier.size(30.dp).background(RestoreXAccent, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { Text("↔", color = Color(0xFF251A00), fontWeight = FontWeight.Bold) }
+            }
+        }
+
+        if (isRendering) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp).size(20.dp),
+                color = RestoreXAccent,
+                strokeWidth = 2.dp,
+            )
+        }
+
+        Row(
+            modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+                .background(Color(0xC8101114), RoundedCornerShape(12.dp)).padding(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            CanvasModeButton("Fit", scaleMode == CanvasScaleMode.FIT) {
+                scaleMode = CanvasScaleMode.FIT; zoom = 1f; pan = FloatPoint(0f, 0f)
+            }
+            CanvasModeButton("Fill", scaleMode == CanvasScaleMode.FILL) {
+                scaleMode = CanvasScaleMode.FILL; zoom = 1f; pan = FloatPoint(0f, 0f)
+            }
+            CanvasModeButton("1×", false, enabled = zoom > 1.001f || pan != FloatPoint(0f, 0f)) {
+                zoom = 1f; pan = FloatPoint(0f, 0f)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CanvasModeButton(label: String, selected: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
+    Text(
+        label,
+        color = when { !enabled -> RestoreXDisabled; selected -> Color(0xFF251A00); else -> RestoreXText },
+        fontSize = 11.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.background(if (selected) RestoreXAccent else Color.Transparent, RoundedCornerShape(9.dp))
+            .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 10.dp, vertical = 7.dp)
+            .semantics { contentDescription = "$label image display mode" },
+    )
+}
+
+private fun DrawScope.drawCheckerboard() {
+    val tile = 14.dp.toPx()
+    var y = 0f
+    var row = 0
+    while (y < size.height) {
+        var x = 0f
+        var column = 0
+        while (x < size.width) {
+            drawRect(
+                color = if ((row + column) % 2 == 0) Color(0xFF17181B) else Color(0xFF202125),
+                topLeft = Offset(x, y),
+                size = Size(tile.coerceAtMost(size.width - x), tile.coerceAtMost(size.height - y)),
+            )
+            x += tile
+            column++
+        }
+        y += tile
+        row++
+    }
+}
+
+private fun DrawScope.drawMappedImage(bitmap: ImageBitmap, mapping: EditorCoordinates) {
+    val topLeft = mapping.imageToViewport(FloatPoint(0f, 0f))
+    drawImage(
+        image = bitmap,
+        dstOffset = IntOffset(topLeft.x.roundToInt(), topLeft.y.roundToInt()),
+        dstSize = IntSize(
+            (mapping.imageSize.width * mapping.displayScale).roundToInt().coerceAtLeast(1),
+            (mapping.imageSize.height * mapping.displayScale).roundToInt().coerceAtLeast(1),
+        ),
+        filterQuality = FilterQuality.High,
+    )
+}
+
+@Composable
+private fun ComparisonLabel(text: String, modifier: Modifier) {
+    Text(
+        text,
+        modifier = modifier.padding(12.dp).background(Color(0xB3101114), RoundedCornerShape(7.dp))
+            .padding(horizontal = 9.dp, vertical = 5.dp),
+        color = RestoreXText,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.sp,
+    )
+}
+
+@Composable
+private fun ContextualPanel(
+    tool: EditorTool,
+    state: EditorUiState,
+    viewModel: EditorViewModel,
+    collapsed: Boolean,
+    onToggleCollapsed: () -> Unit,
+    onResetImage: () -> Unit,
+    onImportLut: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth().background(RestoreXPanel)) {
+        Row(
+            Modifier.fillMaxWidth().height(30.dp).clickable(onClick = onToggleCollapsed).padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(if (collapsed) "Show ${tool.label} controls" else "Hide controls", color = RestoreXMuted, fontSize = 11.sp, modifier = Modifier.weight(1f))
+            Text("Reset image", color = RestoreXAccent, fontSize = 11.sp, modifier = Modifier.clickable(onClick = onResetImage).padding(6.dp))
+            Text(if (collapsed) "⌃" else "⌄", color = RestoreXAccent)
+        }
+        if (collapsed) return@Column
+        Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
+        when (tool) {
+            EditorTool.CROP -> CropPanel(state, viewModel)
+            EditorTool.ENHANCE -> EnhancePanel(state, viewModel)
+            EditorTool.LIGHT -> LightPanel(state, viewModel)
+            EditorTool.COLOR -> ColorPanel(state, viewModel)
+            EditorTool.FILTERS -> FilterPanel(state, viewModel, onImportLut)
+            EditorTool.FILM -> FilmPanel(state, viewModel)
+            EditorTool.DETAILS -> DetailsPanel(state, viewModel)
+            else -> Unit
+        }
+        }
+    }
+}
+
+@Composable
+private fun PanelHeader(title: String, actionLabel: String = "Reset all", onResetAll: (() -> Unit)? = null) {
+    Row(
+        Modifier.fillMaxWidth().height(30.dp).padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, color = RestoreXText, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        if (onResetAll != null) {
+            Text(
+                actionLabel,
+                color = RestoreXAccent,
+                fontSize = 12.sp,
+                modifier = Modifier.clickable(onClick = onResetAll).padding(6.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CropPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    PanelHeader("Crop & rotate", actionLabel = "Reset", onResetAll = viewModel::resetGeometry)
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item {
+            CompactToolButton("Rotate", AppIcon.Rotate, false, viewModel::rotateClockwise)
+        }
+        items(CropAspect.entries) { aspect ->
+            CompactToolButton(
+                label = aspect.label,
+                icon = AppIcon.Crop,
+                selected = state.edits.cropAspect == aspect,
+                onClick = { viewModel.setCrop(aspect) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun EnhancePanel(state: EditorUiState, viewModel: EditorViewModel) {
+    val adjustments = state.edits.adjustments
+    PanelHeader("Enhance", actionLabel = "Reset", onResetAll = {
+        viewModel.commitAdjustments { it.copy(autoMode = AutoEnhanceMode.NONE, enhanceStrength = 1f, vibrance = 0f, clarity = 0f) }
+    })
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(AutoEnhanceMode.entries.filter { it != AutoEnhanceMode.NONE }) { mode ->
+            CompactToolButton(
+                mode.label,
+                AppIcon.Enhance,
+                adjustments.autoMode == mode,
+            ) {
+                viewModel.commitAdjustments {
+                    it.copy(autoMode = if (it.autoMode == mode) AutoEnhanceMode.NONE else mode)
+                }
+            }
+        }
+    }
+    if (adjustments.autoMode != AutoEnhanceMode.NONE) {
+        AdjustmentSlider(
+            "Strength", adjustments.enhanceStrength, 0f..1f, 1f,
+            onChange = { value -> viewModel.updateAdjustments { it.copy(enhanceStrength = value) } },
+            onCommit = viewModel::commitAdjustments,
+            onReset = { viewModel.resetAdjustments { it.copy(enhanceStrength = 1f) } },
+        )
+    } else {
+        AdjustmentSlider(
+            "Vibrance", adjustments.vibrance, -1f..1f, 0f,
+            onChange = { value -> viewModel.updateAdjustments { it.copy(vibrance = value) } },
+            onCommit = viewModel::commitAdjustments,
+            onReset = { viewModel.resetAdjustments { it.copy(vibrance = 0f) } },
+        )
+        AdjustmentSlider(
+            "Clarity", adjustments.clarity, -1f..1f, 0f,
+            onChange = { value -> viewModel.updateAdjustments { it.copy(clarity = value) } },
+            onCommit = viewModel::commitAdjustments,
+            onReset = { viewModel.resetAdjustments { it.copy(clarity = 0f) } },
+        )
+    }
+}
+
+private enum class LightControl(val label: String) {
+    EXPOSURE("Exposure"), BRIGHTNESS("Brightness"), CONTRAST("Contrast"), HIGHLIGHTS("Highlights"),
+    SHADOWS("Shadows"), WHITES("Whites"), BLACKS("Blacks"), GAMMA("Gamma"), CURVE("Tone Curve"), VIGNETTE("Vignette"),
+}
+
+@Composable
+private fun LightPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    var selected by remember { mutableStateOf(LightControl.EXPOSURE) }
+    val a = state.edits.adjustments
+    PanelHeader("Light", actionLabel = "Reset", onResetAll = {
+        viewModel.commitAdjustments { it.copy(
+            exposure = 0f, brightness = 0f, contrast = 1f, highlights = 0f, shadows = 0f,
+            whites = 0f, blacks = 0f, gamma = 1f, toneCurve = 0f, vignette = 0f,
+        ) }
+    })
+    HorizontalTextSelector(LightControl.entries, selected, { it.label }) { selected = it }
+    val value = when (selected) {
+        LightControl.EXPOSURE -> a.exposure; LightControl.BRIGHTNESS -> a.brightness; LightControl.CONTRAST -> a.contrast
+        LightControl.HIGHLIGHTS -> a.highlights; LightControl.SHADOWS -> a.shadows; LightControl.WHITES -> a.whites
+        LightControl.BLACKS -> a.blacks; LightControl.GAMMA -> a.gamma; LightControl.CURVE -> a.toneCurve
+        LightControl.VIGNETTE -> a.vignette
+    }
+    val range = when (selected) {
+        LightControl.EXPOSURE -> -2f..2f; LightControl.CONTRAST -> 0.5f..1.5f; LightControl.GAMMA -> 0.4f..2.5f
+        else -> -1f..1f
+    }
+    val neutral = when (selected) { LightControl.CONTRAST, LightControl.GAMMA -> 1f; else -> 0f }
+    fun transform(value: Float) = when (selected) {
+        LightControl.EXPOSURE -> a.copy(exposure = value); LightControl.BRIGHTNESS -> a.copy(brightness = value)
+        LightControl.CONTRAST -> a.copy(contrast = value); LightControl.HIGHLIGHTS -> a.copy(highlights = value)
+        LightControl.SHADOWS -> a.copy(shadows = value); LightControl.WHITES -> a.copy(whites = value)
+        LightControl.BLACKS -> a.copy(blacks = value); LightControl.GAMMA -> a.copy(gamma = value)
+        LightControl.CURVE -> a.copy(toneCurve = value); LightControl.VIGNETTE -> a.copy(vignette = value)
+    }
+    AdjustmentSlider(
+        selected.label, value, range, neutral,
+        onChange = { newValue -> viewModel.updateAdjustments { transform(newValue) } },
+        onCommit = viewModel::commitAdjustments,
+        onReset = { viewModel.resetAdjustments { transform(neutral) } },
+    )
+}
+
+private enum class ColorControl(val label: String) {
+    TEMPERATURE("Temperature"), TINT("Tint"), SATURATION("Saturation"), VIBRANCE("Vibrance"), HUE("Hue"),
+    RGB("RGB Channels"), HSL("HSL Mix"), BALANCE("Color Balance"), SPLIT_TONE("Split Tone"),
+}
+private enum class RgbChannel(val label: String) { RED("Red"), GREEN("Green"), BLUE("Blue") }
+private enum class BalanceBand(val label: String) { SHADOWS("Shadows"), MIDTONES("Midtones"), HIGHLIGHTS("Highlights") }
+private enum class HslComponent(val label: String) { HUE("Hue"), SATURATION("Saturation"), LUMINANCE("Luminance") }
+private enum class SplitToneControl(val label: String) {
+    SHADOW_HUE("Shadow Hue"), SHADOW_SAT("Shadow Sat"), HIGHLIGHT_HUE("Highlight Hue"),
+    HIGHLIGHT_SAT("Highlight Sat"), BALANCE("Balance"),
+}
+
+@Composable
+private fun ColorPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    var selected by remember { mutableStateOf(ColorControl.TEMPERATURE) }
+    var rgbChannel by remember { mutableStateOf(RgbChannel.RED) }
+    var hslRange by remember { mutableStateOf(HslColorRange.RED) }
+    var hslComponent by remember { mutableStateOf(HslComponent.HUE) }
+    var balanceBand by remember { mutableStateOf(BalanceBand.MIDTONES) }
+    var balanceChannel by remember { mutableStateOf(RgbChannel.RED) }
+    var splitControl by remember { mutableStateOf(SplitToneControl.SHADOW_HUE) }
+    val a = state.edits.adjustments
+    PanelHeader("Color", actionLabel = "Reset", onResetAll = {
+        viewModel.commitAdjustments { it.copy(
+            temperature = 0f, tint = 0f, saturation = 1f, vibrance = 0f, hue = 0f,
+            redChannel = 0f, greenChannel = 0f, blueChannel = 0f,
+            hsl = com.restorex.app.domain.model.HslAdjustments(),
+            colorBalance = com.restorex.app.domain.model.ColorBalance(),
+            splitToning = com.restorex.app.domain.model.SplitToning(),
+        ) }
+    })
+    HorizontalTextSelector(ColorControl.entries, selected, { it.label }) { selected = it }
+    when (selected) {
+        ColorControl.TEMPERATURE -> SimpleColorSlider("Temperature", a.temperature, -1f..1f, 0f, viewModel) { copy(temperature = it) }
+        ColorControl.TINT -> SimpleColorSlider("Tint", a.tint, -1f..1f, 0f, viewModel) { copy(tint = it) }
+        ColorControl.SATURATION -> SimpleColorSlider("Saturation", a.saturation, 0f..2f, 1f, viewModel) { copy(saturation = it) }
+        ColorControl.VIBRANCE -> SimpleColorSlider("Vibrance", a.vibrance, -1f..1f, 0f, viewModel) { copy(vibrance = it) }
+        ColorControl.HUE -> SimpleColorSlider("Hue", a.hue, -180f..180f, 0f, viewModel, valueFormatter = { "${it.roundToInt()}°" }) { copy(hue = it) }
+        ColorControl.RGB -> {
+            HorizontalTextSelector(RgbChannel.entries, rgbChannel, { it.label }) { rgbChannel = it }
+            val value = when (rgbChannel) { RgbChannel.RED -> a.redChannel; RgbChannel.GREEN -> a.greenChannel; RgbChannel.BLUE -> a.blueChannel }
+            SimpleColorSlider(rgbChannel.label, value, -1f..1f, 0f, viewModel) { v ->
+                when (rgbChannel) { RgbChannel.RED -> copy(redChannel = v); RgbChannel.GREEN -> copy(greenChannel = v); RgbChannel.BLUE -> copy(blueChannel = v) }
+            }
+        }
+        ColorControl.HSL -> {
+            HorizontalTextSelector(HslColorRange.entries, hslRange, { it.label }) { hslRange = it }
+            HorizontalTextSelector(HslComponent.entries, hslComponent, { it.label }) { hslComponent = it }
+            val current = a.hsl[hslRange]
+            val value = when (hslComponent) { HslComponent.HUE -> current.hue; HslComponent.SATURATION -> current.saturation; HslComponent.LUMINANCE -> current.luminance }
+            val range = if (hslComponent == HslComponent.HUE) -60f..60f else -1f..1f
+            SimpleColorSlider("${hslRange.label} ${hslComponent.label}", value, range, 0f, viewModel) { v ->
+                copy(hsl = hsl.update(hslRange) { item ->
+                    when (hslComponent) { HslComponent.HUE -> item.copy(hue = v); HslComponent.SATURATION -> item.copy(saturation = v); HslComponent.LUMINANCE -> item.copy(luminance = v) }
+                })
+            }
+        }
+        ColorControl.BALANCE -> {
+            HorizontalTextSelector(BalanceBand.entries, balanceBand, { it.label }) { balanceBand = it }
+            HorizontalTextSelector(RgbChannel.entries, balanceChannel, { it.label }) { balanceChannel = it }
+            val band = when (balanceBand) { BalanceBand.SHADOWS -> a.colorBalance.shadows; BalanceBand.MIDTONES -> a.colorBalance.midtones; BalanceBand.HIGHLIGHTS -> a.colorBalance.highlights }
+            val value = when (balanceChannel) { RgbChannel.RED -> band.red; RgbChannel.GREEN -> band.green; RgbChannel.BLUE -> band.blue }
+            SimpleColorSlider("${balanceBand.label} ${balanceChannel.label}", value, -1f..1f, 0f, viewModel) { v ->
+                val updated = when (balanceChannel) { RgbChannel.RED -> band.copy(red = v); RgbChannel.GREEN -> band.copy(green = v); RgbChannel.BLUE -> band.copy(blue = v) }
+                copy(colorBalance = when (balanceBand) {
+                    BalanceBand.SHADOWS -> colorBalance.copy(shadows = updated)
+                    BalanceBand.MIDTONES -> colorBalance.copy(midtones = updated)
+                    BalanceBand.HIGHLIGHTS -> colorBalance.copy(highlights = updated)
+                })
+            }
+        }
+        ColorControl.SPLIT_TONE -> {
+            HorizontalTextSelector(SplitToneControl.entries, splitControl, { it.label }) { splitControl = it }
+            val split = a.splitToning
+            val value = when (splitControl) {
+                SplitToneControl.SHADOW_HUE -> split.shadowHue; SplitToneControl.SHADOW_SAT -> split.shadowSaturation
+                SplitToneControl.HIGHLIGHT_HUE -> split.highlightHue; SplitToneControl.HIGHLIGHT_SAT -> split.highlightSaturation
+                SplitToneControl.BALANCE -> split.balance
+            }
+            val range = if (splitControl == SplitToneControl.SHADOW_HUE || splitControl == SplitToneControl.HIGHLIGHT_HUE) 0f..360f else if (splitControl == SplitToneControl.BALANCE) -1f..1f else 0f..1f
+            val neutral = when (splitControl) { SplitToneControl.SHADOW_HUE -> 220f; SplitToneControl.HIGHLIGHT_HUE -> 40f; else -> 0f }
+            SimpleColorSlider(splitControl.label, value, range, neutral, viewModel) { v ->
+                copy(splitToning = when (splitControl) {
+                    SplitToneControl.SHADOW_HUE -> splitToning.copy(shadowHue = v)
+                    SplitToneControl.SHADOW_SAT -> splitToning.copy(shadowSaturation = v)
+                    SplitToneControl.HIGHLIGHT_HUE -> splitToning.copy(highlightHue = v)
+                    SplitToneControl.HIGHLIGHT_SAT -> splitToning.copy(highlightSaturation = v)
+                    SplitToneControl.BALANCE -> splitToning.copy(balance = v)
+                })
+            }
+        }
+    }
+}
+
+@Composable
+private fun SimpleColorSlider(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    neutral: Float,
+    viewModel: EditorViewModel,
+    valueFormatter: ((Float) -> String)? = null,
+    transform: com.restorex.app.domain.model.Adjustments.(Float) -> com.restorex.app.domain.model.Adjustments,
+) {
+    AdjustmentSlider(
+        label, value, range, neutral,
+        onChange = { v -> viewModel.updateAdjustments { it.transform(v) } },
+        onCommit = viewModel::commitAdjustments,
+        onReset = { viewModel.resetAdjustments { it.transform(neutral) } },
+        valueFormatter = valueFormatter,
+    )
+}
+
+private enum class DetailGroup(val label: String) {
+    STRUCTURE("Structure"), SHARPENING("Sharpening"), NOISE("Noise Reduction"),
+}
+
+private enum class DetailControl(val label: String, val group: DetailGroup) {
+    STRUCTURE("Structure", DetailGroup.STRUCTURE),
+    CLARITY("Clarity", DetailGroup.STRUCTURE),
+    TEXTURE("Texture", DetailGroup.STRUCTURE),
+    DEHAZE("Dehaze", DetailGroup.STRUCTURE),
+    SHARPEN("Amount", DetailGroup.SHARPENING),
+    RADIUS("Radius", DetailGroup.SHARPENING),
+    THRESHOLD("Threshold", DetailGroup.SHARPENING),
+    MASKING("Masking", DetailGroup.SHARPENING),
+    LUMA_NOISE("Luminance", DetailGroup.NOISE),
+    COLOR_NOISE("Color", DetailGroup.NOISE),
+}
+
+private enum class FilmControl(val label: String) {
+    GRAIN("Grain"), FADE("Fade"), VIGNETTE("Vignette"), TONE("Warm / Cool"), COLOR_FADE("Color Fade"),
+    ROLLOFF("Highlight Roll-off"), SHADOW_HUE("Shadow Hue"), SHADOW_TINT("Shadow Tint"),
+    LIGHT_LEAK("Light Leak"), ABERRATION("Chromatic"),
+}
+
+@Composable
+private fun FilmPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    var selected by remember { mutableStateOf(FilmControl.GRAIN) }
+    val a = state.edits.adjustments
+    val film = a.film
+    PanelHeader(
+        "Film",
+        actionLabel = "Reset film",
+        onResetAll = { viewModel.commitAdjustments { it.copy(film = com.restorex.app.domain.model.FilmEffects(), vignette = 0f) } },
+    )
+    HorizontalTextSelector(FilmControl.entries, selected, { it.label }) { selected = it }
+    val value = when (selected) {
+        FilmControl.GRAIN -> film.grain; FilmControl.FADE -> film.fade; FilmControl.VIGNETTE -> a.vignette
+        FilmControl.TONE -> film.tone; FilmControl.COLOR_FADE -> film.colorFade; FilmControl.ROLLOFF -> film.highlightRolloff
+        FilmControl.SHADOW_HUE -> film.shadowTintHue; FilmControl.SHADOW_TINT -> film.shadowTint
+        FilmControl.LIGHT_LEAK -> film.lightLeak; FilmControl.ABERRATION -> film.chromaticAberration
+    }
+    val range = when (selected) {
+        FilmControl.VIGNETTE, FilmControl.TONE -> -1f..1f
+        FilmControl.SHADOW_HUE -> 0f..360f
+        else -> 0f..1f
+    }
+    val neutral = when (selected) { FilmControl.SHADOW_HUE -> 220f; else -> 0f }
+    fun transform(v: Float) = when (selected) {
+        FilmControl.VIGNETTE -> a.copy(vignette = v)
+        FilmControl.GRAIN -> a.copy(film = film.copy(grain = v)); FilmControl.FADE -> a.copy(film = film.copy(fade = v))
+        FilmControl.TONE -> a.copy(film = film.copy(tone = v)); FilmControl.COLOR_FADE -> a.copy(film = film.copy(colorFade = v))
+        FilmControl.ROLLOFF -> a.copy(film = film.copy(highlightRolloff = v)); FilmControl.SHADOW_HUE -> a.copy(film = film.copy(shadowTintHue = v))
+        FilmControl.SHADOW_TINT -> a.copy(film = film.copy(shadowTint = v)); FilmControl.LIGHT_LEAK -> a.copy(film = film.copy(lightLeak = v))
+        FilmControl.ABERRATION -> a.copy(film = film.copy(chromaticAberration = v))
+    }
+    AdjustmentSlider(
+        selected.label, value, range, neutral,
+        onChange = { newValue -> viewModel.updateAdjustments { transform(newValue) } },
+        onCommit = viewModel::commitAdjustments,
+        onReset = { viewModel.resetAdjustments { transform(neutral) } },
+        valueFormatter = if (selected == FilmControl.SHADOW_HUE) ({ "${it.roundToInt()}°" }) else null,
+    )
+}
+
+@Composable
+private fun DetailsPanel(state: EditorUiState, viewModel: EditorViewModel) {
+    var group by remember { mutableStateOf(DetailGroup.STRUCTURE) }
+    var selected by remember { mutableStateOf(DetailControl.STRUCTURE) }
+    val a = state.edits.adjustments
+    PanelHeader("Details", actionLabel = "Reset details", onResetAll = {
+        viewModel.setSharpenMaskPreview(false)
+        viewModel.commitAdjustments { it.copy(
+            structure = 0f, clarity = 0f, texture = 0f, dehaze = 0f,
+            sharpening = 0f, sharpeningRadius = 1f, sharpeningThreshold = 0.02f,
+            sharpeningMasking = 0f, luminanceNoiseReduction = 0f, colorNoiseReduction = 0f,
+        ) }
+    })
+    HorizontalTextSelector(DetailGroup.entries, group, { it.label }) { newGroup ->
+        group = newGroup
+        selected = DetailControl.entries.first { it.group == newGroup }
+        if (newGroup != DetailGroup.SHARPENING) viewModel.setSharpenMaskPreview(false)
+    }
+    HorizontalTextSelector(DetailControl.entries.filter { it.group == group }, selected, { it.label }) { selected = it }
+    val value = when (selected) {
+        DetailControl.STRUCTURE -> a.structure; DetailControl.CLARITY -> a.clarity; DetailControl.TEXTURE -> a.texture
+        DetailControl.DEHAZE -> a.dehaze; DetailControl.SHARPEN -> a.sharpening
+        DetailControl.RADIUS -> a.sharpeningRadius; DetailControl.THRESHOLD -> a.sharpeningThreshold
+        DetailControl.MASKING -> a.sharpeningMasking
+        DetailControl.LUMA_NOISE -> a.luminanceNoiseReduction; DetailControl.COLOR_NOISE -> a.colorNoiseReduction
+    }
+    val range = when (selected) {
+        DetailControl.CLARITY, DetailControl.TEXTURE -> -1f..1f
+        DetailControl.SHARPEN -> 0f..2f
+        DetailControl.RADIUS -> 0.3f..3f
+        else -> 0f..1f
+    }
+    val neutral = when (selected) { DetailControl.RADIUS -> 1f; DetailControl.THRESHOLD -> 0.02f; else -> 0f }
+    fun transform(v: Float) = when (selected) {
+        DetailControl.STRUCTURE -> a.copy(structure = v); DetailControl.CLARITY -> a.copy(clarity = v)
+        DetailControl.TEXTURE -> a.copy(texture = v); DetailControl.DEHAZE -> a.copy(dehaze = v)
+        DetailControl.SHARPEN -> a.copy(sharpening = v); DetailControl.RADIUS -> a.copy(sharpeningRadius = v)
+        DetailControl.THRESHOLD -> a.copy(sharpeningThreshold = v); DetailControl.MASKING -> a.copy(sharpeningMasking = v)
+        DetailControl.LUMA_NOISE -> a.copy(luminanceNoiseReduction = v)
+        DetailControl.COLOR_NOISE -> a.copy(colorNoiseReduction = v)
+    }
+    AdjustmentSlider(
+        selected.label, value, range, neutral,
+        onChange = { newValue -> viewModel.updateAdjustments { transform(newValue) } },
+        onCommit = viewModel::commitAdjustments,
+        onReset = { viewModel.resetAdjustments { transform(neutral) } },
+        valueFormatter = when (selected) {
+            DetailControl.RADIUS -> { v -> String.format(Locale.ROOT, "%.1f", v) }
+            DetailControl.SHARPEN -> { v -> "${(v * 100).roundToInt()}%" }
+            DetailControl.THRESHOLD, DetailControl.MASKING, DetailControl.STRUCTURE, DetailControl.DEHAZE,
+            DetailControl.LUMA_NOISE, DetailControl.COLOR_NOISE -> { v -> "${(v * 100).roundToInt()}" }
+            else -> null
+        },
+    )
+    when (selected) {
+        DetailControl.RADIUS -> Text(
+            "Radius is measured in pixels at original image resolution.",
+            color = RestoreXMuted,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        DetailControl.THRESHOLD -> Text(
+            "0–100 maps to 0–30.6 levels of 8-bit luminance detail suppression.",
+            color = RestoreXMuted,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        else -> Unit
+    }
+    if (group == DetailGroup.SHARPENING) {
+        Row(
+            Modifier.fillMaxWidth().height(42.dp).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val maskAvailable = a.sharpening > 0f || a.sharpeningMasking > 0f
+            Checkbox(
+                checked = state.showSharpenMask,
+                onCheckedChange = viewModel::setSharpenMaskPreview,
+                enabled = maskAvailable,
+            )
+            Text(
+                "Preview edge mask (preview only)",
+                color = if (maskAvailable) RestoreXText else RestoreXDisabled,
+                fontSize = 12.sp,
+                modifier = Modifier.semantics { contentDescription = "Preview sharpening edge mask" },
+            )
+        }
+    }
+}
+
+@Composable
+private fun <T> HorizontalTextSelector(
+    options: List<T>,
+    selected: T,
+    label: (T) -> String,
+    onSelected: (T) -> Unit,
+) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        items(options) { option ->
+            val active = option == selected
+            Text(
+                label(option),
+                color = if (active) Color(0xFF251A00) else RestoreXMuted,
+                fontSize = 11.sp,
+                modifier = Modifier.background(if (active) RestoreXAccent else RestoreXPanelRaised, RoundedCornerShape(10.dp))
+                    .clickable { onSelected(option) }.padding(horizontal = 11.dp, vertical = 7.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilterPanel(state: EditorUiState, viewModel: EditorViewModel, onImportLut: () -> Unit) {
+    var workspace by remember { mutableStateOf(FilterCategory.NATURAL.label) }
+    val categoryLabels = FilterCategory.entries.map { it.label } + "LUTs"
+    PanelHeader("Filters", actionLabel = "Reset filter", onResetAll = viewModel::resetFilterAndLut)
+    HorizontalTextSelector(categoryLabels, workspace, { it }) { workspace = it }
+    if (workspace == "LUTs") {
+        LutPanelContent(state, viewModel, onImportLut)
+        return
+    }
+    val category = FilterCategory.entries.first { it.label == workspace }
+    val original = state.presets.first { it.id == com.restorex.app.domain.model.FilterPreset.ORIGINAL_ID }
+    val visible = buildList {
+        add(original)
+        addAll(state.presets.filter { it.category == category && it.id != original.id })
+    }
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(visible, key = { it.id }) { preset ->
+            FilterThumbnail(
+                id = preset.id,
+                label = preset.name,
+                image = state.filterPreviews[preset.id],
+                selected = state.edits.filter.presetId == preset.id,
+                sourceIdentity = state.sourceIdentity,
+                onRequest = viewModel::requestFilterThumbnail,
+                onClick = { viewModel.applyPreset(preset.id) },
+            )
+        }
+    }
+    if (state.edits.filter.presetId != com.restorex.app.domain.model.FilterPreset.ORIGINAL_ID) {
+        val preset = state.presets.firstOrNull { it.id == state.edits.filter.presetId }
+        Text(preset?.name.orEmpty(), color = RestoreXText, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp))
+        AdjustmentSlider(
+            "Intensity", state.edits.filter.intensity, 0f..1f, preset?.defaultIntensity ?: 1f,
+            onChange = viewModel::updateFilterIntensity,
+            onCommit = viewModel::commitFilterIntensity,
+            onReset = { viewModel.updateFilterIntensity(preset?.defaultIntensity ?: 1f); viewModel.commitFilterIntensity() },
+        )
+    }
+}
+
+@Composable
+private fun LutPanelContent(state: EditorUiState, viewModel: EditorViewModel, onImportLut: () -> Unit) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item { CompactToolButton("Import .cube", AppIcon.Enhance, false, onImportLut) }
+        items(state.importedLuts, key = { it.id }) { lut ->
+            val selected = state.edits.lut?.id == lut.id
+            Column(
+                Modifier.width(108.dp).background(if (selected) RestoreXPanelRaised else Color.Transparent, RoundedCornerShape(10.dp))
+                    .border(if (selected) 2.dp else 0.dp, if (selected) RestoreXAccent else Color.Transparent, RoundedCornerShape(10.dp))
+                    .clickable { viewModel.selectLut(lut) }.padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(lut.name, color = if (selected) RestoreXAccent else RestoreXText, fontSize = 11.sp, maxLines = 1)
+                Text("Delete", color = RestoreXMuted, fontSize = 10.sp, modifier = Modifier.clickable { viewModel.deleteLut(lut) }.padding(5.dp))
+            }
+        }
+    }
+    state.edits.lut?.let { lut ->
+        Text(lut.name, color = RestoreXText, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp))
+        AdjustmentSlider(
+            "LUT intensity", lut.intensity, 0f..1f, 1f,
+            onChange = viewModel::updateLutIntensity,
+            onCommit = viewModel::commitLutIntensity,
+            onReset = { viewModel.updateLutIntensity(1f); viewModel.commitLutIntensity() },
+        )
+    }
+}
+
+@Composable
+private fun AdjustmentSlider(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    neutral: Float,
+    onChange: (Float) -> Unit,
+    onCommit: () -> Unit,
+    onReset: () -> Unit,
+    valueFormatter: ((Float) -> String)? = null,
+) {
+    val display = when {
+        range.endInclusive <= 1f -> (value * 100).roundToInt()
+        neutral == 1f -> ((value - 1f) * 100).roundToInt()
+        else -> (value * 100).roundToInt()
+    }
+    Row(
+        Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, color = RestoreXMuted, fontSize = 12.sp, modifier = Modifier.width(72.dp))
+        Slider(
+            value = value,
+            onValueChange = onChange,
+            onValueChangeFinished = onCommit,
+            valueRange = range,
+            modifier = Modifier.weight(1f)
+                .pointerInput(label, onReset) { detectTapGestures(onDoubleTap = { onReset() }) }
+                .semantics { contentDescription = "$label adjustment; double tap to reset" },
+        )
+        Text(
+            text = valueFormatter?.invoke(value) ?: if (display > 0) "+$display" else display.toString(),
+            color = if (value == neutral) RestoreXMuted else RestoreXAccent,
+            fontSize = 12.sp,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(38.dp),
+        )
+        ToolIconButton(AppIcon.Reset, "Reset $label", enabled = value != neutral, onClick = onReset, size = 36)
+    }
+}
+
+@Composable
+private fun FilterThumbnail(
+    id: String,
+    label: String,
+    image: RasterImage?,
+    selected: Boolean,
+    sourceIdentity: Long,
+    onRequest: (String) -> Unit,
+    onClick: () -> Unit,
+) {
+    LaunchedEffect(sourceIdentity, id) { onRequest(id) }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(80.dp).clickable(onClick = onClick).semantics { contentDescription = "$label filter" },
+    ) {
+        Box(
+            Modifier.width(80.dp).height(96.dp).background(RestoreXPanelRaised, RoundedCornerShape(11.dp))
+                .then(if (selected) Modifier.border(2.dp, RestoreXAccent, RoundedCornerShape(11.dp)) else Modifier),
+        ) {
+            if (image != null) {
+                val bitmap = rememberRasterImage(image)
+                Canvas(Modifier.fillMaxSize().padding(if (selected) 3.dp else 1.dp)) {
+                    val targetAspect = size.width / size.height
+                    val sourceAspect = bitmap.width.toFloat() / bitmap.height
+                    val cropWidth = if (sourceAspect > targetAspect) (bitmap.height * targetAspect).roundToInt() else bitmap.width
+                    val cropHeight = if (sourceAspect > targetAspect) bitmap.height else (bitmap.width / targetAspect).roundToInt()
+                    drawImage(
+                        image = bitmap,
+                        srcOffset = IntOffset((bitmap.width - cropWidth) / 2, (bitmap.height - cropHeight) / 2),
+                        srcSize = IntSize(cropWidth, cropHeight),
+                        dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()),
+                        filterQuality = FilterQuality.Medium,
+                    )
+                }
+            } else {
+                CircularProgressIndicator(Modifier.align(Alignment.Center).size(18.dp), color = RestoreXAccent, strokeWidth = 2.dp)
+            }
+        }
+        Text(label, color = if (selected) RestoreXAccent else RestoreXMuted, fontSize = 10.sp, maxLines = 1, textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+private fun CompactToolButton(label: String, icon: AppIcon, selected: Boolean, onClick: () -> Unit) {
+    Column(
+        Modifier.width(64.dp).clickable(onClick = onClick).semantics { contentDescription = label },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier.size(42.dp).background(if (selected) RestoreXAccent else RestoreXPanelRaised, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center,
+        ) { AppIconCanvas(icon, if (selected) Color(0xFF251A00) else RestoreXText, Modifier.size(21.dp)) }
+        Text(label, color = if (selected) RestoreXAccent else RestoreXMuted, fontSize = 10.sp)
+    }
+}
+
+@Composable
+private fun ToolNavigation(selected: EditorTool, onSelected: (EditorTool) -> Unit) {
+    HorizontalDivider(color = Color(0xFF2A2B2F))
+    Row(
+        Modifier.fillMaxWidth().background(RestoreXPanel).horizontalScroll(rememberScrollState())
+            .navigationBarsPadding().padding(horizontal = 4.dp, vertical = 5.dp),
+    ) {
+        EditorTool.entries.forEach { tool ->
+            val tint = when {
+                !tool.available -> RestoreXDisabled
+                tool == selected -> RestoreXAccent
+                else -> RestoreXMuted
+            }
+            Column(
+                modifier = Modifier.width(68.dp).height(58.dp)
+                    .clickable(enabled = tool.available) { onSelected(tool) }
+                    .semantics {
+                        contentDescription = if (tool.available) tool.label else "${tool.label}, unavailable"
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                AppIconCanvas(tool.icon, tint, Modifier.size(22.dp))
+                Spacer(Modifier.height(4.dp))
+                Text(tool.label, color = tint, fontSize = 10.sp, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToolIconButton(
+    icon: AppIcon,
+    description: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    size: Int = 48,
+) {
+    Box(
+        Modifier.size(size.dp).clickable(enabled = enabled, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        AppIconCanvas(icon, if (enabled) RestoreXText else RestoreXDisabled, Modifier.size(21.dp))
+    }
+}
+
+private enum class AppIcon {
+    Back, Undo, Redo, Compare, Fullscreen, Crop, Enhance, Light, Color, Filters, Details, Retouch, Rotate, Reset, Image,
+}
+
+@Composable
+private fun AppIconCanvas(icon: AppIcon, tint: Color, modifier: Modifier) {
+    Canvas(modifier) { drawAppIcon(icon, tint) }
+}
+
+private fun DrawScope.drawAppIcon(icon: AppIcon, tint: Color) {
+    val stroke = size.minDimension * 0.085f
+    val outline = Stroke(width = stroke, cap = StrokeCap.Round, join = StrokeJoin.Round)
+    fun line(x1: Float, y1: Float, x2: Float, y2: Float) =
+        drawLine(tint, Offset(size.width * x1, size.height * y1), Offset(size.width * x2, size.height * y2), stroke, StrokeCap.Round)
+
+    when (icon) {
+        AppIcon.Back -> { line(.72f, .18f, .32f, .5f); line(.32f, .5f, .72f, .82f) }
+        AppIcon.Undo, AppIcon.Redo -> {
+            val mirror = icon == AppIcon.Redo
+            val path = Path().apply {
+                val sx = if (mirror) .25f else .75f
+                val ex = if (mirror) .82f else .18f
+                moveTo(size.width * sx, size.height * .72f)
+                cubicTo(size.width * sx, size.height * .32f, size.width * .5f, size.height * .25f, size.width * ex, size.height * .43f)
+            }
+            drawPath(path, tint, style = outline)
+            if (mirror) { line(.82f, .43f, .66f, .2f); line(.82f, .43f, .57f, .5f) }
+            else { line(.18f, .43f, .34f, .2f); line(.18f, .43f, .43f, .5f) }
+        }
+        AppIcon.Compare -> {
+            drawRect(tint, Offset(size.width * .15f, size.height * .18f), Size(size.width * .7f, size.height * .64f), style = outline)
+            line(.5f, .18f, .5f, .82f)
+            drawRect(tint.copy(alpha = .35f), Offset(size.width * .18f, size.height * .21f), Size(size.width * .29f, size.height * .58f))
+        }
+        AppIcon.Fullscreen -> {
+            line(.15f, .38f, .15f, .15f); line(.15f, .15f, .38f, .15f)
+            line(.62f, .15f, .85f, .15f); line(.85f, .15f, .85f, .38f)
+            line(.15f, .62f, .15f, .85f); line(.15f, .85f, .38f, .85f)
+            line(.62f, .85f, .85f, .85f); line(.85f, .85f, .85f, .62f)
+        }
+        AppIcon.Crop -> { line(.22f, .08f, .22f, .72f); line(.22f, .72f, .86f, .72f); line(.78f, .92f, .78f, .28f); line(.78f, .28f, .14f, .28f) }
+        AppIcon.Enhance -> { line(.5f, .08f, .5f, .92f); line(.08f, .5f, .92f, .5f); line(.2f, .2f, .8f, .8f); line(.8f, .2f, .2f, .8f) }
+        AppIcon.Light -> {
+            drawCircle(tint, size.minDimension * .22f, center, style = outline)
+            repeat(8) { index ->
+                val a = index * Math.PI / 4
+                val p1 = Offset(center.x + kotlin.math.cos(a).toFloat() * size.width * .34f, center.y + kotlin.math.sin(a).toFloat() * size.height * .34f)
+                val p2 = Offset(center.x + kotlin.math.cos(a).toFloat() * size.width * .46f, center.y + kotlin.math.sin(a).toFloat() * size.height * .46f)
+                drawLine(tint, p1, p2, stroke, StrokeCap.Round)
+            }
+        }
+        AppIcon.Color -> {
+            val path = Path().apply { moveTo(center.x, size.height * .08f); cubicTo(size.width * .82f, size.height * .45f, size.width * .82f, size.height * .78f, center.x, size.height * .9f); cubicTo(size.width * .18f, size.height * .78f, size.width * .18f, size.height * .45f, center.x, size.height * .08f) }
+            drawPath(path, tint, style = outline)
+        }
+        AppIcon.Filters -> {
+            drawCircle(tint, size.width * .26f, Offset(size.width * .38f, center.y), style = outline)
+            drawCircle(tint, size.width * .26f, Offset(size.width * .62f, center.y), style = outline)
+        }
+        AppIcon.Details -> { line(.15f, .25f, .85f, .25f); line(.15f, .5f, .85f, .5f); line(.15f, .75f, .85f, .75f); drawCircle(tint, stroke, Offset(size.width * .35f, size.height * .25f)); drawCircle(tint, stroke, Offset(size.width * .65f, size.height * .5f)); drawCircle(tint, stroke, Offset(size.width * .45f, size.height * .75f)) }
+        AppIcon.Retouch -> { line(.2f, .8f, .8f, .2f); line(.32f, .92f, .92f, .32f); line(.2f, .8f, .32f, .92f); line(.8f, .2f, .92f, .32f); line(.45f, .55f, .57f, .67f) }
+        AppIcon.Rotate -> {
+            val path = Path().apply { moveTo(size.width * .78f, size.height * .37f); cubicTo(size.width * .68f, size.height * .12f, size.width * .3f, size.height * .14f, size.width * .2f, size.height * .43f); cubicTo(size.width * .08f, size.height * .78f, size.width * .55f, size.height * .95f, size.width * .78f, size.height * .7f) }
+            drawPath(path, tint, style = outline); line(.78f, .37f, .8f, .13f); line(.78f, .37f, .56f, .3f)
+        }
+        AppIcon.Reset -> { line(.28f, .35f, .28f, .8f); line(.72f, .35f, .72f, .8f); line(.18f, .27f, .82f, .27f); line(.4f, .17f, .6f, .17f); line(.2f, .27f, .32f, .15f) }
+        AppIcon.Image -> {
+            drawRect(tint, Offset(size.width * .12f, size.height * .18f), Size(size.width * .76f, size.height * .64f), style = outline)
+            drawCircle(tint, size.width * .07f, Offset(size.width * .67f, size.height * .36f))
+            val path = Path().apply { moveTo(size.width * .18f, size.height * .72f); lineTo(size.width * .4f, size.height * .48f); lineTo(size.width * .55f, size.height * .62f); lineTo(size.width * .66f, size.height * .51f); lineTo(size.width * .82f, size.height * .72f) }
+            drawPath(path, tint, style = outline)
+        }
+    }
+}
+
+@Composable
+private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolean) -> Unit) {
+    var format by remember { mutableStateOf(ExportFormat.JPEG) }
+    var quality by remember { mutableFloatStateOf(95f) }
+    var maxWidth by remember { mutableStateOf("") }
+    var maxHeight by remember { mutableStateOf("") }
+    var shareAfterExport by remember { mutableStateOf(false) }
+    var preserveMetadata by remember { mutableStateOf(true) }
+    val widthValue = maxWidth.toIntOrNull()
+    val heightValue = maxHeight.toIntOrNull()
+    val dimensionsValid = (maxWidth.isBlank() || (widthValue ?: 0) > 0) &&
+        (maxHeight.isBlank() || (heightValue ?: 0) > 0)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = RestoreXPanelRaised,
+        title = { Text("Export photo", color = RestoreXText) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("Export renders from the original photo. Blank dimensions preserve the edited resolution.", color = RestoreXMuted)
+                HorizontalTextSelector(ExportFormat.entries, format, { it.name }) { format = it }
+                if (format == ExportFormat.JPEG) {
+                    AdjustmentSlider(
+                        "Quality", quality, 50f..100f, 95f,
+                        onChange = { quality = it }, onCommit = {}, onReset = { quality = 95f },
+                        valueFormatter = { "${it.roundToInt()}" },
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = maxWidth,
+                        onValueChange = { maxWidth = it.filter(Char::isDigit).take(5) },
+                        label = { Text("Max width") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = maxHeight,
+                        onValueChange = { maxHeight = it.filter(Char::isDigit).take(5) },
+                        label = { Text("Max height") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Text("Custom dimensions fit within these bounds without distortion or upscaling.", color = RestoreXMuted, fontSize = 11.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = shareAfterExport, onCheckedChange = { shareAfterExport = it })
+                    Text("Open Android share sheet after saving", color = RestoreXText, fontSize = 12.sp)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = preserveMetadata, onCheckedChange = { preserveMetadata = it })
+                    Text("Preserve available photo metadata", color = RestoreXText, fontSize = 12.sp)
+                }
+            }
+        },
+        confirmButton = {
+            Button(enabled = dimensionsValid, onClick = {
+                onExport(
+                    ExportOptions(format, quality.roundToInt(), widthValue, heightValue, preserveMetadata),
+                    shareAfterExport,
+                )
+            }) { Text("Save to device") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+private fun RasterImage.toBitmap(): Bitmap = Bitmap.createBitmap(argb, width, height, Bitmap.Config.ARGB_8888)
+
+@Composable
+private fun rememberRasterImage(raster: RasterImage): ImageBitmap {
+    val bitmap = remember(raster) { raster.toBitmap() }
+    DisposableEffect(bitmap) { onDispose { if (!bitmap.isRecycled) bitmap.recycle() } }
+    return remember(bitmap) { bitmap.asImageBitmap() }
+}
+
+private fun exportName(extension: String): String {
+    val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+    return "Restovue_$stamp.$extension"
+}
+
+private fun openDeveloperWebsite(context: Context, url: String) {
+    if (url.isBlank()) {
+        Toast.makeText(context, context.getString(R.string.website_not_configured), Toast.LENGTH_LONG).show()
+        return
+    }
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+        .onFailure { Toast.makeText(context, "Unable to open developer website", Toast.LENGTH_LONG).show() }
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Restovue : Photo Editor</string>
+    <string name="app_name_short">Restovue</string>
+    <string name="developer_name">NextGen TechEdge Solutions</string>
+    <string name="developer_website_url" translatable="false"></string>
+    <string name="website_not_configured">Official developer website address needs confirmation.</string>
+    <string name="offline_statement">All photo processing runs locally on this device. Restovue does not upload your images.</string>
+    <string name="privacy_statement">Photos remain under your control. Restovue uses the system Photo Picker and Storage Access Framework, requests no broad storage access, and includes no analytics or tracking.</string>
+</resources>

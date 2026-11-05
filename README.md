@@ -1,0 +1,72 @@
+# Restovue : Photo Editor
+
+Restovue is an offline-first native Android photo editor by NextGen TechEdge Solutions. It supports non-destructive tonal, color, detail, crop, rotation, filter, comparison, and export workflows through Android Photo Picker and the Storage Access Framework.
+
+No internet permission, network client, cloud SDK, analytics, or remote model is included.
+
+## Features
+
+- Photo Picker import without broad storage permission
+- Center crop presets: original, 1:1, 4:3, and 16:9
+- 90-degree rotation
+- Brightness, contrast, exposure, and saturation controls
+- Non-destructive state history with undo and redo
+- Press-and-hold original view and draggable split before/after comparison
+- Fit preview with pinch zoom, pan, and double-tap zoom
+- Premium dark editor UI with contextual tool panels
+- Filter intensity and generated on-device filter thumbnails
+- Fit and Fill canvas modes with synchronized zoom, pan, and before/after coordinates
+- True Full Screen canvas mode with a persistent floating toolbar, Export, comparison, history, and exit controls
+- 50 curated filters across Natural, Portrait, Cinematic, Film, B&amp;W, Landscape, and Creative categories
+- On-demand 80 × 96 filter previews center-cropped from the current photo
+- Private `.cube` 3D LUT import with trilinear interpolation
+- Deterministic grain, fade, film tone, roll-off, shadow tint, procedural light leak, and chromatic aberration
+- Luminance-oriented Structure, Clarity, Texture, and conservative dark-channel Dehaze
+- Luminance unsharp masking with amount, original-pixel radius, threshold, edge masking, and a preview-only mask view
+- Independent edge-preserving luminance and chroma noise reduction
+- JPEG (95 quality) and lossless PNG export
+- Extensible filter registry capped at 50 curated presets
+- Clean boundary for future bundled, offline NCNN restoration engines
+
+Preview decoding is bounded to 2048 px on the longest edge. Export re-decodes from the original URI at its original dimensions and applies the edit state off the main thread. Source content is never modified.
+
+## Architecture
+
+The single app module is split by responsibility:
+
+- `domain`: pure edit models, draft/commit history, stable editor coordinates, raster representation, engine/repository ports, and use cases
+- `data`: Android `ImageDecoder`, bitmap/`ColorMatrix` renderer, exporter, and filter catalog
+- `presentation`: lifecycle ViewModel, immutable UI state, cancellable preview scheduling, and a small preview cache
+- app/UI: dependency container, Compose Material 3 editor workspace, Activity Result contracts
+
+OpenCV and C++ are not used in this slice: crop, rotate, and color transforms are fully supported by the platform bitmap pipeline. `OfflineRestorationEngine` is the integration boundary for a future bundled NCNN implementation.
+
+The render order is geometry (rotation and crop), tonal and color adjustments plus interpolated preset parameters, optional 3D LUT and deterministic film effects, Dehaze, luminance/chroma denoising, Structure, Clarity, Texture, luminance sharpening, and final chromatic aberration. Preview and export share the same deterministic algorithms; scale-dependent detail radii are derived from each raster's scale relative to the original image.
+
+The Details workspace separates Structure, Sharpening, and Noise Reduction controls. Slider drafts render continuously, while release creates one history entry. Category resets preserve unrelated edits, and resetting the whole image requires confirmation.
+
+## Local toolchain baseline
+
+- Android SDK Platform 36 (Android 16), target/compile SDK 36
+- Android SDK Build Tools 36.1.0
+- Android Gradle Plugin 9.5.0
+- Gradle 9.6.0 wrapper
+- Kotlin / Compose compiler plugin 2.4.21
+- Android Studio bundled JDK 25 (project bytecode target 17)
+- NDK r30 and CMake 4.1.2 are installed but intentionally unused
+
+## Build and test
+
+Set `JAVA_HOME` to Android Studio's bundled JDK (or another compatible JDK 17+) and ensure `ANDROID_HOME` points at the SDK, then run on Windows:
+
+```powershell
+./gradlew.bat testDebugUnitTest assembleDebug lintDebug
+```
+
+For instrumentation tests, start a compatible emulator or connect an API 28+ device:
+
+```powershell
+./gradlew.bat connectedDebugAndroidTest
+```
+
+The debug APK is generated under `app/build/outputs/apk/debug/`.

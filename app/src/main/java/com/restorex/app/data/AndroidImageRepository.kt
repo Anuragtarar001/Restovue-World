@@ -1,0 +1,124 @@
+package com.restorex.app.data
+
+import android.content.ContentResolver
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import androidx.core.net.toUri
+import androidx.core.graphics.scale
+import androidx.exifinterface.media.ExifInterface
+import com.restorex.app.domain.engine.ImageProcessor
+import com.restorex.app.domain.model.EditState
+import com.restorex.app.domain.model.ExportFormat
+import com.restorex.app.domain.model.ExportOptions
+import com.restorex.app.domain.model.ImageSource
+import com.restorex.app.domain.model.RasterImage
+import com.restorex.app.domain.repository.ImageRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
+import kotlin.math.min
+
+class AndroidImageRepository(
+    private val resolver: ContentResolver,
+    private val processor: ImageProcessor,
+) : ImageRepository {
+    override suspend fun load(source: ImageSource, maxDimension: Int): RasterImage = withContext(Dispatchers.IO) {
+        require(maxDimension > 0)
+        decode(source.value.toUri(), maxDimension).let { decoded ->
+            decoded.bitmap.toRaster(decoded.scaleFromOriginal).also { decoded.bitmap.recycle() }
+        }
+    }
+
+    override suspend fun export(
+        source: ImageSource,
+        edits: EditState,
+        destination: String,
+        options: ExportOptions,
+    ) = withContext(Dispatchers.IO) {
+        val sourceUri = source.value.toUri()
+        val destinationUri = destination.toUri()
+        val fullSource = decode(sourceUri, Int.MAX_VALUE).let { decoded ->
+            decoded.bitmap.toRaster(decoded.scaleFromOriginal).also { decoded.bitmap.recycle() }
+        }
+        val rendered = processor.render(fullSource, edits)
+        val renderedBitmap = rendered.toBitmap()
+        val outputBitmap = resizeForExport(renderedBitmap, options)
+        try {
+            resolver.openOutputStream(destinationUri, "w").use { stream ->
+                requireNotNull(stream) { "Unable to open export destination" }
+                val compressFormat = when (options.format) {
+                    ExportFormat.JPEG -> Bitmap.CompressFormat.JPEG
+                    ExportFormat.PNG -> Bitmap.CompressFormat.PNG
+                }
+                val quality = if (options.format == ExportFormat.JPEG) options.jpegQuality else 100
+                check(outputBitmap.compress(compressFormat, quality, stream)) { "Image encoding failed" }
+            }
+            if (options.preserveMetadata) {
+                copyMetadata(sourceUri, destinationUri, outputBitmap.width, outputBitmap.height)
+            }
+        } finally {
+            outputBitmap.recycle()
+            if (outputBitmap !== renderedBitmap) renderedBitmap.recycle()
+        }
+    }
+
+    private fun resizeForExport(bitmap: Bitmap, options: ExportOptions): Bitmap {
+        val widthScale = options.maxWidth?.let { it.toFloat() / bitmap.width } ?: 1f
+        val heightScale = options.maxHeight?.let { it.toFloat() / bitmap.height } ?: 1f
+        val scale = min(1f, min(widthScale, heightScale))
+        if (scale >= 0.9999f) return bitmap
+        return bitmap.scale(
+            (bitmap.width * scale).roundToInt().coerceAtLeast(1),
+            (bitmap.height * scale).roundToInt().coerceAtLeast(1),
+        )
+    }
+
+    private fun copyMetadata(source: Uri, destination: Uri, width: Int, height: Int) {
+        val sourceExif = resolver.openInputStream(source)?.use(::ExifInterface) ?: return
+        resolver.openFileDescriptor(destination, "rw")?.use { descriptor ->
+            val outputExif = ExifInterface(descriptor.fileDescriptor)
+            RECOGNIZED_EXIF_TAGS.forEach { tag ->
+                sourceExif.getAttribute(tag)?.let { value ->
+                    runCatching { outputExif.setAttribute(tag, value) }
+                }
+            }
+            outputExif.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
+            outputExif.setAttribute(ExifInterface.TAG_IMAGE_WIDTH, width.toString())
+            outputExif.setAttribute(ExifInterface.TAG_IMAGE_LENGTH, height.toString())
+            outputExif.saveAttributes()
+        }
+    }
+
+    private fun decode(uri: Uri, maxDimension: Int): DecodedBitmap {
+        val source = ImageDecoder.createSource(resolver, uri)
+        var originalLargest = 1
+        val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            val width = info.size.width
+            val height = info.size.height
+            val largest = maxOf(width, height)
+            originalLargest = largest
+            if (largest > maxDimension) {
+                val scale = maxDimension.toFloat() / largest
+                decoder.setTargetSize(
+                    (width * scale).roundToInt().coerceAtLeast(1),
+                    (height * scale).roundToInt().coerceAtLeast(1),
+                )
+            }
+        }
+        return DecodedBitmap(bitmap, maxOf(bitmap.width, bitmap.height).toFloat() / originalLargest)
+    }
+
+    private data class DecodedBitmap(val bitmap: Bitmap, val scaleFromOriginal: Float)
+
+    private companion object {
+        val RECOGNIZED_EXIF_TAGS: List<String> by lazy {
+            ExifInterface::class.java.fields.mapNotNull { field ->
+                if (field.name.startsWith("TAG_") && field.type == String::class.java) {
+                    field.get(null) as? String
+                } else null
+            }.distinct()
+        }
+    }
+}
