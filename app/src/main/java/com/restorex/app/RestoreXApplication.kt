@@ -33,6 +33,9 @@ class AppContainer(application: Application) {
         PerformanceDiagnostics.configure(application.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
     }
     val memoryPressure = MemoryPressureRegistry()
+    val smartMagicPipeline = com.restorex.app.data.SmartMagicPipeline()
+    val smartMagicParameterEngine = com.restorex.app.domain.smartmagic.SmartMagicParameterEngine()
+    val smartMagicExportManager = com.restorex.app.data.SmartMagicExportManager(application.contentResolver, smartMagicPipeline)
     val lutStore = LutStore(application.contentResolver, application.filesDir)
     private val processor = AndroidImageProcessor(
         lutStore,

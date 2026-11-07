@@ -10,5 +10,6 @@ captures/
 *.keystore
 *.hprof
 *.apk
+*.aab
 Thumbs.db
 .DS_Store

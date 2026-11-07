@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -26,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -71,12 +73,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
@@ -100,6 +104,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -149,6 +154,7 @@ import com.restorex.app.domain.model.BatchFormat
 import com.restorex.app.R
 import com.restorex.app.presentation.EditorUiState
 import com.restorex.app.presentation.EditorViewModel
+import com.restorex.app.presentation.SmartMagicViewModel
 import com.restorex.app.presentation.EditorChromeState
 import com.restorex.app.presentation.PreviewSizing
 import com.restorex.app.presentation.RetouchTool
@@ -198,22 +204,36 @@ private val EditorTool.category: ToolCategory get() = when (this) {
     EditorTool.UTILITIES -> ToolCategory.UTILITIES
 }
 private enum class GeometryGridMode(val label: String) { NONE("No grid"), THIRDS("Thirds"), GOLDEN("Golden") }
+private enum class HomeUtility(val label: String, val icon: AppIcon) {
+    COLLAGE("Collage", AppIcon.Collage),
+    HDR("HDR", AppIcon.Layers),
+    PANORAMA("Panorama", AppIcon.Image),
+    BATCH("Batch Edit", AppIcon.MultipleImages),
+    PASSPORT("Passport Photo", AppIcon.IdCard),
+    DOCUMENT("Document Cleanup", AppIcon.Document),
+    COMPRESS("Compress & Convert", AppIcon.Swap),
+    MORE("More Tools", AppIcon.More),
+}
 
 @Composable
-fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
+fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartMagicViewModel, onExit: () -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val smartMagicState by smartMagicViewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     var selectedTool by remember { mutableStateOf(EditorTool.LIGHT) }
     var holdOriginal by remember { mutableStateOf(false) }
     var splitComparison by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
-    var showAbout by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
+    var showSmartMagic by rememberSaveable { mutableStateOf(false) }
     var toolPanelCollapsed by remember { mutableStateOf(false) }
     var fullScreen by remember { mutableStateOf(false) }
     var showResetAllConfirmation by remember { mutableStateOf(false) }
     var pendingExport by remember { mutableStateOf(ExportOptions(ExportFormat.JPEG)) }
     var pendingShare by remember { mutableStateOf(false) }
     var showUtilityChooser by remember { mutableStateOf(false) }
+    var utilityChooserTitle by remember { mutableStateOf("Utilities") }
+    var utilityChooserModes by remember { mutableStateOf(UtilityMode.entries.toList()) }
     var showUtilityOptions by remember { mutableStateOf(false) }
     var pendingUtilityMode by remember { mutableStateOf<UtilityMode?>(null) }
     var pendingUtilitySources by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -233,6 +253,12 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { viewModel.importImage(it.toString(), previewMaxDimension) }
+    }
+    val smartMagicPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let {
+            showSmartMagic = true
+            smartMagicViewModel.process(it.toString())
+        }
     }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         uri?.let { viewModel.export(it.toString(), pendingExport, pendingShare) }
@@ -267,6 +293,28 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
             pendingUtilitySources = uris.map(Uri::toString)
             if (mode == UtilityMode.BATCH) showBatchOptions = true else showUtilityOptions = true
         }
+    }
+
+    if (showSmartMagic) {
+        SmartMagicScreen(
+            state = smartMagicState,
+            onBack = { smartMagicViewModel.reset(); showSmartMagic = false },
+            onChooseAnother = { smartMagicPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onSave = smartMagicViewModel::save,
+            onCancel = smartMagicViewModel::cancel,
+            onOpen = { uri, mime ->
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri()).apply { setDataAndType(uri.toUri(), mime ?: "image/*"); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }) }
+                    .onFailure { Toast.makeText(context, "No app can open this photo", Toast.LENGTH_SHORT).show() }
+            },
+            onShare = { uri, mime ->
+                runCatching {
+                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                        type = mime ?: "image/*"; putExtra(Intent.EXTRA_STREAM, uri.toUri()); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }, "Share Smart Magic photo"))
+                }.onFailure { Toast.makeText(context, "No app can share this photo", Toast.LENGTH_SHORT).show() }
+            },
+        )
+        return
     }
 
     LaunchedEffect(state.message) {
@@ -304,6 +352,8 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
     }
 
     if (showUtilityChooser) UtilityChooserDialog(
+        title = utilityChooserTitle,
+        modes = utilityChooserModes,
         onDismiss = { showUtilityChooser = false },
         onSelected = { mode ->
             showUtilityChooser = false; pendingUtilityMode = mode
@@ -322,6 +372,8 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
         onDismiss = { showBatchOptions = false },
         onRun = { options -> showBatchOptions = false; pendingBatchOptions = options; batchDestination.launch(null) },
     )
+
+    BackHandler(enabled = showSettings) { showSettings = false }
 
     if (showResetAllConfirmation) {
         AlertDialog(
@@ -348,9 +400,9 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
         val chrome = EditorChromeState(fullScreen)
         Box(Modifier.fillMaxSize().padding(padding).background(RestoreXBackground)) {
             Column(Modifier.fillMaxSize()) {
-                if ((state.hasImage && !fullScreen) || showAbout) Spacer(Modifier.statusBarsPadding().height(64.dp))
-                if (showAbout) {
-                    AboutScreen(onDeveloperClick = { openDeveloperWebsite(context, developerUrl) })
+                if ((state.hasImage && !fullScreen) || showSettings) Spacer(Modifier.statusBarsPadding().height(64.dp))
+                if (showSettings) {
+                    SettingsScreen(onDeveloperClick = { openDeveloperWebsite(context, developerUrl) })
                 } else if (state.hasImage) {
                     ImageWorkspace(
                         edited = state.preview!!,
@@ -392,7 +444,11 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                             onResetImage = { showResetAllConfirmation = true },
                             onImportLut = { lutImporter.launch(arrayOf("application/octet-stream", "text/plain", "*/*")) },
                             onImportBackground = { backgroundPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                            onUtilities = { showUtilityChooser = true },
+                            onUtilities = {
+                                utilityChooserTitle = "Utilities"
+                                utilityChooserModes = UtilityMode.entries.toList()
+                                showUtilityChooser = true
+                            },
                             onImportSticker = { stickerPicker.launch(arrayOf("image/png", "image/webp", "image/*")) },
                             geometryGrid = geometryGrid,
                             onGeometryGridChanged = { geometryGrid = it },
@@ -408,10 +464,45 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                         busyLabel = state.busyLabel,
                         canCancel = state.isUtilityProcessing,
                         onCancel = viewModel::cancelUtility,
-                        onAbout = { showAbout = true },
+                        onSettings = { showSettings = true },
                         onDeveloperClick = { openDeveloperWebsite(context, developerUrl) },
                         onImport = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                        onUtilities = { showUtilityChooser = true },
+                        onSmartMagic = { smartMagicPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        onUtility = { utility ->
+                            when (utility) {
+                                HomeUtility.COLLAGE -> {
+                                    pendingUtilityMode = UtilityMode.COLLAGE
+                                    utilityPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                                HomeUtility.HDR -> {
+                                    utilityChooserTitle = "HDR merge"
+                                    utilityChooserModes = listOf(UtilityMode.HDR_NATURAL, UtilityMode.HDR_DRAMATIC)
+                                    showUtilityChooser = true
+                                }
+                                HomeUtility.PANORAMA -> {
+                                    pendingUtilityMode = UtilityMode.PANORAMA
+                                    utilityPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                                HomeUtility.BATCH, HomeUtility.COMPRESS -> {
+                                    pendingUtilityMode = UtilityMode.BATCH
+                                    utilityPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                                HomeUtility.PASSPORT -> {
+                                    utilityChooserTitle = "Passport photo"
+                                    utilityChooserModes = listOf(UtilityMode.PASSPORT_INDIA, UtilityMode.PASSPORT_JAPAN)
+                                    showUtilityChooser = true
+                                }
+                                HomeUtility.DOCUMENT -> {
+                                    pendingUtilityMode = UtilityMode.DOCUMENT
+                                    utilityPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                                HomeUtility.MORE -> {
+                                    utilityChooserTitle = "More tools"
+                                    utilityChooserModes = listOf(UtilityMode.SIGNATURE)
+                                    showUtilityChooser = true
+                                }
+                            }
+                        },
                     )
                 }
             }
@@ -422,7 +513,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                 onBack = {
                     when {
                         fullScreen -> fullScreen = false
-                        showAbout -> showAbout = false
+                        showSettings -> showSettings = false
                         state.hasImage -> viewModel.clearImage()
                         else -> onExit()
                     }
@@ -435,8 +526,8 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, onExit: () -> Unit) {
                 onToggleFullScreen = { fullScreen = !fullScreen },
                 modifier = Modifier.align(Alignment.TopCenter).zIndex(10f).statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
             )
-            else if (showAbout) AboutTopBar(
-                onBack = { showAbout = false },
+            else if (showSettings) SettingsTopBar(
+                onBack = { showSettings = false },
                 modifier = Modifier.align(Alignment.TopCenter).zIndex(10f).statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
             )
             if (state.isExporting) ExportProgressOverlay(
@@ -462,13 +553,13 @@ private fun ExportProgressOverlay(onCancel: () -> Unit, modifier: Modifier = Mod
 }
 
 @Composable
-private fun AboutTopBar(onBack: () -> Unit, modifier: Modifier = Modifier) {
+private fun SettingsTopBar(onBack: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier.fillMaxWidth().background(Color(0xE61C1D20), RoundedCornerShape(16.dp)).height(56.dp).padding(horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ToolIconButton(AppIcon.Back, "Back to Restovue home", onClick = onBack)
-        Text("About Restovue", color = RestoreXText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        Text("Settings", color = RestoreXText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -595,50 +686,159 @@ private fun ColumnScope.EmptyEditor(
     canCancel: Boolean,
     onCancel: () -> Unit,
     onImport: () -> Unit,
-    onAbout: () -> Unit,
+    onSmartMagic: () -> Unit,
+    onSettings: () -> Unit,
     onDeveloperClick: () -> Unit,
-    onUtilities: () -> Unit,
+    onUtility: (HomeUtility) -> Unit,
 ) {
-    Box(Modifier.fillMaxWidth().weight(1f).padding(28.dp), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().weight(1f)
+            .background(Brush.verticalGradient(listOf(Color(0xFF121318), Color(0xFF0D0E12)))),
+    ) {
+        val columns = if (maxWidth >= 340.dp) 4 else 2
+        val cardHeight = if (columns == 4) 86.dp else 94.dp
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                .statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(Modifier.height(34.dp))
             Image(
                 painter = painterResource(R.drawable.restovue_logo),
                 contentDescription = "Restovue : Photo Editor logo",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth().widthIn(max = 300.dp).aspectRatio(3f),
+                modifier = Modifier.fillMaxWidth(.78f).widthIn(max = 340.dp).aspectRatio(3f),
             )
-            Text("Edit beautifully. Stay private.", color = RestoreXText, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(22.dp))
             Text(
-                "Professional photo editing, completely on your device.",
-                color = RestoreXMuted,
+                "Edit beautifully. Stay private.",
+                color = Color(0xFFF5F5F7),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Professional photo editing, completely on your device.",
+                color = Color(0xFFA4A5B0),
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(.88f),
+            )
+            Spacer(Modifier.height(24.dp))
             Button(
                 onClick = onImport,
                 enabled = !isBusy,
-                colors = ButtonDefaults.buttonColors(containerColor = RestoreXAccent, contentColor = Color(0xFF251A00)),
-                shape = RoundedCornerShape(14.dp),
-            ) { Text("Choose photo", fontWeight = FontWeight.SemiBold) }
-            TextButton(onClick = onUtilities) { Text("Collage, HDR, panorama and utilities", color = RestoreXAccent) }
-            TextButton(onClick = onAbout) { Text("About Restovue", color = RestoreXAccent) }
-            if (isBusy) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CircularProgressIndicator(color = RestoreXAccent, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                Text(busyLabel ?: "Processing", color = RestoreXText, fontSize = 12.sp)
-                if (canCancel) TextButton(onClick = onCancel) { Text("Cancel", color = RestoreXAccent) }
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB511), contentColor = Color(0xFF171300)),
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth(.72f).widthIn(min = 240.dp, max = 330.dp).height(58.dp),
+            ) {
+                AppIconCanvas(AppIcon.Image, Color(0xFF171300), Modifier.size(27.dp))
+                Spacer(Modifier.width(12.dp))
+                Text("Choose Photo", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
+            Spacer(Modifier.height(12.dp))
+            Row(
+                Modifier.fillMaxWidth(.88f).height(66.dp)
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF262229), Color(0xFF1C1D22))), RoundedCornerShape(16.dp))
+                    .border(1.dp, Color(0xFFFFB511), RoundedCornerShape(16.dp))
+                    .clickable(enabled = !isBusy, onClick = onSmartMagic)
+                    .semantics { contentDescription = "Smart Magic. Professional photo enhancement in one tap" }
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AppIconCanvas(AppIcon.Magic, Color(0xFFFFB511), Modifier.size(31.dp))
+                Spacer(Modifier.width(13.dp))
+                Column {
+                    Text("Smart Magic", color = Color(0xFFF5F5F7), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text("Professional photo enhancement in one tap", color = Color(0xFFA4A5B0), fontSize = 11.sp, maxLines = 1)
+                }
+            }
+            if (isBusy) {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CircularProgressIndicator(color = RestoreXAccent, modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                    Text(busyLabel ?: "Processing", color = RestoreXText, fontSize = 12.sp)
+                    if (canCancel) TextButton(onClick = onCancel) { Text("Cancel", color = RestoreXAccent) }
+                }
+            }
+            Spacer(Modifier.height(if (isBusy) 14.dp else 28.dp))
+            HomeUtility.entries.toList().chunked(columns).forEach { rowItems ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    rowItems.forEach { utility ->
+                        HomeUtilityCard(
+                            utility = utility,
+                            enabled = !isBusy,
+                            height = cardHeight,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onUtility(utility) },
+                        )
+                    }
+                    repeat(columns - rowItems.size) { Spacer(Modifier.weight(1f)) }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            Spacer(Modifier.height(4.dp))
         }
+        Box(
+            Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 7.dp, end = 8.dp)
+                .size(48.dp).clickable(onClick = onSettings)
+                .semantics { contentDescription = "Open settings" },
+            contentAlignment = Alignment.Center,
+        ) { AppIconCanvas(AppIcon.Settings, Color(0xFFF5F5F7), Modifier.size(27.dp)) }
     }
+    HomeFooter(onDeveloperClick)
+}
+
+@Composable
+private fun HomeUtilityCard(
+    utility: HomeUtility,
+    enabled: Boolean,
+    height: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(14.dp)
     Column(
-        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
+        modifier.height(height).background(
+            Brush.verticalGradient(listOf(Color(0xFF24262C), Color(0xFF191A1F))), shape,
+        ).border(1.dp, Color(0xFF555861), shape)
+            .clickable(enabled = enabled, onClick = onClick)
+            .semantics { contentDescription = "${utility.label} utility" }
+            .padding(horizontal = 3.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        AppIconCanvas(utility.icon, Color(0xFFFFB511), Modifier.size(29.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(
+            utility.label,
+            color = Color(0xFFF5F5F7),
+            fontSize = 10.5.sp,
+            lineHeight = 13.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+        )
+    }
+}
+
+@Composable
+private fun ColumnScope.HomeFooter(onDeveloperClick: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().background(Color(0xFF0D0E12)).navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(stringResource(R.string.app_name), color = RestoreXMuted, fontSize = 11.sp)
+        Text(stringResource(R.string.app_name), color = Color(0xFFD2D3D8), fontSize = 11.sp)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Developed by ", color = RestoreXDisabled, fontSize = 11.sp)
+            Text("Developed by ", color = Color(0xFFA4A5B0), fontSize = 11.sp)
             Text(
                 stringResource(R.string.developer_name),
-                color = RestoreXAccent,
+                color = Color(0xFFFFB511),
                 fontSize = 11.sp,
+                textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable(onClick = onDeveloperClick).padding(vertical = 4.dp)
                     .semantics { contentDescription = "Open developer website" },
             )
@@ -647,7 +847,7 @@ private fun ColumnScope.EmptyEditor(
 }
 
 @Composable
-private fun ColumnScope.AboutScreen(onDeveloperClick: () -> Unit) {
+private fun ColumnScope.SettingsScreen(onDeveloperClick: () -> Unit) {
     val context = LocalContext.current
     val packageInfo = remember { context.packageManager.getPackageInfo(context.packageName, 0) }
     val version = packageInfo.versionName ?: "Unknown"
@@ -656,7 +856,10 @@ private fun ColumnScope.AboutScreen(onDeveloperClick: () -> Unit) {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("About Restovue", color = RestoreXText, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Settings", color = RestoreXText, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        AboutSection("Default export", "Choose JPEG, PNG or WebP quality and dimensions for each export. Restovue never silently overwrites the original photo.")
+        AboutSection("Privacy", stringResource(R.string.privacy_statement))
+        Text("About Restovue", color = RestoreXText, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
         AboutSection("Application", stringResource(R.string.app_name))
         AboutSection("Version", version)
         Column {
@@ -669,20 +872,13 @@ private fun ColumnScope.AboutScreen(onDeveloperClick: () -> Unit) {
             )
         }
         AboutSection("Offline processing", stringResource(R.string.offline_statement))
-        AboutSection("Privacy", stringResource(R.string.privacy_statement))
         AboutSection(
             "Open-source licenses",
             "AndroidX, Jetpack Compose, Kotlin Coroutines, and AndroidX ExifInterface are used under the Apache License 2.0. JUnit is used for testing under the Eclipse Public License 1.0.",
         )
         AboutSection("Build version", packageInfo.longVersionCode.toString())
     }
-    Column(
-        Modifier.fillMaxWidth().navigationBarsPadding().padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(stringResource(R.string.app_name), color = RestoreXMuted, fontSize = 11.sp)
-        Text("Developed by ${stringResource(R.string.developer_name)}", color = RestoreXMuted, fontSize = 11.sp)
-    }
+    HomeFooter(onDeveloperClick)
 }
 
 @Composable
@@ -1426,14 +1622,19 @@ private fun UtilitiesPanel(state: EditorUiState, viewModel: EditorViewModel, onO
 }
 
 @Composable
-private fun UtilityChooserDialog(onDismiss: () -> Unit, onSelected: (UtilityMode) -> Unit) {
+private fun UtilityChooserDialog(
+    title: String,
+    modes: List<UtilityMode>,
+    onDismiss: () -> Unit,
+    onSelected: (UtilityMode) -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = RestoreXPanelRaised,
-        title = { Text("Utilities", color = RestoreXText) },
+        title = { Text(title, color = RestoreXText) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                UtilityMode.entries.forEach { mode ->
+                modes.forEach { mode ->
                     TextButton(onClick = { onSelected(mode) }, modifier = Modifier.fillMaxWidth()) {
                         Text("${mode.label}  •  ${mode.minimumImages}${if (mode.minimumImages == mode.maximumImages) "" else "-${mode.maximumImages}"} image(s)", color = RestoreXText, modifier = Modifier.fillMaxWidth())
                     }
@@ -2415,7 +2616,8 @@ private fun ToolIconButton(
 }
 
 private enum class AppIcon {
-    Back, Undo, Redo, Compare, Fullscreen, More, Crop, Enhance, Light, Color, Filters, Details, Retouch, Rotate, Reset, Image,
+    Back, Undo, Redo, Compare, Fullscreen, More, Settings, Magic, Collage, Layers, MultipleImages, IdCard, Document, Swap,
+    Crop, Enhance, Light, Color, Filters, Details, Retouch, Rotate, Reset, Image,
 }
 
 @Composable
@@ -2458,6 +2660,64 @@ private fun DrawScope.drawAppIcon(icon: AppIcon, tint: Color) {
             drawCircle(tint, size.width * .07f, Offset(size.width * .22f, center.y))
             drawCircle(tint, size.width * .07f, center)
             drawCircle(tint, size.width * .07f, Offset(size.width * .78f, center.y))
+        }
+        AppIcon.Settings -> {
+            val gear = Path().apply {
+                repeat(24) { index ->
+                    val angle = -Math.PI / 2 + index * Math.PI * 2 / 24
+                    val radius = if (index % 3 == 1) .32f else .43f
+                    val point = Offset(
+                        center.x + kotlin.math.cos(angle).toFloat() * size.width * radius,
+                        center.y + kotlin.math.sin(angle).toFloat() * size.height * radius,
+                    )
+                    if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
+                }
+                close()
+            }
+            drawPath(gear, tint, style = outline)
+            drawCircle(tint, size.width * .11f, center, style = outline)
+        }
+        AppIcon.Magic -> {
+            line(.20f, .82f, .68f, .34f)
+            line(.15f, .76f, .26f, .87f)
+            line(.62f, .29f, .73f, .40f)
+            line(.78f, .10f, .78f, .24f); line(.71f, .17f, .85f, .17f)
+            line(.54f, .08f, .54f, .17f); line(.49f, .125f, .59f, .125f)
+            line(.86f, .38f, .86f, .48f); line(.81f, .43f, .91f, .43f)
+        }
+        AppIcon.Collage -> {
+            drawRect(tint, Offset(size.width * .12f, size.height * .12f), Size(size.width * .32f, size.height * .32f), style = outline)
+            drawRect(tint, Offset(size.width * .56f, size.height * .12f), Size(size.width * .32f, size.height * .32f), style = outline)
+            drawRect(tint, Offset(size.width * .12f, size.height * .56f), Size(size.width * .32f, size.height * .32f), style = outline)
+            drawRect(tint, Offset(size.width * .56f, size.height * .56f), Size(size.width * .32f, size.height * .32f), style = outline)
+        }
+        AppIcon.Layers -> {
+            val top = Path().apply { moveTo(size.width * .5f, size.height * .12f); lineTo(size.width * .86f, size.height * .34f); lineTo(size.width * .5f, size.height * .56f); lineTo(size.width * .14f, size.height * .34f); close() }
+            drawPath(top, tint, style = outline)
+            line(.18f, .51f, .5f, .71f); line(.5f, .71f, .82f, .51f)
+            line(.18f, .68f, .5f, .88f); line(.5f, .88f, .82f, .68f)
+        }
+        AppIcon.MultipleImages -> {
+            drawRect(tint, Offset(size.width * .1f, size.height * .25f), Size(size.width * .62f, size.height * .58f), style = outline)
+            drawRect(tint, Offset(size.width * .28f, size.height * .12f), Size(size.width * .62f, size.height * .58f), style = outline)
+            drawCircle(tint, size.width * .055f, Offset(size.width * .7f, size.height * .3f))
+        }
+        AppIcon.IdCard -> {
+            drawRect(tint, Offset(size.width * .1f, size.height * .18f), Size(size.width * .8f, size.height * .64f), style = outline)
+            drawCircle(tint, size.width * .1f, Offset(size.width * .36f, size.height * .4f), style = outline)
+            val shoulders = Path().apply { moveTo(size.width * .2f, size.height * .68f); cubicTo(size.width * .22f, size.height * .52f, size.width * .5f, size.height * .52f, size.width * .52f, size.height * .68f) }
+            drawPath(shoulders, tint, style = outline)
+            line(.62f, .38f, .8f, .38f); line(.62f, .55f, .8f, .55f)
+        }
+        AppIcon.Document -> {
+            val page = Path().apply { moveTo(size.width * .22f, size.height * .1f); lineTo(size.width * .62f, size.height * .1f); lineTo(size.width * .82f, size.height * .3f); lineTo(size.width * .82f, size.height * .9f); lineTo(size.width * .22f, size.height * .9f); close() }
+            drawPath(page, tint, style = outline)
+            line(.62f, .1f, .62f, .3f); line(.62f, .3f, .82f, .3f)
+            line(.34f, .48f, .7f, .48f); line(.34f, .63f, .7f, .63f); line(.34f, .78f, .62f, .78f)
+        }
+        AppIcon.Swap -> {
+            line(.14f, .34f, .82f, .34f); line(.82f, .34f, .66f, .18f); line(.82f, .34f, .66f, .5f)
+            line(.86f, .68f, .18f, .68f); line(.18f, .68f, .34f, .52f); line(.18f, .68f, .34f, .84f)
         }
         AppIcon.Crop -> { line(.22f, .08f, .22f, .72f); line(.22f, .72f, .86f, .72f); line(.78f, .92f, .78f, .28f); line(.78f, .28f, .14f, .28f) }
         AppIcon.Enhance -> { line(.5f, .08f, .5f, .92f); line(.08f, .5f, .92f, .5f); line(.2f, .2f, .8f, .8f); line(.8f, .2f, .2f, .8f) }
