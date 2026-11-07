@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "checks": {
+    "m1_smart_records": 21,
+    "m1_observations_migrated": 21,
+    "m2_condition_definitions": 16,
+    "xmp_records": 451,
+    "xmp_manifest_records": 451,
+    "xmp_parse_errors": 0,
+    "xmp_matrix_rows": 451,
+    "condition_mapping_rows": 516,
+    "duplicate_preset_ids": [],
+    "taxonomy_records": 140,
+    "composition_rules": 16,
+    "region_records": 22,
+    "conflict_rules": 15,
+    "research_values_marked_executable": 0,
+    "output_hashes": {
+      "research_observations.json": "6208c850d7f5fa569dc6d2bdb51248981dc9f479fae3fa2e45f08f04a3a80a2f",
+      "decision_knowledge.json": "b2ce48e601d611155b58519a1c4240329fe0ff6bf02db01e1679e52350bbec2a",
+      "executable_knowledge.json": "70eb815f7bb22451c294c1714301a408947c0ee48e63573f7ccf054b4c522f1a",
+      "migration_manifest.json": "02c3e2e70c38fcdc55ac02f3de83f6091e4dcdc0cff68f540a71ee2611ad0103"
+    },
+    "valid": true
+  }
+}

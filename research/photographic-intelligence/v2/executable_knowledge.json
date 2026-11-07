@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "knowledge_version": "2.0.0-m2",
+  "layer": "EXECUTABLE_CORRECTION_PLANS",
+  "renderer_integration": "NOT_WIRED_IN_MILESTONE_2",
+  "formulas": [
+    {
+      "id": "F_EXPOSURE_EV",
+      "unit": "EV",
+      "range": [
+        -0.6,
+        0.8
+      ]
+    },
+    {
+      "id": "F_TONE",
+      "unit": "normalized",
+      "range": [
+        -0.6,
+        0.4
+      ]
+    },
+    {
+      "id": "F_CONTRAST",
+      "unit": "normalized",
+      "range": [
+        -0.1,
+        0.22
+      ]
+    },
+    {
+      "id": "F_GAIN",
+      "unit": "linear_gain",
+      "range": [
+        0.85,
+        1.15
+      ]
+    },
+    {
+      "id": "F_CHROMA",
+      "unit": "normalized",
+      "range": [
+        -0.05,
+        0.25
+      ]
+    },
+    {
+      "id": "F_DETAIL",
+      "unit": "normalized",
+      "range": [
+        0.0,
+        0.35
+      ]
+    }
+  ],
+  "formula_provenance": "ENGINEERING_HYPOTHESIS",
+  "calibration_status": "UNCALIBRATED",
+  "supported_global_operations": [
+    "GLOBAL_EXPOSURE",
+    "HIGHLIGHT_COMPRESSION",
+    "SHADOW_RECOVERY",
+    "TONE_CONTRAST",
+    "WHITE_BALANCE",
+    "VIBRANCE",
+    "NOISE_REDUCTION",
+    "CLARITY"
+  ],
+  "deferred": [
+    {
+      "operation": "REGIONAL_SUBJECT_FILL",
+      "requires": "SEMANTIC_PRIMARY_SUBJECT_MASK"
+    }
+  ]
+}

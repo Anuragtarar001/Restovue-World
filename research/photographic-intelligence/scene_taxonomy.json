@@ -1,0 +1,2116 @@
+{
+  "schema_version": 1,
+  "taxonomy_version": "1.0.0",
+  "classification": "multi-label",
+  "condition_count": 140,
+  "families": {
+    "people_portraits": 25,
+    "landscape_nature": 28,
+    "weather_seasons": 28,
+    "indoor": 20,
+    "urban_outdoor": 18,
+    "other": 21
+  },
+  "conditions": [
+    {
+      "id": "SCN-001",
+      "family": "people_portraits",
+      "label": "Single portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-002",
+      "family": "people_portraits",
+      "label": "Couple portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-003",
+      "family": "people_portraits",
+      "label": "Group portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-004",
+      "family": "people_portraits",
+      "label": "Close-up portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-005",
+      "family": "people_portraits",
+      "label": "Full-body portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-006",
+      "family": "people_portraits",
+      "label": "Environmental portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-007",
+      "family": "people_portraits",
+      "label": "Backlit portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-008",
+      "family": "people_portraits",
+      "label": "Silhouette portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-009",
+      "family": "people_portraits",
+      "label": "Side-lit portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-010",
+      "family": "people_portraits",
+      "label": "Window-light portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-011",
+      "family": "people_portraits",
+      "label": "Night portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-012",
+      "family": "people_portraits",
+      "label": "Portrait with decorative lights",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-013",
+      "family": "people_portraits",
+      "label": "Candlelight portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-014",
+      "family": "people_portraits",
+      "label": "Wedding portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-015",
+      "family": "people_portraits",
+      "label": "Fashion portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-016",
+      "family": "people_portraits",
+      "label": "Children portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-017",
+      "family": "people_portraits",
+      "label": "Elderly people portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-018",
+      "family": "people_portraits",
+      "label": "Action portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-019",
+      "family": "people_portraits",
+      "label": "Stage portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-020",
+      "family": "people_portraits",
+      "label": "Landscape portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-021",
+      "family": "people_portraits",
+      "label": "Newborn portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-022",
+      "family": "people_portraits",
+      "label": "Maternity portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-023",
+      "family": "people_portraits",
+      "label": "Corporate headshot",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-024",
+      "family": "people_portraits",
+      "label": "Sports portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-025",
+      "family": "people_portraits",
+      "label": "Pet-and-owner portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-026",
+      "family": "landscape_nature",
+      "label": "Mountains",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-027",
+      "family": "landscape_nature",
+      "label": "Forest",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-028",
+      "family": "landscape_nature",
+      "label": "Waterfall",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-029",
+      "family": "landscape_nature",
+      "label": "River",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-030",
+      "family": "landscape_nature",
+      "label": "Lake",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-031",
+      "family": "landscape_nature",
+      "label": "Ocean",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-032",
+      "family": "landscape_nature",
+      "label": "Beach",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-033",
+      "family": "landscape_nature",
+      "label": "Sand dunes",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-034",
+      "family": "landscape_nature",
+      "label": "Rocky desert",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-035",
+      "family": "landscape_nature",
+      "label": "Grassland",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-036",
+      "family": "landscape_nature",
+      "label": "Agricultural fields",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-037",
+      "family": "landscape_nature",
+      "label": "Garden",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-038",
+      "family": "landscape_nature",
+      "label": "Flowers",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-039",
+      "family": "landscape_nature",
+      "label": "Autumn forest",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-040",
+      "family": "landscape_nature",
+      "label": "Snow landscape",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-041",
+      "family": "landscape_nature",
+      "label": "Glacier",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-042",
+      "family": "landscape_nature",
+      "label": "Foggy valley",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-043",
+      "family": "landscape_nature",
+      "label": "Misty forest",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-044",
+      "family": "landscape_nature",
+      "label": "Sunset landscape",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-045",
+      "family": "landscape_nature",
+      "label": "Sunrise landscape",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-046",
+      "family": "landscape_nature",
+      "label": "Night landscape",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-047",
+      "family": "landscape_nature",
+      "label": "Stars / astrophotography",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-048",
+      "family": "landscape_nature",
+      "label": "Moonlight landscape",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-049",
+      "family": "landscape_nature",
+      "label": "Tropical landscape",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-050",
+      "family": "landscape_nature",
+      "label": "Urban park",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-051",
+      "family": "landscape_nature",
+      "label": "Canyon",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-052",
+      "family": "landscape_nature",
+      "label": "Coastal cliffs",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-053",
+      "family": "landscape_nature",
+      "label": "Wetland / marsh",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-054",
+      "family": "weather_seasons",
+      "label": "Bright sun",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-055",
+      "family": "weather_seasons",
+      "label": "Harsh midday sun",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-056",
+      "family": "weather_seasons",
+      "label": "Morning light",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-057",
+      "family": "weather_seasons",
+      "label": "Golden hour",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-058",
+      "family": "weather_seasons",
+      "label": "Blue hour",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-059",
+      "family": "weather_seasons",
+      "label": "Cloudy day",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-060",
+      "family": "weather_seasons",
+      "label": "Overcast",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-061",
+      "family": "weather_seasons",
+      "label": "Storm clouds",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-062",
+      "family": "weather_seasons",
+      "label": "Light rain",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-063",
+      "family": "weather_seasons",
+      "label": "Heavy rain",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-064",
+      "family": "weather_seasons",
+      "label": "After rain",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-065",
+      "family": "weather_seasons",
+      "label": "Snowfall",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-066",
+      "family": "weather_seasons",
+      "label": "Snow-covered ground",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-067",
+      "family": "weather_seasons",
+      "label": "Winter daylight",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-068",
+      "family": "weather_seasons",
+      "label": "Frost",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-069",
+      "family": "weather_seasons",
+      "label": "Dense fog",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-070",
+      "family": "weather_seasons",
+      "label": "Mist",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-071",
+      "family": "weather_seasons",
+      "label": "Pollution haze",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-072",
+      "family": "weather_seasons",
+      "label": "Dust",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-073",
+      "family": "weather_seasons",
+      "label": "Sandstorm",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-074",
+      "family": "weather_seasons",
+      "label": "Tropical humidity",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-075",
+      "family": "weather_seasons",
+      "label": "Wind",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-076",
+      "family": "weather_seasons",
+      "label": "Rainbow",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-077",
+      "family": "weather_seasons",
+      "label": "Thunderstorm",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-078",
+      "family": "weather_seasons",
+      "label": "Mixed sun and cloud",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-079",
+      "family": "weather_seasons",
+      "label": "Spring bloom",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-080",
+      "family": "weather_seasons",
+      "label": "Summer heat haze",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-081",
+      "family": "weather_seasons",
+      "label": "Autumn weather",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-082",
+      "family": "indoor",
+      "label": "Daylight interior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-083",
+      "family": "indoor",
+      "label": "Warm artificial-light interior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-084",
+      "family": "indoor",
+      "label": "Cool LED interior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-085",
+      "family": "indoor",
+      "label": "Mixed-light interior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-086",
+      "family": "indoor",
+      "label": "Dim room",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-087",
+      "family": "indoor",
+      "label": "Bright room",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-088",
+      "family": "indoor",
+      "label": "Window portrait interior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-089",
+      "family": "indoor",
+      "label": "Restaurant",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-090",
+      "family": "indoor",
+      "label": "Hotel",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-091",
+      "family": "indoor",
+      "label": "Living room",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-092",
+      "family": "indoor",
+      "label": "Office",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-093",
+      "family": "indoor",
+      "label": "Museum",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-094",
+      "family": "indoor",
+      "label": "Concert hall",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-095",
+      "family": "indoor",
+      "label": "Shopping mall",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-096",
+      "family": "indoor",
+      "label": "Religious interior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-097",
+      "family": "indoor",
+      "label": "Indoor sports",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-098",
+      "family": "indoor",
+      "label": "Kitchen",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-099",
+      "family": "indoor",
+      "label": "Indoor product photography",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-100",
+      "family": "indoor",
+      "label": "Indoor plants",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-101",
+      "family": "indoor",
+      "label": "Studio portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-102",
+      "family": "urban_outdoor",
+      "label": "Day city",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-103",
+      "family": "urban_outdoor",
+      "label": "Night street",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-104",
+      "family": "urban_outdoor",
+      "label": "Skyline",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-105",
+      "family": "urban_outdoor",
+      "label": "Modern architecture",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-106",
+      "family": "urban_outdoor",
+      "label": "Glass buildings",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-107",
+      "family": "urban_outdoor",
+      "label": "Historic monuments",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-108",
+      "family": "urban_outdoor",
+      "label": "Market",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-109",
+      "family": "urban_outdoor",
+      "label": "Festival",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-110",
+      "family": "urban_outdoor",
+      "label": "Fireworks",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-111",
+      "family": "urban_outdoor",
+      "label": "Road",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-112",
+      "family": "urban_outdoor",
+      "label": "Vehicles",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-113",
+      "family": "urban_outdoor",
+      "label": "Night traffic",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-114",
+      "family": "urban_outdoor",
+      "label": "Aerial city",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-115",
+      "family": "urban_outdoor",
+      "label": "Aerial countryside",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-116",
+      "family": "urban_outdoor",
+      "label": "Street portrait",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-117",
+      "family": "urban_outdoor",
+      "label": "Bridge",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-118",
+      "family": "urban_outdoor",
+      "label": "Railway / station",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-119",
+      "family": "urban_outdoor",
+      "label": "Industrial scene",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-120",
+      "family": "other",
+      "label": "Food",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-121",
+      "family": "other",
+      "label": "Product",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-122",
+      "family": "other",
+      "label": "Jewelry",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-123",
+      "family": "other",
+      "label": "Flower close-up",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-124",
+      "family": "other",
+      "label": "Pets",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-125",
+      "family": "other",
+      "label": "Wildlife",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-126",
+      "family": "other",
+      "label": "Birds",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-127",
+      "family": "other",
+      "label": "Macro",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-128",
+      "family": "other",
+      "label": "Document / text",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-129",
+      "family": "other",
+      "label": "Faded photograph",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-130",
+      "family": "other",
+      "label": "Monochrome photograph",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-131",
+      "family": "other",
+      "label": "Artwork",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-132",
+      "family": "other",
+      "label": "Screenshot / graphic",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-133",
+      "family": "other",
+      "label": "Underwater photograph",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-134",
+      "family": "other",
+      "label": "Sports / action",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-135",
+      "family": "other",
+      "label": "Concert / stage",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-136",
+      "family": "other",
+      "label": "Fire / flame",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-137",
+      "family": "other",
+      "label": "Vehicle detail",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-138",
+      "family": "other",
+      "label": "Real-estate exterior",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-139",
+      "family": "other",
+      "label": "Flat lay",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    },
+    {
+      "id": "SCN-140",
+      "family": "other",
+      "label": "Craft / handmade object",
+      "multi_label": true,
+      "detector_status": "taxonomy_only",
+      "combines_with": [
+        "exposure",
+        "color",
+        "detail_noise",
+        "lighting",
+        "special_condition"
+      ],
+      "notes": "Scene context is not proof that correction is required."
+    }
+  ]
+}

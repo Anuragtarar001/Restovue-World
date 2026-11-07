@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "migration": "milestone1-to-milestone2",
+  "policy": "copy and classify; never overwrite Milestone 1",
+  "source_hashes": {
+    "smart_value_database.json": "3bd775ef0eca0ea744e286dfcfeb6a4c009d6186ac901963d2e82769afcf2e68",
+    "correction_conflicts.json": "f97728cb11daf831304f0e57bb442acef54701a2d8b12332933568e9881389ea",
+    "scene_taxonomy.json": "0644de6389e5bde2c5f01bf800caffc3124ab2a760cff2201848a2e8ddf09d18",
+    "composition_rules.json": "069f95073a77db99641abd06d82122c18f1adcb15a679e7790f5c07ea89dce08",
+    "region_correction_knowledge.json": "a651d0a1836c866278f42715bd9a9d2b2e9b26f897bea7b6061b50556ce85dbb",
+    "xmp_raw_values.json": "603f5c2ae921fff3b748f3d0e53d61e92dfb670433be07e547c7a08c3aa7dccf",
+    "xmp_source_manifest.json": "38bbd0e50e6f459bfbad8bb3990264185f157771bdf5fead55d150afcae09ff2",
+    "xmp_parse_errors.json": "e363f14eae7a8b7445686efffa7c70f4497507a3a5cf3a79c5b259bfea95ffdb",
+    "xmp_parameter_matrix.csv": "f92c558662e0daca8f6b274249b0a88fef67475b6a53b9ccf356ff22b4c836dd",
+    "preset_condition_mapping.csv": "38353df38b253c90f3ff449973c4f80501a6db5a1e620c10fcf2880830dd2b22"
+  },
+  "transform": {
+    "m1_source_observations": "research_observations.json; non-executable",
+    "m2_evidence_rules": "decision_knowledge.json",
+    "m2_parameter_formulas": "executable_knowledge.json; uncalibrated engineering hypotheses"
+  },
+  "discrepancies_against_m1_report": []
+}

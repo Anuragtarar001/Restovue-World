@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "CNF-01",
+      "first": "shadow_recovery",
+      "second": "noise_reduction",
+      "relationship": "coexist",
+      "ordering_or_resolution": "recover first, estimate amplified noise, then edge-aware denoise",
+      "override_and_validation": "protect fine texture; revalidate noise"
+    },
+    {
+      "id": "CNF-02",
+      "first": "shadow_recovery",
+      "second": "global_exposure",
+      "relationship": "conditional",
+      "ordering_or_resolution": "prefer regional recovery when subject/background differ",
+      "override_and_validation": "protect correctly exposed regions"
+    },
+    {
+      "id": "CNF-03",
+      "first": "dehaze",
+      "second": "saturation",
+      "relationship": "limit",
+      "ordering_or_resolution": "dehaze before selective color; reduce color gain as chroma rises",
+      "override_and_validation": "protect skin, sky, vegetation"
+    },
+    {
+      "id": "CNF-04",
+      "first": "dehaze",
+      "second": "atmospheric_fog",
+      "relationship": "conflict",
+      "ordering_or_resolution": "skip when fog is scene intent",
+      "override_and_validation": "atmosphere overrides correction"
+    },
+    {
+      "id": "CNF-05",
+      "first": "contrast",
+      "second": "skin_tone",
+      "relationship": "regional",
+      "ordering_or_resolution": "exclude/protect skin or use luminance-only curve",
+      "override_and_validation": "revalidate hue and highlights"
+    },
+    {
+      "id": "CNF-06",
+      "first": "highlight_compression",
+      "second": "white_surfaces",
+      "relationship": "conditional",
+      "ordering_or_resolution": "soft shoulder before endpoint changes",
+      "override_and_validation": "protect snow and white clothing texture"
+    },
+    {
+      "id": "CNF-07",
+      "first": "sharpening",
+      "second": "noise_reduction",
+      "relationship": "ordered",
+      "ordering_or_resolution": "denoise before sharpening",
+      "override_and_validation": "edge mask; protect smooth regions"
+    },
+    {
+      "id": "CNF-08",
+      "first": "sharpening",
+      "second": "grain",
+      "relationship": "conflict",
+      "ordering_or_resolution": "suppress sharpening when grain is intentional",
+      "override_and_validation": "grain/texture protection overrides"
+    },
+    {
+      "id": "CNF-09",
+      "first": "clarity",
+      "second": "texture",
+      "relationship": "limit",
+      "ordering_or_resolution": "choose dominant frequency band; cap combined gain",
+      "override_and_validation": "halo and skin checks"
+    },
+    {
+      "id": "CNF-10",
+      "first": "clarity",
+      "second": "portrait_skin",
+      "relationship": "regional",
+      "ordering_or_resolution": "exclude smooth skin; retain eyes/hair",
+      "override_and_validation": "identity and texture protection"
+    },
+    {
+      "id": "CNF-11",
+      "first": "white_balance",
+      "second": "sunset_or_fire",
+      "relationship": "conflict",
+      "ordering_or_resolution": "confidence-gate or skip neutralization",
+      "override_and_validation": "intentional warmth overrides"
+    },
+    {
+      "id": "CNF-12",
+      "first": "global_exposure",
+      "second": "clipped_highlights",
+      "relationship": "conditional",
+      "ordering_or_resolution": "exposure plus shoulder; never claim recovery",
+      "override_and_validation": "unrecoverable-clipping protection"
+    },
+    {
+      "id": "CNF-13",
+      "first": "vibrance",
+      "second": "saturation",
+      "relationship": "limit",
+      "ordering_or_resolution": "prefer vibrance on low-chroma pixels; cap combined chroma",
+      "override_and_validation": "skin and gamut validation"
+    },
+    {
+      "id": "CNF-14",
+      "first": "local_tone",
+      "second": "mask_boundary",
+      "relationship": "revalidate",
+      "ordering_or_resolution": "feather/guided refine before rendering",
+      "override_and_validation": "boundary gradient check"
+    },
+    {
+      "id": "CNF-15",
+      "first": "regional_fill",
+      "second": "dark_hair_clothing",
+      "relationship": "regional",
+      "ordering_or_resolution": "separate subject visibility from black-material preservation",
+      "override_and_validation": "black-depth protection"
+    }
+  ]
+}

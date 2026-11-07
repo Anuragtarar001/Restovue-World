@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "priority_classes": [
+    {
+      "id": "P1",
+      "name": "Primary subject",
+      "objective": "preserve identity, visibility, intended exposure and local color",
+      "override_weight": "highest"
+    },
+    {
+      "id": "P2",
+      "name": "Supporting subject",
+      "objective": "remain legible without competing with P1",
+      "override_weight": "high"
+    },
+    {
+      "id": "P3",
+      "name": "Atmosphere / context",
+      "objective": "preserve time, weather, depth and scene intent",
+      "override_weight": "medium"
+    },
+    {
+      "id": "P4",
+      "name": "Potential distraction",
+      "objective": "attenuate only when measured dominance conflicts with P1–P3",
+      "override_weight": "conditional"
+    }
+  ],
+  "estimation_signals": [
+    {
+      "signal": "face importance",
+      "use": "face count, area, sharpness and gaze/placement; never identity recognition",
+      "risk": "small distant faces may be missed"
+    },
+    {
+      "signal": "subject prominence",
+      "use": "object mask area plus contrast/focus relative to neighbors",
+      "risk": "largest region may be background"
+    },
+    {
+      "signal": "position",
+      "use": "center, thirds and edge proximity as weak priors only",
+      "risk": "off-center composition is common"
+    },
+    {
+      "signal": "focus",
+      "use": "region edge energy relative to depth peers",
+      "risk": "noise can mimic focus"
+    },
+    {
+      "signal": "contrast and color isolation",
+      "use": "local difference from surroundings",
+      "risk": "bright distractions can dominate"
+    },
+    {
+      "signal": "leading lines / framing",
+      "use": "line convergence and enclosing contours",
+      "risk": "requires scene graph context"
+    },
+    {
+      "signal": "foreground/background relationship",
+      "use": "depth ordering or segmentation adjacency",
+      "risk": "2-D ambiguity"
+    },
+    {
+      "signal": "scene intent",
+      "use": "combine scene labels, subject evidence and atmosphere protections",
+      "risk": "must retain uncertainty"
+    }
+  ],
+  "examples": [
+    {
+      "scene": "Snow portrait",
+      "P1": [
+        "people"
+      ],
+      "P2": [
+        "trees",
+        "landscape"
+      ],
+      "P3": [
+        "snow",
+        "winter atmosphere"
+      ],
+      "P4": [
+        "unwanted dominant highlights"
+      ],
+      "desired": "Expose people naturally; retain snow brightness/texture and cloudy winter atmosphere."
+    },
+    {
+      "scene": "Night road",
+      "P1": [
+        "vehicle"
+      ],
+      "P2": [
+        "road"
+      ],
+      "P3": [
+        "night atmosphere",
+        "streetlights"
+      ],
+      "P4": [
+        "excessive headlight bloom"
+      ],
+      "desired": "Keep the scene nocturnal; modestly constrain glare without claiming clipped-core recovery."
+    },
+    {
+      "scene": "Waterfall portrait",
+      "P1": [
+        "person"
+      ],
+      "P2": [
+        "waterfall",
+        "foliage"
+      ],
+      "P3": [
+        "distant environment",
+        "mist"
+      ],
+      "P4": [],
+      "desired": "Protect an already-correct person; improve recoverable waterfall/foliage detail without removing atmosphere."
+    },
+    {
+      "scene": "Sunset silhouette",
+      "P1": [
+        "silhouetted subject"
+      ],
+      "P2": [
+        "sunset sky"
+      ],
+      "P3": [
+        "warm atmosphere"
+      ],
+      "P4": [
+        "sensor flare if dominant"
+      ],
+      "desired": "Do not lift intentional silhouette; protect warm gradients and clipped sun core."
+    }
+  ],
+  "decision_rule": "Brightness, size, and centrality are independent weak cues; no single cue establishes P1."
+}

@@ -1,0 +1,713 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "region_id": "REG_FACE",
+      "region": "face",
+      "typical_role": "Usually P1 in portraits",
+      "quality_measurements": [
+        "luminance percentiles",
+        "skin chroma/hue",
+        "noise",
+        "edge detail"
+      ],
+      "possible_corrections": [
+        "local exposure",
+        "shadow recovery",
+        "conservative denoise"
+      ],
+      "protection_rules": [
+        "identity",
+        "skin hue",
+        "eyes and edges"
+      ],
+      "common_failure_modes": [
+        "plastic skin",
+        "halo",
+        "whitening"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_SKIN",
+      "region": "skin",
+      "typical_role": "P1/P2 human surface",
+      "quality_measurements": [
+        "perceptual hue/chroma",
+        "specular clipping",
+        "texture"
+      ],
+      "possible_corrections": [
+        "white balance",
+        "chroma-noise reduction"
+      ],
+      "protection_rules": [
+        "natural hue",
+        "pores",
+        "highlight rolloff"
+      ],
+      "common_failure_modes": [
+        "orange cast",
+        "magenta shift",
+        "over-smoothing"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_HAIR",
+      "region": "hair",
+      "typical_role": "P1 detail / silhouette boundary",
+      "quality_measurements": [
+        "shadow detail",
+        "edge density",
+        "noise"
+      ],
+      "possible_corrections": [
+        "selective shadow lift",
+        "texture"
+      ],
+      "protection_rules": [
+        "natural darkness",
+        "boundary"
+      ],
+      "common_failure_modes": [
+        "grey blacks",
+        "halo",
+        "noise"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_CLOTHING",
+      "region": "clothing",
+      "typical_role": "P1/P2 identity context",
+      "quality_measurements": [
+        "luminance",
+        "texture",
+        "channel clipping"
+      ],
+      "possible_corrections": [
+        "selective tone",
+        "texture"
+      ],
+      "protection_rules": [
+        "black/navy depth",
+        "white fabric detail"
+      ],
+      "common_failure_modes": [
+        "color shift",
+        "flattened folds"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_SKY",
+      "region": "sky",
+      "typical_role": "P2/P3 atmosphere",
+      "quality_measurements": [
+        "gradient smoothness",
+        "blue/cyan hue",
+        "clipping",
+        "noise"
+      ],
+      "possible_corrections": [
+        "chroma denoise",
+        "haze correction",
+        "highlight rolloff"
+      ],
+      "protection_rules": [
+        "weather",
+        "sunset hue",
+        "tree/building edges"
+      ],
+      "common_failure_modes": [
+        "cyan sky",
+        "banding",
+        "edge halos"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_CLOUDS",
+      "region": "clouds",
+      "typical_role": "P2/P3 atmosphere and texture",
+      "quality_measurements": [
+        "local contrast",
+        "highlight detail",
+        "gradient"
+      ],
+      "possible_corrections": [
+        "local tone",
+        "gentle structure"
+      ],
+      "protection_rules": [
+        "softness",
+        "bright cores"
+      ],
+      "common_failure_modes": [
+        "HDR halos",
+        "grey whites"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_TREES",
+      "region": "trees",
+      "typical_role": "P2/P3 structure",
+      "quality_measurements": [
+        "actual hue family",
+        "texture",
+        "shadow occupancy"
+      ],
+      "possible_corrections": [
+        "selective luminance",
+        "texture",
+        "haze reduction"
+      ],
+      "protection_rules": [
+        "green/yellow/orange/brown family"
+      ],
+      "common_failure_modes": [
+        "forced green",
+        "crunchy foliage"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_GRASS",
+      "region": "grass",
+      "typical_role": "P2/P3 surface",
+      "quality_measurements": [
+        "hue family",
+        "luminance",
+        "texture"
+      ],
+      "possible_corrections": [
+        "selective chroma",
+        "local tone"
+      ],
+      "protection_rules": [
+        "dry/brown state"
+      ],
+      "common_failure_modes": [
+        "neon green",
+        "over-sharpening"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_SNOW",
+      "region": "snow",
+      "typical_role": "P2/P3 high-key surface",
+      "quality_measurements": [
+        "highlight percentiles",
+        "texture",
+        "color cast"
+      ],
+      "possible_corrections": [
+        "white balance",
+        "highlight compression"
+      ],
+      "protection_rules": [
+        "brightness",
+        "blue-shadow ambience"
+      ],
+      "common_failure_modes": [
+        "grey snow",
+        "texture clipping"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_SAND",
+      "region": "sand",
+      "typical_role": "P2/P3 warm surface",
+      "quality_measurements": [
+        "warm hue",
+        "texture",
+        "highlight occupancy"
+      ],
+      "possible_corrections": [
+        "gentle contrast",
+        "cast correction if evidenced"
+      ],
+      "protection_rules": [
+        "natural warmth"
+      ],
+      "common_failure_modes": [
+        "orange oversaturation"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_WATER",
+      "region": "water",
+      "typical_role": "P2/P3 reflective surface",
+      "quality_measurements": [
+        "specular clipping",
+        "hue",
+        "local motion texture"
+      ],
+      "possible_corrections": [
+        "highlight management",
+        "chroma denoise"
+      ],
+      "protection_rules": [
+        "reflections",
+        "speculars"
+      ],
+      "common_failure_modes": [
+        "plastic smoothing",
+        "cyan shift"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_WATERFALL",
+      "region": "waterfall",
+      "typical_role": "Often P2 action/context",
+      "quality_measurements": [
+        "white-water clipping",
+        "motion texture",
+        "mist"
+      ],
+      "possible_corrections": [
+        "highlight compression",
+        "local detail"
+      ],
+      "protection_rules": [
+        "flow softness",
+        "mist"
+      ],
+      "common_failure_modes": [
+        "grey water",
+        "over-sharpened flow"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_MOUNTAINS",
+      "region": "mountains",
+      "typical_role": "P2/P3 depth anchor",
+      "quality_measurements": [
+        "haze gradient",
+        "edge contrast",
+        "color"
+      ],
+      "possible_corrections": [
+        "depth-aware dehaze",
+        "local contrast"
+      ],
+      "protection_rules": [
+        "atmospheric perspective"
+      ],
+      "common_failure_modes": [
+        "flattened depth",
+        "sky ridge halo"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_ROAD",
+      "region": "road",
+      "typical_role": "P2 leading line",
+      "quality_measurements": [
+        "luminance",
+        "surface texture",
+        "marking clipping"
+      ],
+      "possible_corrections": [
+        "local tone",
+        "noise reduction"
+      ],
+      "protection_rules": [
+        "night appearance",
+        "leading-line contrast"
+      ],
+      "common_failure_modes": [
+        "grey night road"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_VEHICLE",
+      "region": "vehicle",
+      "typical_role": "P1/P2 object",
+      "quality_measurements": [
+        "body luminance",
+        "paint hue",
+        "reflection clipping",
+        "edges"
+      ],
+      "possible_corrections": [
+        "local exposure",
+        "reflection control"
+      ],
+      "protection_rules": [
+        "paint color",
+        "shape edges"
+      ],
+      "common_failure_modes": [
+        "flattened reflections"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_HEADLIGHTS",
+      "region": "headlights",
+      "typical_role": "P3 light source or P4 distraction",
+      "quality_measurements": [
+        "bright-core area",
+        "bloom radius",
+        "local dominance"
+      ],
+      "possible_corrections": [
+        "bloom attenuation only"
+      ],
+      "protection_rules": [
+        "believable source intensity",
+        "vehicle body"
+      ],
+      "common_failure_modes": [
+        "fake recovered core",
+        "dark rings"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_BUILDINGS",
+      "region": "buildings",
+      "typical_role": "P1/P2 geometry",
+      "quality_measurements": [
+        "vertical lines",
+        "edge detail",
+        "highlight/shadow balance"
+      ],
+      "possible_corrections": [
+        "perspective correction",
+        "local tone",
+        "clarity"
+      ],
+      "protection_rules": [
+        "straight edges",
+        "window highlights"
+      ],
+      "common_failure_modes": [
+        "halos",
+        "texture crunch"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_WINDOWS",
+      "region": "windows",
+      "typical_role": "P2/P3 light portal",
+      "quality_measurements": [
+        "clipping",
+        "inside/outside contrast",
+        "reflections"
+      ],
+      "possible_corrections": [
+        "highlight compression",
+        "regional balance"
+      ],
+      "protection_rules": [
+        "reflections",
+        "frame edges"
+      ],
+      "common_failure_modes": [
+        "flat grey window"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_ARTIFICIAL_LIGHTS",
+      "region": "artificial_lights",
+      "typical_role": "P3 ambience / P4 distraction",
+      "quality_measurements": [
+        "core clipping",
+        "hue",
+        "bloom"
+      ],
+      "possible_corrections": [
+        "local highlight control",
+        "chroma-noise cleanup"
+      ],
+      "protection_rules": [
+        "light color",
+        "ambience"
+      ],
+      "common_failure_modes": [
+        "desaturated lights",
+        "ringing"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_FIRE",
+      "region": "fire",
+      "typical_role": "P1/P3 intentional light source",
+      "quality_measurements": [
+        "warm hue",
+        "core clipping",
+        "surrounding exposure"
+      ],
+      "possible_corrections": [
+        "protect warmth",
+        "modest shoulder"
+      ],
+      "protection_rules": [
+        "flame color",
+        "dark ambience"
+      ],
+      "common_failure_modes": [
+        "neutralized flame",
+        "fake detail"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_FOREGROUND",
+      "region": "foreground",
+      "typical_role": "P1/P2/P3 depth layer",
+      "quality_measurements": [
+        "subject overlap",
+        "luminance",
+        "focus"
+      ],
+      "possible_corrections": [
+        "priority-aware tone"
+      ],
+      "protection_rules": [
+        "depth intent"
+      ],
+      "common_failure_modes": [
+        "global lift"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    },
+    {
+      "region_id": "REG_BACKGROUND",
+      "region": "background",
+      "typical_role": "P2/P3 context",
+      "quality_measurements": [
+        "subject contrast",
+        "noise",
+        "haze",
+        "distraction salience"
+      ],
+      "possible_corrections": [
+        "regional denoise",
+        "tone",
+        "haze correction"
+      ],
+      "protection_rules": [
+        "subject boundary",
+        "depth"
+      ],
+      "common_failure_modes": [
+        "mask halo",
+        "competition with subject"
+      ],
+      "eligibility": [
+        "validated region mask or documented conservative fallback",
+        "measured defect/opportunity",
+        "quality revalidation"
+      ],
+      "compatible_recipes": [],
+      "conflicting_recipes": [
+        "unbounded global correction"
+      ],
+      "calibration_status": "design_only"
+    }
+  ]
+}

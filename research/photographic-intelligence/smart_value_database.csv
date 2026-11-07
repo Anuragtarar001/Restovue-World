@@ -1,0 +1,22 @@
+﻿condition_id,condition,evidence_class,calibration_status,source_preset_count,numeric_parameter_count,dynamic_parameter_calculation
+VAL-001,architecture,source_observed,unvalidated,10,16,Milestone 2 calibration task; no production formula approved
+VAL-002,backlit portrait,source_observed,unvalidated,3,14,Milestone 2 calibration task; no production formula approved
+VAL-003,bright daylight,source_observed,unvalidated,29,15,Milestone 2 calibration task; no production formula approved
+VAL-004,desert,source_observed,unvalidated,3,14,Milestone 2 calibration task; no production formula approved
+VAL-005,flat cloudy scene,source_observed,unvalidated,5,15,Milestone 2 calibration task; no production formula approved
+VAL-006,food,source_observed,unvalidated,5,14,Milestone 2 calibration task; no production formula approved
+VAL-007,forest,source_observed,unvalidated,2,14,Milestone 2 calibration task; no production formula approved
+VAL-008,hazy landscape,source_observed,unvalidated,12,14,Milestone 2 calibration task; no production formula approved
+VAL-009,high-noise photograph,source_observed,unvalidated,7,12,Milestone 2 calibration task; no production formula approved
+VAL-010,indoor warm lighting,source_observed,unvalidated,115,16,Milestone 2 calibration task; no production formula approved
+VAL-011,low-contrast landscape,source_observed,unvalidated,7,13,Milestone 2 calibration task; no production formula approved
+VAL-012,night photography,source_observed,unvalidated,21,15,Milestone 2 calibration task; no production formula approved
+VAL-013,overexposed photograph,source_observed,unvalidated,11,13,Milestone 2 calibration task; no production formula approved
+VAL-014,portrait,source_observed,unvalidated,39,16,Milestone 2 calibration task; no production formula approved
+VAL-015,product,source_observed,unvalidated,7,13,Milestone 2 calibration task; no production formula approved
+VAL-016,snow,source_observed,unvalidated,1,9,Milestone 2 calibration task; no production formula approved
+VAL-017,sunset,source_observed,unvalidated,5,14,Milestone 2 calibration task; no production formula approved
+VAL-018,underexposed photograph,source_observed,unvalidated,4,11,Milestone 2 calibration task; no production formula approved
+VAL-019,waterfall,source_observed,unvalidated,1,14,Milestone 2 calibration task; no production formula approved
+VAL-020,wildlife,source_observed,unvalidated,1,10,Milestone 2 calibration task; no production formula approved
+NIGHT_ROAD_GLARE,night road headlight glare,engineering_hypothesis,unvalidated,0,0,unvalidated engineering hypothesis

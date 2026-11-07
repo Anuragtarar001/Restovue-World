@@ -1,0 +1,3808 @@
+{
+  "schema_version": 2,
+  "layer": "RESEARCH_KNOWLEDGE",
+  "records": [
+    {
+      "observation_id": "M1-VAL-001",
+      "source_condition_id": "VAL-001",
+      "condition": "architecture",
+      "source_preset_ids": [
+        "537FE1F44591EC98F32F1DD5D326BC0F",
+        "A101C21111114111B1115456789ABCDE",
+        "AF328A31E6C54A7FA30008F9D4259097",
+        "3071D8B772BEC8A21FAAE3D6F3A58C9C",
+        "AB9FFA94E818CE35C8FBACE2B58CB4DC",
+        "21E03ED9A44D38C0062BCD46EF6F21F0",
+        "E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6",
+        "0DC279A0C2C34CA8B47B763E3130C3D8",
+        "8DDA01FC42B94DDB9A2793926A98550E",
+        "53FF3CFA5868456E8787B6879D18D0C5"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 10,
+            "minimum": -0.2,
+            "median": 0.15000000000000002,
+            "maximum": 1.6,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 10,
+            "minimum": -20.0,
+            "median": 20.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 10,
+            "minimum": -65.0,
+            "median": -35.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 10,
+            "minimum": -25.0,
+            "median": 20.0,
+            "maximum": 75.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 10,
+            "minimum": 0.0,
+            "median": 13.5,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 10,
+            "minimum": -25.0,
+            "median": -2.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 5,
+            "minimum": 5000.0,
+            "median": 6000.0,
+            "maximum": 6500.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "tint",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 12.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 9,
+            "minimum": -15.0,
+            "median": 3.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 9,
+            "minimum": -20.0,
+            "median": -5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 8,
+            "minimum": -10.0,
+            "median": 6.5,
+            "maximum": 22.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 6,
+            "minimum": 0.0,
+            "median": 2.5,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 6,
+            "minimum": -5.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 8,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 8,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "color_noise_reduction",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-002",
+      "source_condition_id": "VAL-002",
+      "condition": "backlit portrait",
+      "source_preset_ids": [
+        "1CF8AAF41B725B8AA894448A85E1AF7B",
+        "786402FAACFA40E8B96B9559F93B2CB5",
+        "137DB10F172F454B955E80380A0E57DD"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 2,
+            "minimum": 0.25,
+            "median": 0.325,
+            "maximum": 0.4,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 3,
+            "minimum": -10.0,
+            "median": -5.0,
+            "maximum": 50.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 3,
+            "minimum": -60.0,
+            "median": -40.0,
+            "maximum": -35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 3,
+            "minimum": 10.0,
+            "median": 30.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 3,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 3,
+            "minimum": -30.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 1,
+            "minimum": 6000.0,
+            "median": 6000.0,
+            "maximum": 6000.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 2,
+            "minimum": -3.0,
+            "median": 1.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 2,
+            "minimum": -5.0,
+            "median": 0.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 3,
+            "minimum": -10.0,
+            "median": -8.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 3,
+            "minimum": -5.0,
+            "median": -5.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 1,
+            "minimum": -5.0,
+            "median": -5.0,
+            "maximum": -5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-003",
+      "source_condition_id": "VAL-003",
+      "condition": "bright daylight",
+      "source_preset_ids": [
+        "C4E09B61A3B14F2DA7F01C2D8E3B5A91",
+        "A105C21111114111B1115456789ABCDE",
+        "C02BFBEA5A37435AA5FF291915270A03",
+        "AC1B9D7C4EF43E51976FD4AB4B961DDD",
+        "FAEEA01BAF3ACF41DC5501A19C9BC38F",
+        "F7B18F8434414FFA97A349AE7FE0EF42",
+        "2308D24829A57C54218BAC8060E80C29",
+        "892229BDB93BB3CE5A7D4BBEEA97921F",
+        "6BA41F45EB50F0D94636A00D779CC79C",
+        "89EF0733E175CFDEAD83F5ED72D8B995",
+        "49F7893B2845448D997CE33B68817930",
+        "9DE76031A2C94C078CE0B1D3C53177B3",
+        "C5FC27F856884792815D5CD4B8D56DEE",
+        "137DB10F172F454B955E80380A0E57DD",
+        "1EE435DBF6E8F00A7F688BB2601F835F",
+        "F3EE3FF6417EAC5B0B64328B6E5F779D",
+        "73F2191A7CFAB1CD3D428942CFC3713A",
+        "2D289431DAE07262A48BF2818079E646",
+        "36FB7FF3749C3E31D06DB5A85B50FF9C",
+        "381523CE512A72F1A974679B69858AD4",
+        "AB0CDE4A853261F6FD724255D69DB74F",
+        "F6A4070EF983066E8B8F3185297489A8",
+        "74D5BEB8CAB2791A63FA3726C594B0D3",
+        "0115BB421643EDDC6FD82FEAB83121B8",
+        "0566BA69AA36C9E91F61369530F727C4",
+        "1D5A83664CB4CD9EB75ECE1B3A526D4C",
+        "BFE4E658CA302BF18B816009DC499674",
+        "5F6AD3E95D20645FD4432F9C9BAEAC69",
+        "3C070A5960FF50E9D60C5861A494DA4C"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 22,
+            "minimum": 0.05,
+            "median": 0.4,
+            "maximum": 2.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 22,
+            "minimum": -15.0,
+            "median": 9.0,
+            "maximum": 50.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 22,
+            "minimum": -60.0,
+            "median": -40.0,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 22,
+            "minimum": 0.0,
+            "median": 24.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 22,
+            "minimum": -18.0,
+            "median": 13.5,
+            "maximum": 30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 22,
+            "minimum": -30.0,
+            "median": -2.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 3,
+            "minimum": 5500.0,
+            "median": 5700.0,
+            "maximum": 5800.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "tint",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 12,
+            "minimum": -17.0,
+            "median": 3.0,
+            "maximum": 12.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 15,
+            "minimum": -20.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 20,
+            "minimum": -10.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 16,
+            "minimum": -10.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 15,
+            "minimum": -10.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 17,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 17,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-004",
+      "source_condition_id": "VAL-004",
+      "condition": "desert",
+      "source_preset_ids": [
+        "2148332E724A41F89D3125CAB060587E",
+        "EBD3A33A6F4F42E3B84AC71E37F14D5C",
+        "E9ABF18B54A747169C4475471CDBE0E9"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 3,
+            "minimum": -0.15,
+            "median": -0.1,
+            "maximum": 0.05,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 3,
+            "minimum": 20.0,
+            "median": 20.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 3,
+            "minimum": -50.0,
+            "median": -45.0,
+            "maximum": -45.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 3,
+            "minimum": 20.0,
+            "median": 25.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 3,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 3,
+            "minimum": -20.0,
+            "median": -15.0,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 3,
+            "minimum": 6600.0,
+            "median": 6600.0,
+            "maximum": 7200.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 5.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 5.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 7.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 1,
+            "minimum": 15.0,
+            "median": 15.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 3,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-005",
+      "source_condition_id": "VAL-005",
+      "condition": "flat cloudy scene",
+      "source_preset_ids": [
+        "C0799F8F1B0B4CDBBB8AAF739A08FCAA",
+        "0DC279A0C2C34CA8B47B763E3130C3D8",
+        "B97C8EA3BDC54DC38EDA22F70743C173",
+        "C7596DB20BE9467AAFA6C6E2561CD904",
+        "3298622B6F1FC397A2A1208436AC6A36"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 2,
+            "minimum": -0.1,
+            "median": 0.075,
+            "maximum": 0.25,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 4,
+            "minimum": -15.0,
+            "median": 22.5,
+            "maximum": 55.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 4,
+            "minimum": -40.0,
+            "median": -30.0,
+            "maximum": -30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 4,
+            "minimum": 25.0,
+            "median": 30.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 4,
+            "minimum": 5.0,
+            "median": 17.5,
+            "maximum": 28.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 4,
+            "minimum": -30.0,
+            "median": -10.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 3,
+            "minimum": 5000.0,
+            "median": 5700.0,
+            "maximum": 6500.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "tint",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 2,
+            "minimum": -15.0,
+            "median": -2.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 2,
+            "minimum": -20.0,
+            "median": -5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 2.5,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 2.5,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 2,
+            "minimum": -5.0,
+            "median": -2.5,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 4,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-006",
+      "source_condition_id": "VAL-006",
+      "condition": "food",
+      "source_preset_ids": [
+        "6BA41F45EB50F0D94636A00D779CC79C",
+        "BC9B053AE599CD35909801E3296FBA5D",
+        "124AF25518479F10154961193F713C64",
+        "9CB9FC5359624B01BBCCC97B3B169A53",
+        "277787A0C9434CE9A31A45464124E287"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 5,
+            "minimum": -0.4,
+            "median": 0.2,
+            "maximum": 0.4,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 5,
+            "minimum": 5.0,
+            "median": 15.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 5,
+            "minimum": -50.0,
+            "median": -35.0,
+            "maximum": -25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 5,
+            "minimum": 10.0,
+            "median": 20.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 5,
+            "minimum": -5.0,
+            "median": 15.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 5,
+            "minimum": -20.0,
+            "median": -10.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 2,
+            "minimum": 5800.0,
+            "median": 5900.0,
+            "maximum": 6000.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 5,
+            "minimum": -12.0,
+            "median": 5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 5,
+            "minimum": -15.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 2,
+            "minimum": 5.0,
+            "median": 7.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 3,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-007",
+      "source_condition_id": "VAL-007",
+      "condition": "forest",
+      "source_preset_ids": [
+        "28BF0EB9FA3848DE93B70CF04E4A1A20",
+        "FB0415EB32A14A2F98A194BE83841E51"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 2,
+            "minimum": -0.15,
+            "median": -0.1,
+            "maximum": -0.05,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 2,
+            "minimum": 15.0,
+            "median": 16.5,
+            "maximum": 18.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 2,
+            "minimum": -50.0,
+            "median": -40.0,
+            "maximum": -30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 2,
+            "minimum": 15.0,
+            "median": 25.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 2,
+            "minimum": 5.0,
+            "median": 6.5,
+            "maximum": 8.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 2,
+            "minimum": -10.0,
+            "median": -5.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 1,
+            "minimum": 5600.0,
+            "median": 5600.0,
+            "maximum": 5600.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 2,
+            "minimum": 5.0,
+            "median": 7.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 1,
+            "minimum": -5.0,
+            "median": -5.0,
+            "maximum": -5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-008",
+      "source_condition_id": "VAL-008",
+      "condition": "hazy landscape",
+      "source_preset_ids": [
+        "FCEA71FF2CBB494B98EF1604B7D8DD39",
+        "F918EE88C574457DAF177C2DD22DFE96",
+        "E9277271105E412D997B53C3C231CCC6",
+        "8A419177E59242CDAF030F8125580F4D",
+        "2A409D65F847A0E281D183C35CC72BE3",
+        "6D035E9E456CF3CE91CFDEA41588A9CD",
+        "C300BA87219E3F160DA87118A1B8B876",
+        "9CB9FC5359624B01BBCCC97B3B169A53",
+        "FB0415EB32A14A2F98A194BE83841E51",
+        "C793E76180FF440380F0FE7B1194FCD9",
+        "0127A22CE58720325553F054D57E044E",
+        "28299097502F4D11851B07F3638D5C68"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 11,
+            "minimum": -0.5,
+            "median": -0.05,
+            "maximum": 0.3,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 11,
+            "minimum": -30.0,
+            "median": 25.0,
+            "maximum": 37.5,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 11,
+            "minimum": -75.0,
+            "median": -45.0,
+            "maximum": -30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 11,
+            "minimum": 20.0,
+            "median": 22.0,
+            "maximum": 75.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 11,
+            "minimum": -5.0,
+            "median": 10.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 11,
+            "minimum": -15.0,
+            "median": -10.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 5,
+            "minimum": 5100.0,
+            "median": 6000.0,
+            "maximum": 6700.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 9,
+            "minimum": -45.0,
+            "median": 5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 10,
+            "minimum": -45.0,
+            "median": 2.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 8,
+            "minimum": -32.0,
+            "median": 7.5,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 4,
+            "minimum": -15.0,
+            "median": 0.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 9,
+            "minimum": -22.0,
+            "median": 10.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 10,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 10,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-009",
+      "source_condition_id": "VAL-009",
+      "condition": "high-noise photograph",
+      "source_preset_ids": [
+        "21E2CE7618A51B5CECB81FFCD576EBF7",
+        "942BFF97477C9ED600EBFF6DBB4AC883",
+        "750B35A4D3248079B7B56C41757DF71D",
+        "FA9955C4F12D93CA0BAA22A46D817790",
+        "CCCACDA095866B1F760FC4C500AC0E24",
+        "5B1067B6815107EE97A1C976F1B1FD46",
+        "C6E0980E113A92ECE808E5024B2E724A"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 2,
+            "minimum": 0.25,
+            "median": 0.375,
+            "maximum": 0.5,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 2,
+            "minimum": 20.0,
+            "median": 25.0,
+            "maximum": 30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 2,
+            "minimum": -50.0,
+            "median": -45.0,
+            "maximum": -40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 2,
+            "minimum": 15.0,
+            "median": 22.5,
+            "maximum": 30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 2,
+            "minimum": 5.0,
+            "median": 7.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 2,
+            "minimum": -15.0,
+            "median": -12.5,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 2,
+            "minimum": -3.0,
+            "median": 1.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 2,
+            "minimum": -5.0,
+            "median": 1.5,
+            "maximum": 8.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 17.5,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 1,
+            "minimum": 15.0,
+            "median": 15.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 6,
+            "minimum": 15.0,
+            "median": 25.0,
+            "maximum": 60.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "color_noise_reduction",
+          "summary": {
+            "count": 5,
+            "minimum": 20.0,
+            "median": 40.0,
+            "maximum": 60.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-010",
+      "source_condition_id": "VAL-010",
+      "condition": "indoor warm lighting",
+      "source_preset_ids": [
+        "90043A0AB8A14F9480F95B9C2D8B3FDE",
+        "832333C3B3F7488DB41596163B242868",
+        "01A6277EEE8248FAB875093DC61DA406",
+        "59B4E560224F46B6A54D616788918E05",
+        "BB1D88FFE7B64082839A0A3AFA78C803",
+        "7D1D30B0472C487EA2D90ED658222872",
+        "C417C949B9024A9ABF316C4C29FBF7C6",
+        "B6C577465DDF485EA5248505DD82DDA2",
+        "7692E5FA74044964A467CA68DE4DD6DD",
+        "98AAFDC599D049FD8F6EF48C12E0688C",
+        "8F0FD4C5E1C14335B006AED45974062F",
+        "5ACD4899534F4FEFB5E2B64E769A65E1",
+        "D5F19C72B4C25E3EB8013D9F4C6B7A82",
+        "7DBB7756937644458A58B3E347432C10",
+        "BC0D1EC597AA02F56FFBB7A0E5C01B33",
+        "A64A40C7363AD3DA373A8BAA6289EBD1",
+        "F716576F66860E33931373F11D641EEF",
+        "A102C21111114111B1115456789ABCDE",
+        "49C557A822C3ACE998D75F2D43A3AD26",
+        "AD4BD0B3485C4B55B19045B424D5BFA0",
+        "AB4C653286D245CC8C2F0DF6D93A73CF",
+        "9E65C5AF44D64D249AC39879507D1C67",
+        "D6DAAADA87614379C41B0D12FC98FAEE",
+        "FEA339D525414350BB7717D2F2380425",
+        "FEA339D525414350BB7717D2F2380427",
+        "9AE8A273B60F4247A082020C4832CE77",
+        "413BEF4739C19B90598FD6BC4D292EC5",
+        "88E4F42B446A44A2801C78539FDD94A5",
+        "35AFA9FD35E94B448F9264BDBB3D4C37",
+        "AC1B9D7C4EF43E51976FD4AB4B961DDD",
+        "A106C21111114111B1115456789ABCDE",
+        "B6FF0B2BF54140CDA10FB29F8829F792",
+        "6666357E44AC424193220C1BD87141F3",
+        "1D66202BB38447959D6A90C9C97E1396",
+        "A3D7F1C8E5B2A9D064F3C7B1E8D5A2F9",
+        "41097813D1F6E19E50C18A087CA30443",
+        "A8B509C348184D0E93B4005BFF7EE752",
+        "8EBEBD6541C7430489EB8C196F8CA456",
+        "209BEC71918847DEB2139089D5B12BF2",
+        "1AEC50F5CDB84BB19472951B8B9056FC",
+        "A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D9",
+        "99810234CA8F4983B8D11F8E4F8DBA81",
+        "A101C21111114111B1115456789ABCDE",
+        "3867E5D4CF2446ED8E0706337A0C0F17",
+        "BF050675C8F67FB80E9007578D442967",
+        "806A9F32882E47D681B3F26FA9BA48EF",
+        "C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8",
+        "99B9836FAE464CD989813FD4654F5187",
+        "D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9",
+        "B8E3D1F5A2C6479A81D4F6E2B3C7A9D0",
+        "53005671400B29740B744548524C0AD1",
+        "2A409D65F847A0E281D183C35CC72BE3",
+        "A59BD79E67BED154CE14BDBA26F27091",
+        "D621B4E33B68AAEB3378D603420443B0",
+        "3071D8B772BEC8A21FAAE3D6F3A58C9C",
+        "5DABF1C914AAD6A871CF08B06CCE7F2C",
+        "AB9FFA94E818CE35C8FBACE2B58CB4DC",
+        "6D035E9E456CF3CE91CFDEA41588A9CD",
+        "C49C0882E58B2EA9CF44F2A2AB054EE9",
+        "8B791D43C936FBAF0C7939691C0B366A",
+        "027D2D604332BCD6CB4B83A66A45A6A1",
+        "FF255DA4E3D1B1F303FF8ACA59C55B8A",
+        "1CF8AAF41B725B8AA894448A85E1AF7B",
+        "E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6",
+        "124AF25518479F10154961193F713C64",
+        "4A580AB9AC6451A7D2EE9B78A6C5390E",
+        "831BD55A1D5F42F4A8DF7BDDDD79C29F",
+        "2148332E724A41F89D3125CAB060587E",
+        "631D643C063C4F9EA07EA6F82A770CCB",
+        "5407AB32AE544B1688AFA63CCF53559B",
+        "89BC953CA9B04F9E8E51677F4FB7E3FE",
+        "4E358D9747214C299D8CDD25EF6C026C",
+        "1118312D3DD2406D832854A9F0CAC31B",
+        "8DDA01FC42B94DDB9A2793926A98550E",
+        "3E921A9B47434ED3B13B3A34E8F775FC",
+        "4B4BE1CCE7954EA28CDF39D0ADC379C6",
+        "EBD3A33A6F4F42E3B84AC71E37F14D5C",
+        "C793E76180FF440380F0FE7B1194FCD9",
+        "E2392E05633F4C2BA301EDB465EAE5DA",
+        "CA54C6A3DEA14CFABBC565101AFAA475",
+        "ACCC4E24996140F6872D35335EBF6D1B",
+        "C2FFF27D6D2544B49D2B468D782FC25D",
+        "786402FAACFA40E8B96B9559F93B2CB5",
+        "0630B7C4AB094E21A63CE2C00402B337",
+        "D9CA49D900B24373A39E6ED10221C81E",
+        "E25E93FE4210410B9C24E7F2E8C75ADF",
+        "508695093EEC4A6B9D42E49AC3C9B2CD",
+        "655F942768574474BB7CD37B35F3A901",
+        "06DEEC54B98147A790DD1B44EF1797FF",
+        "A69C4FE1395F4B249E0DA808AB393E1C",
+        "5CE2AEAADEBFF28923BE7101484CE37A",
+        "C5BE63503F5539ADA9B31399A08C5345",
+        "DF540065ADBEA3D9F45C578D41173AE2",
+        "B2425E73691BE3BE6B9AD9FBD5BEC27F",
+        "60C2B6A892D27B4950D96C10C3A5AE8C",
+        "E6848F736019CB334A82C42E8AC965C2",
+        "73F2191A7CFAB1CD3D428942CFC3713A",
+        "15D9547F8ABB9849DEE4A92A8AD167A4",
+        "B9D4F9889A21AFFAB360B0AEEC587378",
+        "2D289431DAE07262A48BF2818079E646",
+        "67DB98A2AE795A5BE3DCF01F220C450F",
+        "F60123456789ABCDEF0123A1B2C3D4E5",
+        "D4E5F60123456789ABCDEF0123A1B2C3",
+        "E5F60123456789ABCDEF0123A1B2C3D4",
+        "B40F8AD25F344DF6BDEB4A818762C83E",
+        "A1B2C3D4E5F60123456789ABCDEF0123",
+        "C3D4E5F60123456789ABCDEF0123A1B2",
+        "3298622B6F1FC397A2A1208436AC6A36",
+        "EAFA91F64A39064032951615E04FF5C4",
+        "F27A4DDECA5C73B07C139252302B6FA3",
+        "65C1348ED02D4716BE2A7F2917F0E3AA",
+        "52C909E526364D93A200C30163F52592",
+        "F3AD1E0BED8B4ED9A74B39A015743E4A",
+        "C8A73B58EA54453C96A8508D182FEDB3",
+        "DC7216C65B3245BFB50F5715B27A211C"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 90,
+            "minimum": -0.4,
+            "median": 0.15,
+            "maximum": 1.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 112,
+            "minimum": -40.0,
+            "median": 15.0,
+            "maximum": 55.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 112,
+            "minimum": -78.0,
+            "median": -35.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 112,
+            "minimum": -25.0,
+            "median": 25.0,
+            "maximum": 55.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 110,
+            "minimum": -30.0,
+            "median": 9.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 112,
+            "minimum": -30.0,
+            "median": -5.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 36,
+            "minimum": 2850.0,
+            "median": 6000.0,
+            "maximum": 7700.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "tint",
+          "summary": {
+            "count": 14,
+            "minimum": -10.0,
+            "median": 6.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 60,
+            "minimum": -25.0,
+            "median": 3.4,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 73,
+            "minimum": -45.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 85,
+            "minimum": -25.0,
+            "median": 0.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 78,
+            "minimum": -15.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 68,
+            "minimum": -15.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 103,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 98,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "color_noise_reduction",
+          "summary": {
+            "count": 3,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-011",
+      "source_condition_id": "VAL-011",
+      "condition": "low-contrast landscape",
+      "source_preset_ids": [
+        "DB0259D703A369AB47E063FFB4103442",
+        "BEE63ED6E5DB8CAA4BC9A0961F4B4D92",
+        "078189EBAB224795BD417336F772CDBC",
+        "B2C3D4E5F60123456789ABCDEF0123A1",
+        "790308707E7D4724A1D70C39B005BE5D",
+        "52CC010379A6ED108B9A60B9F541FCA2",
+        "4C6BEE78F5D041C0B4422D303988A220"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 2,
+            "minimum": 0.2,
+            "median": 0.35,
+            "maximum": 0.5,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 6,
+            "minimum": 25.0,
+            "median": 30.0,
+            "maximum": 45.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 6,
+            "minimum": -73.0,
+            "median": -50.0,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 6,
+            "minimum": -30.0,
+            "median": 2.5,
+            "maximum": 50.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 6,
+            "minimum": -10.0,
+            "median": 15.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 6,
+            "minimum": -30.0,
+            "median": -27.5,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 5,
+            "minimum": -5.0,
+            "median": 5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 6,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 3,
+            "minimum": 0.0,
+            "median": 8.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 5,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-012",
+      "source_condition_id": "VAL-012",
+      "condition": "night photography",
+      "source_preset_ids": [
+        "C4E09B61A3B14F2DA7F01C2D8E3B5A91",
+        "A105C21111114111B1115456789ABCDE",
+        "10266C01A199423D80D8EF1D437CEA44",
+        "8EBEBD6541C7430489EB8C196F8CA456",
+        "2DD3E197105945ABA901E0C61F631D15",
+        "F918EE88C574457DAF177C2DD22DFE96",
+        "99B9836FAE464CD989813FD4654F5187",
+        "E8B7A3F2C9D04156B8E7F2A3C9D5B1E0",
+        "53005671400B29740B744548524C0AD1",
+        "721E20B8781BB4E5925DD9EFAB553318",
+        "D716918E616459853D57EF8342A98D86",
+        "958EA85F142FFCDD542B70BD76E0E682",
+        "BEE63ED6E5DB8CAA4BC9A0961F4B4D92",
+        "96B6D96237AAB9BADAD27AB6EDA1C2E5",
+        "9CB9FC5359624B01BBCCC97B3B169A53",
+        "3C625C42AA3E418A9847F968CBF5D975",
+        "506BD5A80F3D47FAB0D5DD470CD743F1",
+        "336EBC521462452D87FF99B0FE78C51F",
+        "A69C4FE1395F4B249E0DA808AB393E1C",
+        "65C1348ED02D4716BE2A7F2917F0E3AA",
+        "635FEBA0BA7C4329971C644FD60FCBA0"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 21,
+            "minimum": -0.5,
+            "median": 0.1,
+            "maximum": 0.75,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 21,
+            "minimum": -5.0,
+            "median": 25.0,
+            "maximum": 45.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 21,
+            "minimum": -90.0,
+            "median": -50.0,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 21,
+            "minimum": 0.0,
+            "median": 35.0,
+            "maximum": 50.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 21,
+            "minimum": -30.0,
+            "median": 15.0,
+            "maximum": 30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 21,
+            "minimum": -30.0,
+            "median": -15.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 3,
+            "minimum": 5200.0,
+            "median": 6000.0,
+            "maximum": 7700.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "tint",
+          "summary": {
+            "count": 1,
+            "minimum": 15.0,
+            "median": 15.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 13,
+            "minimum": -17.0,
+            "median": 5.0,
+            "maximum": 12.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 15,
+            "minimum": -20.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 18,
+            "minimum": -23.0,
+            "median": 0.0,
+            "maximum": 55.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 10,
+            "minimum": -25.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 20,
+            "minimum": -15.0,
+            "median": 0.0,
+            "maximum": 45.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 18,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 17,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-013",
+      "source_condition_id": "VAL-013",
+      "condition": "overexposed photograph",
+      "source_preset_ids": [
+        "C47D2F1E8B9A4635A7E3F6D0C1B29876",
+        "F4FE5E8224614F268A0911527C8FF7F9",
+        "D5189EDE0AC54C2393DAC62B931E0F5A",
+        "FA5CA12BC8184EBC8AA7C8D50D6FBB68",
+        "9160885FFA3D4686ACCCB28A3902F905",
+        "6D98A983E09446D29363CD01C8806587",
+        "81398570F3F544348D61AFF6653D7240",
+        "FEA339D525414350BB7717D2F2380425",
+        "99545BF35BFB45DDBBD0552B0D7E7D17",
+        "184C659A740B44708E2FC9B4116278D6",
+        "89C8406B01E64EBDB03222004D7AD067"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 10,
+            "minimum": -0.2,
+            "median": 0.025,
+            "maximum": 0.8,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 11,
+            "minimum": -25.0,
+            "median": 15.5,
+            "maximum": 50.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 11,
+            "minimum": -75.0,
+            "median": -55.0,
+            "maximum": -30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 11,
+            "minimum": -4.0,
+            "median": 12.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 10,
+            "minimum": -20.0,
+            "median": -1.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 11,
+            "minimum": -30.0,
+            "median": -3.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 5,
+            "minimum": -10.0,
+            "median": 1.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 5,
+            "minimum": -15.0,
+            "median": 6.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 11,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 11,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 11,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 11,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 11,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-014",
+      "source_condition_id": "VAL-014",
+      "condition": "portrait",
+      "source_preset_ids": [
+        "5F7EC35E64F14EE7BAFF9B28ABF2F1DF",
+        "C47D2F1E8B9A4635A7E3F6D0C1B29876",
+        "3E238411EE2DCC60E381686EA7923659",
+        "A64A40C7363AD3DA373A8BAA6289EBD1",
+        "A6F8D2E4913B4C7A82F1E5C9D0B7A3E6",
+        "37069B13083B447F8E64409236373710",
+        "C47D2F1E8B9A4635A7E3F6D0C1B29875",
+        "C75939D1EC9ED903B7AB64CCC5741312",
+        "D5189EDE0AC54C2393DAC62B931E0F5A",
+        "1A141C043D0F45EB8A447847E3330921",
+        "6D98A983E09446D29363CD01C8806587",
+        "81398570F3F544348D61AFF6653D7240",
+        "FEA339D525414350BB7717D2F2380427",
+        "9AE8A273B60F4247A082020C4832CE77",
+        "413BEF4739C19B90598FD6BC4D292EC5",
+        "6F72B35BB2F8578C0B91CC81CB06D852",
+        "A3D7F1C8E5B2A9D064F3C7B1E8D5A2F9",
+        "A8B509C348184D0E93B4005BFF7EE752",
+        "209BEC71918847DEB2139089D5B12BF2",
+        "A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D9",
+        "3867E5D4CF2446ED8E0706337A0C0F17",
+        "C1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D7",
+        "BF050675C8F67FB80E9007578D442967",
+        "211124FB887D33847565378BFE8BF8CE",
+        "F813224C2D003640FCC5B3962101B892",
+        "027D2D604332BCD6CB4B83A66A45A6A1",
+        "D47DE8EC9006F6CF8FE3ACCDA1BBB170",
+        "DC927AA77469878B49C6D35E2A6AA002",
+        "89EF0733E175CFDEAD83F5ED72D8B995",
+        "5407AB32AE544B1688AFA63CCF53559B",
+        "9DE76031A2C94C078CE0B1D3C53177B3",
+        "786402FAACFA40E8B96B9559F93B2CB5",
+        "302C09D367314AD7B9CB4930F560FE81",
+        "06DEEC54B98147A790DD1B44EF1797FF",
+        "E6848F736019CB334A82C42E8AC965C2",
+        "5A949287C5E54F0386EB4FBF1132E9D9",
+        "A1B2C3D4E5F60123456789ABCDEF0123",
+        "F53FDF69DEF2E478150E1A6806D158F0",
+        "C8A73B58EA54453C96A8508D182FEDB3"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 33,
+            "minimum": -0.3,
+            "median": 0.2,
+            "maximum": 0.8,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 38,
+            "minimum": -30.0,
+            "median": 4.0,
+            "maximum": 47.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 38,
+            "minimum": -75.0,
+            "median": -37.5,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 38,
+            "minimum": -15.0,
+            "median": 23.5,
+            "maximum": 43.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 35,
+            "minimum": -15.0,
+            "median": 8.0,
+            "maximum": 19.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 38,
+            "minimum": -27.0,
+            "median": 0.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 5,
+            "minimum": 5700.0,
+            "median": 6000.0,
+            "maximum": 6500.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "tint",
+          "summary": {
+            "count": 2,
+            "minimum": 5.0,
+            "median": 5.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 24,
+            "minimum": -10.0,
+            "median": 5.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 30,
+            "minimum": -48.0,
+            "median": 0.0,
+            "maximum": 12.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 28,
+            "minimum": -12.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 27,
+            "minimum": -12.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 22,
+            "minimum": -5.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 33,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 27,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "color_noise_reduction",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-015",
+      "source_condition_id": "VAL-015",
+      "condition": "product",
+      "source_preset_ids": [
+        "F8810E354308E0CBF73195656AC58A5D",
+        "F92DA91D13FC85D27710589CB2D4BDD1",
+        "C257CB116586E3D25AC5FE5F9C7BF472",
+        "651FC7F7AB5189B3BA7B5CEAB203B5A5",
+        "C5FC27F856884792815D5CD4B8D56DEE",
+        "2C43B42B59CB410C885DA583C4CCBF0C",
+        "8DBB5E10A882424DBF3AEDEC104E5DA6"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 6,
+            "minimum": -0.1,
+            "median": 0.175,
+            "maximum": 0.5,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 7,
+            "minimum": 5.0,
+            "median": 15.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 7,
+            "minimum": -50.0,
+            "median": -25.0,
+            "maximum": -13.8,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 7,
+            "minimum": 15.0,
+            "median": 20.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 7,
+            "minimum": -10.0,
+            "median": 10.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 7,
+            "minimum": -25.0,
+            "median": -8.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 4,
+            "minimum": -5.0,
+            "median": 2.5,
+            "maximum": 12.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 6,
+            "minimum": -5.0,
+            "median": 0.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 7,
+            "minimum": 0.0,
+            "median": 5.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 6,
+            "minimum": 0.0,
+            "median": 2.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 4,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-016",
+      "source_condition_id": "VAL-016",
+      "condition": "snow",
+      "source_preset_ids": [
+        "F3EE3FF6417EAC5B0B64328B6E5F779D"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 1,
+            "minimum": 0.6,
+            "median": 0.6,
+            "maximum": 0.6,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 1,
+            "minimum": -15.0,
+            "median": -15.0,
+            "maximum": -15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 1,
+            "minimum": -50.0,
+            "median": -50.0,
+            "maximum": -50.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 1,
+            "minimum": 40.0,
+            "median": 40.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 1,
+            "minimum": 20.0,
+            "median": 20.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 1,
+            "minimum": 15.0,
+            "median": 15.0,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 1,
+            "minimum": -10.0,
+            "median": -10.0,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-017",
+      "source_condition_id": "VAL-017",
+      "condition": "sunset",
+      "source_preset_ids": [
+        "DB0259D703A369AB47E063FFB4103442",
+        "5B2FE3FE4DB84107919A2D9CB625C2C8",
+        "C793E76180FF440380F0FE7B1194FCD9",
+        "786402FAACFA40E8B96B9559F93B2CB5",
+        "E6848F736019CB334A82C42E8AC965C2"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 5,
+            "minimum": -0.05,
+            "median": 0.2,
+            "maximum": 0.25,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 5,
+            "minimum": -5.0,
+            "median": 20.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 5,
+            "minimum": -45.0,
+            "median": -45.0,
+            "maximum": -35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 5,
+            "minimum": 20.0,
+            "median": 25.0,
+            "maximum": 35.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 5,
+            "minimum": 10.0,
+            "median": 15.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 5,
+            "minimum": -15.0,
+            "median": -10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 3,
+            "minimum": 5300.0,
+            "median": 6000.0,
+            "maximum": 6700.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 4,
+            "minimum": 5.0,
+            "median": 7.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 4,
+            "minimum": 5.0,
+            "median": 7.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 4,
+            "minimum": -10.0,
+            "median": 12.5,
+            "maximum": 15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 3,
+            "minimum": -5.0,
+            "median": 5.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 4,
+            "minimum": -5.0,
+            "median": 7.5,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 4,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 4,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-018",
+      "source_condition_id": "VAL-018",
+      "condition": "underexposed photograph",
+      "source_preset_ids": [
+        "01452A7B3EFF4D83A83A51E9CC1FB297",
+        "C162EE518CEE4DD6B8E09595338CEE4E",
+        "1D5A83664CB4CD9EB75ECE1B3A526D4C",
+        "BFE4E658CA302BF18B816009DC499674"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 4,
+            "minimum": 0.5,
+            "median": 1.15,
+            "maximum": 2.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 2,
+            "minimum": -30.0,
+            "median": -26.25,
+            "maximum": -22.5,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 2,
+            "minimum": -43.0,
+            "median": -41.5,
+            "maximum": -40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 2,
+            "minimum": 47.0,
+            "median": 52.5,
+            "maximum": 58.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 2,
+            "minimum": -20.0,
+            "median": -13.5,
+            "maximum": -7.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 2,
+            "minimum": -8.0,
+            "median": 7.0,
+            "maximum": 22.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 2,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 2,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-019",
+      "source_condition_id": "VAL-019",
+      "condition": "waterfall",
+      "source_preset_ids": [
+        "7A979A63BC7C4F368C36B2EDAD593447"
+      ],
+      "observed_values": [
+        {
+          "parameter": "exposure",
+          "summary": {
+            "count": 1,
+            "minimum": -0.3,
+            "median": -0.3,
+            "maximum": -0.3,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 1,
+            "minimum": 30.0,
+            "median": 30.0,
+            "maximum": 30.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 1,
+            "minimum": -55.0,
+            "median": -55.0,
+            "maximum": -55.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 1,
+            "minimum": 40.0,
+            "median": 40.0,
+            "maximum": 40.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 1,
+            "minimum": -15.0,
+            "median": -15.0,
+            "maximum": -15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "temperature",
+          "summary": {
+            "count": 1,
+            "minimum": 4900.0,
+            "median": 4900.0,
+            "maximum": 4900.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "vibrance",
+          "summary": {
+            "count": 1,
+            "minimum": -10.0,
+            "median": -10.0,
+            "maximum": -10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 1,
+            "minimum": -15.0,
+            "median": -15.0,
+            "maximum": -15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "dehaze",
+          "summary": {
+            "count": 1,
+            "minimum": -5.0,
+            "median": -5.0,
+            "maximum": -5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-VAL-020",
+      "source_condition_id": "VAL-020",
+      "condition": "wildlife",
+      "source_preset_ids": [
+        "C3D4E5F60123456789ABCDEF0123A1B2"
+      ],
+      "observed_values": [
+        {
+          "parameter": "contrast",
+          "summary": {
+            "count": 1,
+            "minimum": 25.0,
+            "median": 25.0,
+            "maximum": 25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "highlights",
+          "summary": {
+            "count": 1,
+            "minimum": -15.0,
+            "median": -15.0,
+            "maximum": -15.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "shadows",
+          "summary": {
+            "count": 1,
+            "minimum": 20.0,
+            "median": 20.0,
+            "maximum": 20.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "whites",
+          "summary": {
+            "count": 1,
+            "minimum": -5.0,
+            "median": -5.0,
+            "maximum": -5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "blacks",
+          "summary": {
+            "count": 1,
+            "minimum": -25.0,
+            "median": -25.0,
+            "maximum": -25.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "saturation",
+          "summary": {
+            "count": 1,
+            "minimum": 5.0,
+            "median": 5.0,
+            "maximum": 5.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "clarity",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "texture",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "sharpening_amount",
+          "summary": {
+            "count": 1,
+            "minimum": 10.0,
+            "median": 10.0,
+            "maximum": 10.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        },
+        {
+          "parameter": "luminance_noise_reduction",
+          "summary": {
+            "count": 1,
+            "minimum": 0.0,
+            "median": 0.0,
+            "maximum": 0.0,
+            "provenance": "observed explicit XMP values; not calibrated as automatic correction"
+          },
+          "provenance": "SOURCE_OBSERVED",
+          "executable": false
+        }
+      ],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    },
+    {
+      "observation_id": "M1-NIGHT_ROAD_GLARE",
+      "source_condition_id": "NIGHT_ROAD_GLARE",
+      "condition": "night road headlight glare",
+      "source_preset_ids": [],
+      "observed_values": [],
+      "research_notes": null,
+      "calibration_status": "RESEARCH_ONLY",
+      "executable": false
+    }
+  ]
+}

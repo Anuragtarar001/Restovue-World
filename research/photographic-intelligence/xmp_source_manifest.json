@@ -1,0 +1,2270 @@
+{
+  "schema_version": 1,
+  "source_repository": "https://github.com/peva3/EmulsionPresets",
+  "commit": "0cdb71c60603867a046bc92c63617feec7894dd1",
+  "license": "MIT",
+  "scope": "Presets/**/*.xmp",
+  "production_xmp_count": 451,
+  "research_reference_xmp_count": 16,
+  "successfully_parsed": 451,
+  "failed": 0,
+  "unique_explicit_fields": 121,
+  "duplicate_ids": [],
+  "files": [
+    {
+      "path": "Presets/Alternative-Process/Albumen Print.xmp",
+      "sha256": "d064e07a456b6d9b0e005b88449e3812464858179ac39be3f18832820ddadf2c",
+      "bytes": 2537
+    },
+    {
+      "path": "Presets/Alternative-Process/Autochrome.xmp",
+      "sha256": "b4fec6b774d5e9a6688af982fb92db0b6e72c37fc9352af4fafd01df999889a7",
+      "bytes": 3178
+    },
+    {
+      "path": "Presets/Alternative-Process/Bromoil.xmp",
+      "sha256": "42820487bf6bc535c9d76d5faef7396c43f61e0f5114546b37b3d85ff841522b",
+      "bytes": 2781
+    },
+    {
+      "path": "Presets/Alternative-Process/BW Infrared.xmp",
+      "sha256": "e4e33771be41e3bc2e3410fbb5964c61ae2871890c89b1a766ec1d7280e3aa31",
+      "bytes": 2754
+    },
+    {
+      "path": "Presets/Alternative-Process/Calotype.xmp",
+      "sha256": "ebbbe31fc12208b7dcb155e13d8a1c1b9eb3fdcaa05624bbccc8dd392f4d1f2d",
+      "bytes": 2887
+    },
+    {
+      "path": "Presets/Alternative-Process/Cross Process C41\u2192E6.xmp",
+      "sha256": "df188d6b9080d1bf386946038c236f4fd30020d7c8b63738a5a34b5fcea95fa4",
+      "bytes": 2790
+    },
+    {
+      "path": "Presets/Alternative-Process/Cross Process E6\u2192C41.xmp",
+      "sha256": "0c4ed4c229f4a2a0db6b6a4ff2d3d67eaad261a0f4f998b029c41edabf04e2be",
+      "bytes": 2988
+    },
+    {
+      "path": "Presets/Alternative-Process/Cyanotype Classic.xmp",
+      "sha256": "2418d30ff8ad93ab311a82556348bbacc4cfbed356ef9765310380b4d6c2f0ea",
+      "bytes": 2548
+    },
+    {
+      "path": "Presets/Alternative-Process/Cyanotype Tea-Toned.xmp",
+      "sha256": "0c89362f0f1246c50af43680aca673c971581dd2e53ed7d12fd17855cc89bb89",
+      "bytes": 2553
+    },
+    {
+      "path": "Presets/Alternative-Process/Daguerreotype.xmp",
+      "sha256": "773dc65a9cb7e2685210dfe4a4319c246c0ac7915c766b973288ac6c1f8e61b1",
+      "bytes": 2561
+    },
+    {
+      "path": "Presets/Alternative-Process/Diana F+.xmp",
+      "sha256": "bb41e0a3999848d303a3947a70bee678bc5d03f279bcb7555f6d12dc6f3a9caf",
+      "bytes": 3023
+    },
+    {
+      "path": "Presets/Alternative-Process/Film Soup.xmp",
+      "sha256": "5c9392aecc1335671ee0bc0c4e065c8212c2b2f38684eb973e6a612cea490977",
+      "bytes": 3435
+    },
+    {
+      "path": "Presets/Alternative-Process/Gum Bichromate.xmp",
+      "sha256": "de6fbbf6a9edefdf1bdf42ee0e28f7c1e273d4e7c5782f433081f976f50d976c",
+      "bytes": 2842
+    },
+    {
+      "path": "Presets/Alternative-Process/Holga.xmp",
+      "sha256": "d3eaaa2a42456e16f02894605adf99415cfadd5862d0d9a4413fcfd0339297c2",
+      "bytes": 3047
+    },
+    {
+      "path": "Presets/Alternative-Process/Lith Print.xmp",
+      "sha256": "9a4fee051d328b8a7bfb7a1d012f8cc648d906cee53e8fa43212ac83b5fcc25c",
+      "bytes": 2730
+    },
+    {
+      "path": "Presets/Alternative-Process/Lomo LC-A.xmp",
+      "sha256": "b756392d3223e59fad96cdeb8102142f795d20bb189d924e95c3b011600349df",
+      "bytes": 2980
+    },
+    {
+      "path": "Presets/Alternative-Process/Palladium Print.xmp",
+      "sha256": "b550d4ffd98939d00352b34aea6e91fe073498e7fadba553df5e7debd0f8af64",
+      "bytes": 2540
+    },
+    {
+      "path": "Presets/Alternative-Process/Pinhole.xmp",
+      "sha256": "7a969a53794677208a5ed91778881f1f1bc79cf704787fe48087376592adddda",
+      "bytes": 2831
+    },
+    {
+      "path": "Presets/Alternative-Process/Platinum Print.xmp",
+      "sha256": "2712bfb9feebdbc881509cc1cb4349c3578fe97180f48a9c82420d6083827815",
+      "bytes": 2730
+    },
+    {
+      "path": "Presets/Alternative-Process/Redscale.xmp",
+      "sha256": "3e821add173a4fdd04d6c41ef9ec270a685df5ca1f0eb5778326798e3b05c257",
+      "bytes": 3105
+    },
+    {
+      "path": "Presets/Alternative-Process/Salt Print.xmp",
+      "sha256": "1e1ab5b1858ee78a3840b57e721322458fda6e58fc073f61105ec70b71bbe6e5",
+      "bytes": 2822
+    },
+    {
+      "path": "Presets/Alternative-Process/Solarization.xmp",
+      "sha256": "4fcfa748719e397f196570aaad13b96d431cdebed75ac54f60297593471a9bd8",
+      "bytes": 3405
+    },
+    {
+      "path": "Presets/Alternative-Process/Van Dyke Brown.xmp",
+      "sha256": "b5b5e5639fd0af72ec649ab263b8c86d8ff07f6b90da971b7074210056597833",
+      "bytes": 2539
+    },
+    {
+      "path": "Presets/Alternative-Process/Wet Plate Ambrotype.xmp",
+      "sha256": "62f2a775a55f598026e0f5d0c17558fc4249e7d7bebf3ada4439c5691f1aef4d",
+      "bytes": 2768
+    },
+    {
+      "path": "Presets/Alternative-Process/Wet Plate Tintype.xmp",
+      "sha256": "b2f7b67c754e06b0ad11f01baa93f19f45891308b622e88e15c579770e739798",
+      "bytes": 2613
+    },
+    {
+      "path": "Presets/Black-White/Adox Silvermax 21.xmp",
+      "sha256": "146a58b40362004e82070f1743d9fd388a2fa90857f0e2da9e0d7e36bd82cd82",
+      "bytes": 2710
+    },
+    {
+      "path": "Presets/Black-White/Agfa APX 100.xmp",
+      "sha256": "ee56aee22817231c07b4e51f617f3259dac853ceac61a235be56047dfd8f627e",
+      "bytes": 2678
+    },
+    {
+      "path": "Presets/Black-White/Agfa APX 25.xmp",
+      "sha256": "d2fe7fb6d5e38f1735ba9d7225270ef5a93acf47e637a80877b8078924c3e4dc",
+      "bytes": 2674
+    },
+    {
+      "path": "Presets/Black-White/Agfa APX 400.xmp",
+      "sha256": "b572d9d36f9ed84e93f2058786e05fb7b19a7a4ae409fbcbb33ae3dc6135d744",
+      "bytes": 2703
+    },
+    {
+      "path": "Presets/Black-White/Agfa Scala 200.xmp",
+      "sha256": "dc88fef7043e298ab1c7c2b4ef47ee7b285c414d383da10f6d65a0fb8519802c",
+      "bytes": 2682
+    },
+    {
+      "path": "Presets/Black-White/Bergger Pancro 400.xmp",
+      "sha256": "779e4ffbda3faa44ec455671ec4e43e30cc9f3b59445b432b3bf3e9506029fea",
+      "bytes": 2715
+    },
+    {
+      "path": "Presets/Black-White/Copper Tone.xmp",
+      "sha256": "9b65c7f0960b8a6bc0367fbbaca7b290d44e16c1d2dc60857e891fa3e310dc26",
+      "bytes": 2691
+    },
+    {
+      "path": "Presets/Black-White/Dramatic Monochrome.xmp",
+      "sha256": "3d761ae79ff3e6ad4181593c6ad1fbf90550077e8d5c930cbc3a139ed147149f",
+      "bytes": 2693
+    },
+    {
+      "path": "Presets/Black-White/Foma Fomapan 100.xmp",
+      "sha256": "89c23f177ba550d5cb1110543f43f6998ff5a3c3bf6fe0b6590c1f494b8673f1",
+      "bytes": 2712
+    },
+    {
+      "path": "Presets/Black-White/Foma Fomapan 200.xmp",
+      "sha256": "17b87ea445881a55d2939e36def1b5ac4c23d371b834ef3df828690883dc9062",
+      "bytes": 2711
+    },
+    {
+      "path": "Presets/Black-White/Foma Fomapan 400.xmp",
+      "sha256": "e06387f373b2c70a8e4efceb937e5bc363dbfc2db4f26d3936b4b1ffb5ffc5c7",
+      "bytes": 2712
+    },
+    {
+      "path": "Presets/Black-White/Fuji Neopan 1600.xmp",
+      "sha256": "af121dca7584a9949d76e15380963bc86941841a3ca1a1405fd82808f6c5c20b",
+      "bytes": 2682
+    },
+    {
+      "path": "Presets/Black-White/Fuji Neopan 400.xmp",
+      "sha256": "a7d6ca951c2046007c0bb035e0e092513ffce113013788424a5f8b1550e9025a",
+      "bytes": 2684
+    },
+    {
+      "path": "Presets/Black-White/Fujifilm Acros.xmp",
+      "sha256": "1c50d43c84fd102a347fafee1dfd56667555bad933e17292ef96bd1e1b524c52",
+      "bytes": 2678
+    },
+    {
+      "path": "Presets/Black-White/Gold Tone.xmp",
+      "sha256": "ab8141394887ee30bdaf76b54308b77929aa9a788491a0cb0828c34d08777085",
+      "bytes": 2686
+    },
+    {
+      "path": "Presets/Black-White/Ilford Delta 100.xmp",
+      "sha256": "cb9cf0a3400d78fb22a041ff1489d2d516f72ecb8a027d9c7c663fc8159c5b97",
+      "bytes": 2678
+    },
+    {
+      "path": "Presets/Black-White/Ilford Delta 3200 +2.xmp",
+      "sha256": "d28017c64f9fbe2e93dac1939b36453f83949ca402ac4b221c8444f2d9a92862",
+      "bytes": 2736
+    },
+    {
+      "path": "Presets/Black-White/Ilford Delta 3200 Microphen.xmp",
+      "sha256": "c0fee273fc195438e24b8905b21b359c8c730df6a246f3694d57ef63b4537ce4",
+      "bytes": 2754
+    },
+    {
+      "path": "Presets/Black-White/Ilford Delta 3200.xmp",
+      "sha256": "596a095e412e7b5723786618d60ec7c42a3fe9264d8e1a1ec00b6c8fb515825e",
+      "bytes": 2701
+    },
+    {
+      "path": "Presets/Black-White/Ilford Delta 400.xmp",
+      "sha256": "0682821d1fc45320ad507ee8cf5cd87727c6354272e74c650e0104d17835b677",
+      "bytes": 2686
+    },
+    {
+      "path": "Presets/Black-White/Ilford FP4 Plus 125.xmp",
+      "sha256": "6c355d02f08e643e5b5a232ad2318ab2b3dc337f98d27751856da52500037ec8",
+      "bytes": 2687
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus +1.xmp",
+      "sha256": "b81d81e2ba252f6ec09c4dab69f81311a3481c3e6c89786aef5d17253bf13c06",
+      "bytes": 2735
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus +2.xmp",
+      "sha256": "550bde03327286e2a115538fdc1ea499e4580a51e56303c9657a022bb478da91",
+      "bytes": 2736
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus -1.xmp",
+      "sha256": "abd3b08e964868f74bc9240db8326b302a1854a8345d80485e4632b4c390236a",
+      "bytes": 2734
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus DD-X.xmp",
+      "sha256": "11586243674b7a9b7db53665881360f19d3ce8f674b1d48afb266b481162da64",
+      "bytes": 2739
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus Expired.xmp",
+      "sha256": "15746059581a4610eb8dcb296bef9f2b1172fabff1ce98b26ef716e996ed9ec6",
+      "bytes": 2744
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus Stand Dev.xmp",
+      "sha256": "c99d1b941cc68e1f36eac889ce24b87f5571544edaeecff202341f0b04c7b2f7",
+      "bytes": 2750
+    },
+    {
+      "path": "Presets/Black-White/Ilford HP5 Plus.xmp",
+      "sha256": "7e091ed6479c757fcf3c59460f980a8db5e22b477e008b8f52b9f9bfe60ab247",
+      "bytes": 2696
+    },
+    {
+      "path": "Presets/Black-White/Ilford MG Warmtone.xmp",
+      "sha256": "4d79110cab617a8c252cae6fe3dd992b23325cc78a967582da5e98159472f1b0",
+      "bytes": 2702
+    },
+    {
+      "path": "Presets/Black-White/Ilford Ortho Plus 80.xmp",
+      "sha256": "13b3d3da1e26696d5a1946a608dece2b91855a32c371cf9e2ddaa7938532baf8",
+      "bytes": 2724
+    },
+    {
+      "path": "Presets/Black-White/Ilford Pan F Plus 50.xmp",
+      "sha256": "1ab48c45b317b7a55dd57a011d55681e4fa48587b97813b364bae4fd0d6d468f",
+      "bytes": 2685
+    },
+    {
+      "path": "Presets/Black-White/Ilford SFX 200.xmp",
+      "sha256": "94b11ac137eaf29e137e97d3a3563bbfeae3e9fb0e8be2868215606d64729b19",
+      "bytes": 2717
+    },
+    {
+      "path": "Presets/Black-White/Ilford XP2 Super.xmp",
+      "sha256": "16053a673f37d0a140817e0d440a6ec128de3856ef390686f8a00adbd1379322",
+      "bytes": 2672
+    },
+    {
+      "path": "Presets/Black-White/Kentmere Pan 400.xmp",
+      "sha256": "7e3bc9b62efa44cb8bd0b002790337fadca36d367f38fd3a4ebed401ca0bba8e",
+      "bytes": 2684
+    },
+    {
+      "path": "Presets/Black-White/Kodak Panatomic-X 32.xmp",
+      "sha256": "672ed546162733ef58fcc0e7527b189441b823c746b7c98c2d951ea9ff38c44c",
+      "bytes": 2719
+    },
+    {
+      "path": "Presets/Black-White/Kodak Plus-X 125.xmp",
+      "sha256": "9c558d65dab44d46930a156121dd056544510727682f1a3364eacb4301316c85",
+      "bytes": 2717
+    },
+    {
+      "path": "Presets/Black-White/Kodak Recording Film 2475.xmp",
+      "sha256": "95ffcbcea12cfd823f5b8a9bddfeb63c3f05ac74d8ae17e4a55e0d3607f164d4",
+      "bytes": 2730
+    },
+    {
+      "path": "Presets/Black-White/Kodak T-Max 100.xmp",
+      "sha256": "489567d6066eb3f5aa6591840f1b469d2490c0c68fd33971fc1ec0026ecaa4bc",
+      "bytes": 2683
+    },
+    {
+      "path": "Presets/Black-White/Kodak T-Max 3200 +2.xmp",
+      "sha256": "f619bb86f07dbfc5d8c8f24a6fba0d5721a1ef6b3b0ffcb4541ba3332576f923",
+      "bytes": 2748
+    },
+    {
+      "path": "Presets/Black-White/Kodak T-Max 3200.xmp",
+      "sha256": "aed1598fd431e2711f886d0dbc07576ea68e579863736c89f98bb95ff4a77a69",
+      "bytes": 2710
+    },
+    {
+      "path": "Presets/Black-White/Kodak T-Max 400.xmp",
+      "sha256": "4c52b755a59c4f431aa07d7da16bdf6132a005ad2a081859763d36c15735af0e",
+      "bytes": 2684
+    },
+    {
+      "path": "Presets/Black-White/Kodak Technical Pan.xmp",
+      "sha256": "9aac78f8af909f8394e24fa19cae31cb5da1fe85dac9a39b68df2d4556bd1df2",
+      "bytes": 2718
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 +1.xmp",
+      "sha256": "6881cef6ff9332f7e66a94e36ace938d4521f907307592a86339752c0ce69b07",
+      "bytes": 2719
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 +2.xmp",
+      "sha256": "7ac7406ad8cab5adeb2ddd8ebe22c6774272ece48056e05e973f91c73e398f0f",
+      "bytes": 2717
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 -1.xmp",
+      "sha256": "4085ce850ff602ec217b63aebfbb7119c5ea5b959a65b28fd84dc7976ddcfac4",
+      "bytes": 2717
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 120.xmp",
+      "sha256": "431f7fb93cf0f9d28640ed46cb3529bfc685f656181b60373425f80b1281f8ea",
+      "bytes": 2721
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 Expired.xmp",
+      "sha256": "abec5f514ee17d41e35ccec703b646b1c9b01b233e3bb750abdc0f4447d9dee8",
+      "bytes": 2729
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 HC-110.xmp",
+      "sha256": "110f5e2bf8288160a517552022623d46259762f7d5e3bf61048aacfc681000cf",
+      "bytes": 2727
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400 Rodinal.xmp",
+      "sha256": "1a71fcf47de6847cf5c18486a5e47b38fcf115b3470f5fe7917ae9761e7ec77f",
+      "bytes": 2729
+    },
+    {
+      "path": "Presets/Black-White/Kodak Tri-X 400.xmp",
+      "sha256": "9e13b53bb9ddf12215f777d9cd166961e7fab009c05e284383b2c579882ab6eb",
+      "bytes": 2681
+    },
+    {
+      "path": "Presets/Black-White/Kodak Verichrome Pan.xmp",
+      "sha256": "e6f9fe5ba65f8df9b64b9eddbc620b6135cb10f4595f7b9c40240da883ef312a",
+      "bytes": 2714
+    },
+    {
+      "path": "Presets/Black-White/M645 Medium Format.xmp",
+      "sha256": "74a3095de6f61d65e41be2f23c8d55e743c0a52701af53360fbb434b9b986a14",
+      "bytes": 2689
+    },
+    {
+      "path": "Presets/Black-White/Ricoh High-Contrast Monochrome.xmp",
+      "sha256": "ad2fcef9f06bf065f3420d29d73a666e20e39b370e8aa6c77d90bc38f5a6cb6c",
+      "bytes": 2717
+    },
+    {
+      "path": "Presets/Black-White/Rollei Retro 400S.xmp",
+      "sha256": "c3240687d815219d10e99bea34d14c5125b1c397dc3815eca47a254afd2bc9d7",
+      "bytes": 2714
+    },
+    {
+      "path": "Presets/Black-White/Rollei Retro 80S.xmp",
+      "sha256": "ef9b5c5a1b9f95082f1744eccc23cdb0f714046e6f2d03246312a084e889d5be",
+      "bytes": 2713
+    },
+    {
+      "path": "Presets/Black-White/Selenium Tone.xmp",
+      "sha256": "56ed5d82597caeac2ba33004532d4460e2f66d03b03f05c1b4fbe1576af37e90",
+      "bytes": 2696
+    },
+    {
+      "path": "Presets/Black-White/Sepia Tone.xmp",
+      "sha256": "e7f6613106da21ca177a299adaa98dd66459c5bc5cae41e85948ad51ab0fba8c",
+      "bytes": 2689
+    },
+    {
+      "path": "Presets/Black-White/Split Warm-Cool.xmp",
+      "sha256": "63b077e0c6675d2c9440a7ea83e093485df01df4aaa276c0ce63342c579ad00d",
+      "bytes": 2698
+    },
+    {
+      "path": "Presets/Color-Negative/Adox Color Implosion.xmp",
+      "sha256": "c977730fc6a9af6f900fa974b5d57191c987fe991f45d420078d1044092e0a78",
+      "bytes": 2903
+    },
+    {
+      "path": "Presets/Color-Negative/Agfa Optima 100.xmp",
+      "sha256": "dca4c5df9d5bcdc392f9d8fb75709ddc14d316434a6a17905b3e5b649a10e3e8",
+      "bytes": 2706
+    },
+    {
+      "path": "Presets/Color-Negative/Agfa Optima 200.xmp",
+      "sha256": "c62d83928ff5aa3b89cf2e66b2353bc21e660ea092db7599cc18b62d818512fa",
+      "bytes": 2733
+    },
+    {
+      "path": "Presets/Color-Negative/Agfa Ultra 100.xmp",
+      "sha256": "7dfbf2f61d4d9e0dea55318779d7372161f4fe7f8766e1e835eb39c97e3b013d",
+      "bytes": 3128
+    },
+    {
+      "path": "Presets/Color-Negative/Agfa Vista 100.xmp",
+      "sha256": "075d452b43db2e75b201ba01becbf0e997d0bb47f0ee3b7d3df61df9c2dd2c46",
+      "bytes": 2795
+    },
+    {
+      "path": "Presets/Color-Negative/Agfa Vista 200.xmp",
+      "sha256": "67dd2f4766d646573a824ee2d5a06cca97cde76beffecfa1c692289d06791312",
+      "bytes": 2776
+    },
+    {
+      "path": "Presets/Color-Negative/Agfa Vista 400.xmp",
+      "sha256": "efbf2dbc2d5119caa9880a6bc6245a97be2d09083cdedeece5589b2ba5fda543",
+      "bytes": 2800
+    },
+    {
+      "path": "Presets/Color-Negative/C-Print.xmp",
+      "sha256": "5aac995b619ccc8e574ca9ad3cf79296d5346acc71acfdc74f12b7497fc91035",
+      "bytes": 2766
+    },
+    {
+      "path": "Presets/Color-Negative/CineStill 400D.xmp",
+      "sha256": "1484a4d25f6be2f00380956fceeeb9bba55df5509c99789b5364787fca943d22",
+      "bytes": 3123
+    },
+    {
+      "path": "Presets/Color-Negative/CineStill-50D.xmp",
+      "sha256": "e6bfef8185b82f63e0215100d3d0c520abdf088daf8799a1b5d02e2accd1f9a7",
+      "bytes": 2621
+    },
+    {
+      "path": "Presets/Color-Negative/Ferrania Solaris FG 400.xmp",
+      "sha256": "f97cb412105956a3286554479442fb331848215f805a4d8a980582cefdd28e0c",
+      "bytes": 3188
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji 100 Industrial.xmp",
+      "sha256": "6f6ca851bc214a34194016e73c58d9dc1b80a9f75dfa223094bc115842eb854e",
+      "bytes": 2861
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Natura 1600.xmp",
+      "sha256": "9171e39a0642a48cfdc2aa6b951cfa4b088d8113c450ea542b1c37f5624a28e3",
+      "bytes": 2585
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji NPS 160 Pulled.xmp",
+      "sha256": "b6751b95118f9300c9c308923b8ae09ddd4ca8aee14d148c3cc90139712312e5",
+      "bytes": 2939
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Pro 160C.xmp",
+      "sha256": "0308af57ae14bf173e27e610401f2565d467bd2792fca9c6566b38b7367acd98",
+      "bytes": 2685
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Pro 160NS.xmp",
+      "sha256": "9bbe61b153be94b5cf12b2653beef4b43ea22cae80bda7ba0066608ba95775ea",
+      "bytes": 2548
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Pro 800Z.xmp",
+      "sha256": "e9d40d04a826c52fa10a124fc86bed0595292af0e8038d86caa316e96c8946cf",
+      "bytes": 2584
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Reala 100.xmp",
+      "sha256": "4d34eff26cad77ea5dbb0a5778cf1b05ca1c2f52b2b6627d3d31d3b81cb21d4a",
+      "bytes": 2508
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia 100.xmp",
+      "sha256": "dcbdffae4e259e79e568e3bef05efc79bea90df2de4221cc5c7991d82f0249d0",
+      "bytes": 2612
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia 1600.xmp",
+      "sha256": "52ccc97b71f6cc45ff3ac1cd50d2b1b98dabb8b05d5890f06340359e50fd32fc",
+      "bytes": 2572
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia 200.xmp",
+      "sha256": "71f434f3c4eb466ce85418bb5473c7295165b48a0a1813d5da1f23472e4bfd1b",
+      "bytes": 2615
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia 800.xmp",
+      "sha256": "859460f646514890843b7bbfedbc2f14067cab661ffcdf216a805d9726b74f03",
+      "bytes": 2591
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia HG 1600.xmp",
+      "sha256": "7ae4e65203f1c0d1b74f7a4664c72d591de30e48d3016da50e9f29402a300a23",
+      "bytes": 2897
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia X-TRA 400 +1.xmp",
+      "sha256": "b764a4da9c7f8293cda88d93f76ed65195a11d616216b27157756738ddb3977a",
+      "bytes": 2677
+    },
+    {
+      "path": "Presets/Color-Negative/Fuji Superia X-TRA 400.xmp",
+      "sha256": "e64abcaffc4cb28078780df7d9bb4089e510083b246f15f9852b8568558699fe",
+      "bytes": 2576
+    },
+    {
+      "path": "Presets/Color-Negative/Fujicolor C200.xmp",
+      "sha256": "a371ccffdffacbcd3c037a0f4c38dd0ae0a1c79457a193812453e221b21c0906",
+      "bytes": 3131
+    },
+    {
+      "path": "Presets/Color-Negative/Fujicolor NPH.xmp",
+      "sha256": "b513677d0c0b7382313f7b06f35bec96629e70a351c78ee5b13fd7f59660bfc3",
+      "bytes": 3187
+    },
+    {
+      "path": "Presets/Color-Negative/Fujicolor Superia Premium 400.xmp",
+      "sha256": "4ea2792baa5381ef123d7a5fffa89d0b4f841d470de6be397e96eb5acdd35d7e",
+      "bytes": 3225
+    },
+    {
+      "path": "Presets/Color-Negative/Fujifilm Classic Chrome.xmp",
+      "sha256": "390d825d48ea93bc8da1a98adfcdf47e0d8cc44f82e89a305cebc4fe1ab600ae",
+      "bytes": 3235
+    },
+    {
+      "path": "Presets/Color-Negative/Fujifilm Classic Negative.xmp",
+      "sha256": "7b893be585ec0cb40b5d5d9c9de7e3cf92620a1a4c1823aa98f67c24894d7da1",
+      "bytes": 2962
+    },
+    {
+      "path": "Presets/Color-Negative/Fujifilm Pro 400H.xmp",
+      "sha256": "1f7c98be64c02958409b1a509394b55111acb95f2c4ef2d5ccf471ba272b144b",
+      "bytes": 2650
+    },
+    {
+      "path": "Presets/Color-Negative/Fujifilm-Eterna.xmp",
+      "sha256": "92937ec6c71d56805c9e202dab5c3967e456e2dc30b0483964e0f0487c0cbc15",
+      "bytes": 2589
+    },
+    {
+      "path": "Presets/Color-Negative/Fujifilm-Nostalgic-Negative.xmp",
+      "sha256": "78c7afa1b26bf396d3a1138b9035dce50c2365195d7345097e30d564658ab2ce",
+      "bytes": 2642
+    },
+    {
+      "path": "Presets/Color-Negative/Kodacolor VR 200.xmp",
+      "sha256": "fa15df60ffde199825e76d56d583c0136f482edb62d944d594ba68b0685c597a",
+      "bytes": 3144
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak ColorPlus 200.xmp",
+      "sha256": "43379f08c080bdc49c5e6bfffb997997ff187795391198420ef47b7ad03d0196",
+      "bytes": 2672
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Ektar 100 +1.xmp",
+      "sha256": "88b8e4768cab02d32be93ce0dfa3c5c805a4718418d29f00b0e412aa932c51d9",
+      "bytes": 3192
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Ektar 100.xmp",
+      "sha256": "3974cd1edcc065152e9f298e46c02f331e0ec7fda2c95b5fe2846ca4f6a09909",
+      "bytes": 3152
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Farbwelt 200 Expired.xmp",
+      "sha256": "0f51e12959b92d7417d111f800519c3342adb487aa11423fa1b0e6108472fcb3",
+      "bytes": 3199
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200 +1.xmp",
+      "sha256": "7df63a571034c04ba26f8aad4971bbcdfdfc27cf1d689864e7048b930f68bf70",
+      "bytes": 3196
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200 +2.xmp",
+      "sha256": "a630052131bb0a0226f5500dfda161a18d643dc53241245723bcba9811be6031",
+      "bytes": 3199
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200 Expired 10yr.xmp",
+      "sha256": "0d083f60fbed7c21d4965a35385dc3838be0b83ecac688603d0f494c4b31eb41",
+      "bytes": 3262
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200 Expired 30yr.xmp",
+      "sha256": "a22b4a1048e204e26cf617567e73074516d93127fa2ae01418cadf153917d936",
+      "bytes": 3269
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200 Frontier.xmp",
+      "sha256": "b06ffce270761a067d047b06640c9b41f9c26aeac2b8b7bb3eebc29f7710718c",
+      "bytes": 3216
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200 Noritsu.xmp",
+      "sha256": "fd06b8e8532b46377eed7a3d06fcba77fc1df87aca7b30a1cf1cb07279a6b630",
+      "bytes": 3213
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Gold 200.xmp",
+      "sha256": "9440fac50d14ea6aafa26a57fa908e6ab74f23d67bda51a9e16e533220559cb3",
+      "bytes": 3175
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak High Definition Plus 200.xmp",
+      "sha256": "83fd0307bfed5bd8f7c14e192babdb9cc5d874ad118e9631675b04046e41d922",
+      "bytes": 3229
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Max 800.xmp",
+      "sha256": "cd3682fce32b9738e96c7562dd1e8accfa7687621d6349ebee96f7bd0d05a793",
+      "bytes": 3210
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 160.xmp",
+      "sha256": "fd43ef0f443bdd60ec0b425e0c4a48703c923430c818ad2f50b08a0554840ae1",
+      "bytes": 3064
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 160NC.xmp",
+      "sha256": "0043f4488cd034094cfb8ea529cdc6dba58b8a3b19192430b2cf35defa244152",
+      "bytes": 2772
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 160VC.xmp",
+      "sha256": "ba4ffa0e71654be9c219692a5b5bbe5f37257650c49b676ebcfa2ad44d51fdd6",
+      "bytes": 2915
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 +1.xmp",
+      "sha256": "07e6c6f19c77596643d0ebce4d7aa17223475c8462c8154802a2f53780f31550",
+      "bytes": 2843
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 +2.xmp",
+      "sha256": "7ef828aa9fecf83dc28eede35ae4e4b3a8c31cbaf0c57dd2306486de06f7abc5",
+      "bytes": 2844
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 -1.xmp",
+      "sha256": "f91594d46645c4d70c1fde25df9dc07dd92920225a6d22d057848883a83976e6",
+      "bytes": 2845
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 120.xmp",
+      "sha256": "a4dba4fac84aa2b81562125139eb2379c339db4fce5c459eda906c1bf23f7bbc",
+      "bytes": 2850
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 4x5.xmp",
+      "sha256": "178144983b1d593f53917997d67177fad1d1ce3f9e8999ec2c593ce83a0fdb5f",
+      "bytes": 2850
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 Expired.xmp",
+      "sha256": "1436ab2d5135f00b8f5754188b4b7502b6c1f6e1d97cbe5d0b3c01b85f0f43b4",
+      "bytes": 2860
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400 Noritsu.xmp",
+      "sha256": "6936156e32b9db426c897b920b4a0a0e63f58ca40c098010acc6a761f9f14c28",
+      "bytes": 2858
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400.xmp",
+      "sha256": "18fb898504fba91e9b74e79481508fc84d50a8b433e3c638a7d8e7937d9a3430",
+      "bytes": 2822
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400NC.xmp",
+      "sha256": "63c908aa2512d9d1200bf268b9b7fc6038181a88493ccb71067accb5340fe8e7",
+      "bytes": 2741
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400UC.xmp",
+      "sha256": "e55a95efbe80ac69406f4e41b2bc7ad99cc122f9d66f6438d730a6854f3459f9",
+      "bytes": 2768
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 400VC.xmp",
+      "sha256": "b5e4a660d03997991a187290fc8b177554ff1003539da9c699c719aa52cf4531",
+      "bytes": 2916
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 800 +1.xmp",
+      "sha256": "47c4ad3ab30657fb65732d97982eebb066d875c0b8785b0809a430d782182248",
+      "bytes": 3046
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 800 -1.xmp",
+      "sha256": "8628f641968bb3508f8bc6dcf167071b6ad6858b4c8ec67299be96862f5d2b54",
+      "bytes": 3046
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Portra 800.xmp",
+      "sha256": "597a17833f04f2bafaf0be6693d7e4a58060de17b05cddabf68760544490ecdf",
+      "bytes": 3024
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Pro Image 100.xmp",
+      "sha256": "7886ab83008d9b2ef6aa0b56a065265cc80f01b3a51e0f51394dd70f2df7c265",
+      "bytes": 3131
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Royal Gold 400.xmp",
+      "sha256": "749dd862fa45a585e5e6badc6c9e50d4bebde086849e545b9308d6152b0a0b6c",
+      "bytes": 3222
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Ultramax 400 +1.xmp",
+      "sha256": "d44c4d003404495cd11cd8896d3509afeb4cd4696c8e28752ff9b1fee014e0b3",
+      "bytes": 3329
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Ultramax 400 +2.xmp",
+      "sha256": "8c6c0762b19e4d35f027d5f6e7165fe37648f376c4ddf50a629929567a9ef4f5",
+      "bytes": 3333
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Ultramax 400.xmp",
+      "sha256": "1d550a282d919f01b4f889e9a6145ddbd3b8a9903716a00ca21993d16f428b2f",
+      "bytes": 3311
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vericolor III 160.xmp",
+      "sha256": "251235c9c175153c36b28e1867b508ab29e344b1a6884b8c766a0a5f22da794c",
+      "bytes": 2938
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vericolor VPS.xmp",
+      "sha256": "71ecb9dc0ac6ca36a1b74941337f7eb47411332796e9b0f74f534d6e3857a443",
+      "bytes": 2927
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vision3 250D ECN-2.xmp",
+      "sha256": "8fe2b684b540ae7270ae6aced9e4372ade8e72b2209b7df3a1a0b41534e9b59d",
+      "bytes": 2695
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vision3 250D.xmp",
+      "sha256": "d3e7e5306295f3ee4ab21ef1035de5cab3877d90e046dd4ea5fb99b8d57628f7",
+      "bytes": 2664
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vision3 500T ECN-2.xmp",
+      "sha256": "8b27f713c7842515b2d90901d6d5a221d576a173677947bb538ffd00d94557ff",
+      "bytes": 2695
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vision3 500T.xmp",
+      "sha256": "8e586fae30958818819d1305d3bd241b61db2d7fad2b28050544f52a14e1b791",
+      "bytes": 3278
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak Vision3 50D.xmp",
+      "sha256": "58c6b86fd16127c9d608e27eced473729bae845e1519e0c87d7b219134052c12",
+      "bytes": 3159
+    },
+    {
+      "path": "Presets/Color-Negative/Kodak-Ektachrome-320T.xmp",
+      "sha256": "830cf9bd985dfd95beaabc0c81cb8bcf4fd6a512a64ac9ef5407458408b98dc0",
+      "bytes": 2679
+    },
+    {
+      "path": "Presets/Color-Negative/Lomochrome Purple.xmp",
+      "sha256": "56e72dd576067ca80e83ba705c8c5a131f6b83f3a3503be280c41bb9ddb9ca57",
+      "bytes": 3332
+    },
+    {
+      "path": "Presets/Color-Negative/Lomography Color 100.xmp",
+      "sha256": "da8c298ba7a85d4d233f49929eeb9e7ba919b66733a08b615a49b31e7bde94bc",
+      "bytes": 3212
+    },
+    {
+      "path": "Presets/Color-Negative/ORWO NC 500.xmp",
+      "sha256": "99d24353dd6eb808e381261ee33dec532582a02b344b675a67fc273ff48c366f",
+      "bytes": 2924
+    },
+    {
+      "path": "Presets/Color-Negative/RA-4 Color Print.xmp",
+      "sha256": "3efe8f4e484fc6656dbfcbdedeb56e4e7830e7a13f5ce429f9d610494b6dd726",
+      "bytes": 2815
+    },
+    {
+      "path": "Presets/Color-Negative/Rollei Crossbird 200.xmp",
+      "sha256": "84204c92a014af78bf57141456595503c260882a6c924455f9b67fd154234f81",
+      "bytes": 2962
+    },
+    {
+      "path": "Presets/Color-Negative/SantaColor Aerocolor.xmp",
+      "sha256": "e0532fd3d9d4429c45cc4286d87182ff47dcec058abe514b9738d0f60055508d",
+      "bytes": 3169
+    },
+    {
+      "path": "Presets/Creative/1980s VHS Synthwave.xmp",
+      "sha256": "834e72a27e17de667faf881b468610962bc7577d1973fd87bc87142fdbc181f4",
+      "bytes": 3715
+    },
+    {
+      "path": "Presets/Creative/Arctic-Cinematic.xmp",
+      "sha256": "ba9debd175e5a4d00d30c9e537e292b9ba199e272fbe2a02672f5971fc2580fe",
+      "bytes": 2781
+    },
+    {
+      "path": "Presets/Creative/Autumn-Gold.xmp",
+      "sha256": "fff1eb676365433989fb18f123c1ff1ac79df6e1d01f7812d99988b00448cedc",
+      "bytes": 2905
+    },
+    {
+      "path": "Presets/Creative/Beige-Cream.xmp",
+      "sha256": "e2a2b40184bc2a3e6ebbd6253318637cb501ff0ae4ecafa39cab6d22c26f39b3",
+      "bytes": 2805
+    },
+    {
+      "path": "Presets/Creative/Bleach Bypass.xmp",
+      "sha256": "910755500c04be06b8395659846ed4241c45898c9373b381de78c81cb7f51cea",
+      "bytes": 3056
+    },
+    {
+      "path": "Presets/Creative/Canon Color Science.xmp",
+      "sha256": "cd3c992c9d2e0c0bf4d56645effe1af30936015eae04c21a1b9d34f14cc079c9",
+      "bytes": 3265
+    },
+    {
+      "path": "Presets/Creative/Cinematic Beach Teal & Orange.xmp",
+      "sha256": "5505ff62eb87a90005aecf74a5dee7cf806ab420bfb01bb24a33caaf1a48ccc8",
+      "bytes": 3508
+    },
+    {
+      "path": "Presets/Creative/Cinematic Dream - Tuned.xmp",
+      "sha256": "18d13a9b9ee6156eceaf4bbd28a84956a31adc6efe3cb695e206060b5082b9cc",
+      "bytes": 4030
+    },
+    {
+      "path": "Presets/Creative/Cinematic Dream Look.xmp",
+      "sha256": "9cbf28e923921edf5cbdd098e94e4d509706b256d354cafa52da797f87330cd1",
+      "bytes": 3011
+    },
+    {
+      "path": "Presets/Creative/Cinematic Teal and Orange.xmp",
+      "sha256": "577c4f5141e3489610b0633b4df680fc5551b11488dbf20315fbacafca0cd04c",
+      "bytes": 2954
+    },
+    {
+      "path": "Presets/Creative/Cinestill 800T.xmp",
+      "sha256": "89f1d8945ed65baa44c4ef9db5e36563e70257b8e54e2bdd2534937d52940899",
+      "bytes": 2809
+    },
+    {
+      "path": "Presets/Creative/Classic Cuban Negative.xmp",
+      "sha256": "f65082888496199e79ea3f3de7f322d6f1959236af05237d9ca2abb09ef2ab5b",
+      "bytes": 4121
+    },
+    {
+      "path": "Presets/Creative/Classic-Portrait-Glow.xmp",
+      "sha256": "fcffd66ee0bbbd12fa930b98a6b86ddf4ae8a401a0c6ab1d5450fcc0b73b591d",
+      "bytes": 2855
+    },
+    {
+      "path": "Presets/Creative/Cozy-Espresso.xmp",
+      "sha256": "a5205ceaefbff3a9b3425e8ec8dde98c4be8f11646c3d6d01c889ce1cc52cc5a",
+      "bytes": 2783
+    },
+    {
+      "path": "Presets/Creative/Cross-Processed Velvia.xmp",
+      "sha256": "2f86397a834bd70364ebbb619fa39f2cd60f9da2c98a371335b0f22157d5432d",
+      "bytes": 3413
+    },
+    {
+      "path": "Presets/Creative/Cyberpunk Neon City.xmp",
+      "sha256": "e5381e2b23a5876ff6b48392506e4df76b0674901ba56dccd6846db679a081fc",
+      "bytes": 3001
+    },
+    {
+      "path": "Presets/Creative/Deep-Forest-Green.xmp",
+      "sha256": "6893df2be45e01cd59f2d3d01f400a78e9bc6651703694051380e3ded89d2302",
+      "bytes": 2861
+    },
+    {
+      "path": "Presets/Creative/Deep-Moody-Shadow.xmp",
+      "sha256": "d0191de25b1dbcf76bfb3fc109ccfd300fb829a4513d0244142b38e3bb3e8439",
+      "bytes": 2766
+    },
+    {
+      "path": "Presets/Creative/Disposable Camera Flash.xmp",
+      "sha256": "590f5c2f9e9bd13069148dce6b71e14fd433bce23f71f4a98fedeb72c8cdc8cb",
+      "bytes": 3294
+    },
+    {
+      "path": "Presets/Creative/Eterna-Summer.xmp",
+      "sha256": "ae2030ff6b2255aac10ab1ca6f98670cb8cf5c4b3b73947c03d5d9b03f1c31d3",
+      "bytes": 2938
+    },
+    {
+      "path": "Presets/Creative/Faded Summer Expired.xmp",
+      "sha256": "334f2a4b748dd69b1a77a227ad91b9a8edce2e0bab09b7d28370d3a880522966",
+      "bytes": 3580
+    },
+    {
+      "path": "Presets/Creative/Faux Infrared.xmp",
+      "sha256": "0a8fde0d63bd687f344b9968aebdab5b4919da96fb807ea3407e1b74dec9363b",
+      "bytes": 3052
+    },
+    {
+      "path": "Presets/Creative/Fuji Soft Ember (Classic Neg).xmp",
+      "sha256": "ca0602e20c1fb1334a36b0680a2b11c4a04b3bb674a82b1093c21e711fe3790f",
+      "bytes": 4207
+    },
+    {
+      "path": "Presets/Creative/Fujifilm-Eterna-Bleach-Bypass.xmp",
+      "sha256": "e10dc3780188f4ef223aaa368bea47a0f21ba3834a4946132144b94fbba459b8",
+      "bytes": 3131
+    },
+    {
+      "path": "Presets/Creative/Golden-Glow.xmp",
+      "sha256": "5daa2d3d1b7bc3c24b7733f1e800ecbe5305640357d15e546563de79489c2801",
+      "bytes": 2893
+    },
+    {
+      "path": "Presets/Creative/High-Key Candy Architecture.xmp",
+      "sha256": "2e76934aae89fd2a0e2332bc061df17cb0de783b859f08f24b03308a929d7498",
+      "bytes": 4223
+    },
+    {
+      "path": "Presets/Creative/Kodachrome-Blue.xmp",
+      "sha256": "9815e9a97386095c05de5c9e09bb2964f93a419f6d668ead6bf8610103c4a2b9",
+      "bytes": 3011
+    },
+    {
+      "path": "Presets/Creative/Kodak Aerochrome.xmp",
+      "sha256": "4ddfda32f2fead82de342b4424c2d480b0a76935aa0acfb648ffdf843e75d5d5",
+      "bytes": 3430
+    },
+    {
+      "path": "Presets/Creative/Kodak-2383-Print-Film.xmp",
+      "sha256": "301d744e50ff79d79a676587afd51d25bf4bf9266db937d978f7f131cca0cb68",
+      "bytes": 3084
+    },
+    {
+      "path": "Presets/Creative/Light and Airy Fine Art.xmp",
+      "sha256": "d08e7043499f60f6e7595d3da0526f448ad4bd8fc72d815e2f066f0a5bf83815",
+      "bytes": 2918
+    },
+    {
+      "path": "Presets/Creative/Lomography Cross-Processed.xmp",
+      "sha256": "6efc7b2a66cd7dcb4328e1f2c9cebd27e5f8652a03837142adef6a27fea89daf",
+      "bytes": 3656
+    },
+    {
+      "path": "Presets/Creative/Lomography-Metropolis.xmp",
+      "sha256": "f3f8fa0a11a32483ca934397128ba40493f6220682f0c30cb93fe38e5b14f595",
+      "bytes": 2890
+    },
+    {
+      "path": "Presets/Creative/Matte Fade.xmp",
+      "sha256": "0a90cd3ebcaf7344de68a260ed67c1670df651cc17b18aaf46fb33f8b82b86b3",
+      "bytes": 2865
+    },
+    {
+      "path": "Presets/Creative/McCurry-Kodachrome.xmp",
+      "sha256": "17f07c25ebf68321c254e408addc07b9a5940ca0eee8555c3e4d9104688411b7",
+      "bytes": 2908
+    },
+    {
+      "path": "Presets/Creative/Medina Teal and Orange - Tuned.xmp",
+      "sha256": "295e5fe7734abcf8ac89c93bde83a9facc16386449eddb910c6f6f376b9895c4",
+      "bytes": 3970
+    },
+    {
+      "path": "Presets/Creative/Midnight-City.xmp",
+      "sha256": "3ba8b2f0ad21d7e5a417d09135a742d34db88badacd28f69103d590dd14b9f5f",
+      "bytes": 2773
+    },
+    {
+      "path": "Presets/Creative/Moody Cinematic Film - Creator Tuned.xmp",
+      "sha256": "eb5a5b99019758974838b8c44a7f199d9ea307311868fd9a7f88b024d430fb5a",
+      "bytes": 4213
+    },
+    {
+      "path": "Presets/Creative/Moody PNW.xmp",
+      "sha256": "591fe692e128a76ac9b5735ee2b0cff4a07cb9b4741bacfd1328caa682ac75b5",
+      "bytes": 2969
+    },
+    {
+      "path": "Presets/Creative/Pastel Anime Aethereal.xmp",
+      "sha256": "a5e6e6dffa0275a3a6b8fdb62a245d41d9b4e9e0c98996ed94c6d2fc10a8e6ee",
+      "bytes": 3073
+    },
+    {
+      "path": "Presets/Creative/Pastel Summer Bronze.xmp",
+      "sha256": "4db52082a325b29e2fe0b6527ddd2de710336062ddb05d884f783146348d1332",
+      "bytes": 4178
+    },
+    {
+      "path": "Presets/Creative/Polaroid SX-70.xmp",
+      "sha256": "2a93275c937e872aded8e6384b4f6eb5a02dafe45a2bb680f4583271cf987bc4",
+      "bytes": 3508
+    },
+    {
+      "path": "Presets/Creative/Portugal Nostalgic (Fuji Sim).xmp",
+      "sha256": "aba94cc7f6e6edc41b31f1c1d34084926e8870f8b0a00adeb7b060506f438e9b",
+      "bytes": 4154
+    },
+    {
+      "path": "Presets/Creative/Pushed-CineStill-800T.xmp",
+      "sha256": "70e19378e6f3b381b7fbaf2085b4a83697bb1cf9a8feee5dad0f7a79a6466c94",
+      "bytes": 2918
+    },
+    {
+      "path": "Presets/Creative/Ricoh Superior 100 (Negative Film).xmp",
+      "sha256": "4bdc5ff5ffcd8338c6b2f297b08a7236b4facd5b769ee520d5b75ae317d08f37",
+      "bytes": 3935
+    },
+    {
+      "path": "Presets/Creative/Soft-Dreamy-Pastel.xmp",
+      "sha256": "a8141406eace172aff6301b795db02714b33363760ede61a1bf68ca0804a5fd0",
+      "bytes": 2780
+    },
+    {
+      "path": "Presets/Creative/Stage-Lights.xmp",
+      "sha256": "e8f919b9b99d97d1f060bbe8973592b9ca7304ddd0fc293d89d3779b1637b33e",
+      "bytes": 2820
+    },
+    {
+      "path": "Presets/Creative/Super 8 Home Movie.xmp",
+      "sha256": "f7ed8a6d9d4396c3f28a2b7ac188d76203fcc69b152ced997c44486831c35cb1",
+      "bytes": 3546
+    },
+    {
+      "path": "Presets/Creative/Urban-Street.xmp",
+      "sha256": "82301ab32cededbff86d11136434ff3150f745c514a08ff739335bc21fc4b091",
+      "bytes": 2753
+    },
+    {
+      "path": "Presets/Creative/Vibrant-Color-Pop.xmp",
+      "sha256": "a0a96932128be3e4031bd3839b5d64992f5dbd5193d051b04167f7a5065518d9",
+      "bytes": 2872
+    },
+    {
+      "path": "Presets/Creative/Wes Anderson Pastel.xmp",
+      "sha256": "e02ce8e31dfe7e6e484cc9ff977b92f98f56bb06aaeeee431475fec3ad80a8aa",
+      "bytes": 3515
+    },
+    {
+      "path": "Presets/Creative/Wong Kar-Wai 80s Hong Kong.xmp",
+      "sha256": "7b47e7284807bf19d8effd327d93a9398036d8b413d343512e04b7b32adc7b40",
+      "bytes": 3645
+    },
+    {
+      "path": "Presets/Creative/Y2K Flash Digicam.xmp",
+      "sha256": "66b5fa03624c154edd985aa1aa58fda50248c4ea2285956ba0e0a8a481529b10",
+      "bytes": 3433
+    },
+    {
+      "path": "Presets/Decade/Civil War Era.xmp",
+      "sha256": "17db38e6d927194e3c82e5ae52568562aab9e789a78b506dd99ee3c0b43fc1e5",
+      "bytes": 2850
+    },
+    {
+      "path": "Presets/Decade/Cross-Processed.xmp",
+      "sha256": "939f8771128384450c01451d74cc7038a5c14884de1837559c43eefc90beee34",
+      "bytes": 2629
+    },
+    {
+      "path": "Presets/Decade/Diner Americana.xmp",
+      "sha256": "8b14e3358d8c29ebd6bc4cf17f052433e7d40f19624bc62aa91383fdf03c60f3",
+      "bytes": 2553
+    },
+    {
+      "path": "Presets/Decade/Disco Warm.xmp",
+      "sha256": "921d9a5cf6df49b86f6917aea51fb4b5ad802d4a990937d9f50abda7641aa9f7",
+      "bytes": 2631
+    },
+    {
+      "path": "Presets/Decade/Dust Bowl Documentary.xmp",
+      "sha256": "ed6f8508263fb120219cc5cf8b851ae6d5e0e0ba35ad445c2431bd620372401b",
+      "bytes": 2702
+    },
+    {
+      "path": "Presets/Decade/Earth Tones.xmp",
+      "sha256": "01fb0932e92d6614456ed95ec5041f46723a83380974fcf39686f31d2f358470",
+      "bytes": 2645
+    },
+    {
+      "path": "Presets/Decade/Edwardian Pictorialist.xmp",
+      "sha256": "1c4b7453aca3305b47a34dfdb5754492ac41118f098dc05af812261d7e1e5322",
+      "bytes": 2680
+    },
+    {
+      "path": "Presets/Decade/Gatsby Art Deco.xmp",
+      "sha256": "e72d023fd700d69d13efccaa4d2eb69a8aac5d339b92ea1fbbb8ebe9c04fe34a",
+      "bytes": 2642
+    },
+    {
+      "path": "Presets/Decade/Grunge.xmp",
+      "sha256": "7066721ca62344e6ff421ed3db2c17f373b9e4b3ddcfdef2ca9c9642ad6e4031",
+      "bytes": 2636
+    },
+    {
+      "path": "Presets/Decade/Hip Hop Golden Era.xmp",
+      "sha256": "61055d379084c24ff88eb15dd191f591cbc9e784336a16c42d098e744846f656",
+      "bytes": 2649
+    },
+    {
+      "path": "Presets/Decade/Hollywood Glamour.xmp",
+      "sha256": "89450a006cd2d1cc5b5102e5f73c0bafdf381c1e65d2175225c7fc808cedf50a",
+      "bytes": 2618
+    },
+    {
+      "path": "Presets/Decade/Indie Sleaze.xmp",
+      "sha256": "7a99d32205555ce43099d4bef66fdc60a0ec9cac432086f1b71533f900a1d35a",
+      "bytes": 2672
+    },
+    {
+      "path": "Presets/Decade/Kodachrome Mid-Century.xmp",
+      "sha256": "83229c015f982c61b8a76a071ec0139f17e75031c7f78b889745007a6999f959",
+      "bytes": 2726
+    },
+    {
+      "path": "Presets/Decade/McBling Heyday.xmp",
+      "sha256": "7ae0419d54669fea04fc8715e6df3c140195374ecdf3acfd5f1d8291db3f8912",
+      "bytes": 2636
+    },
+    {
+      "path": "Presets/Decade/Miami Vice.xmp",
+      "sha256": "ff4dfee1f3ccbdb82a548924822dde541ae54a355e77010aaefa7d2297bafe84",
+      "bytes": 2573
+    },
+    {
+      "path": "Presets/Decade/Mod London.xmp",
+      "sha256": "fb859e138c7e9c9521e27be02083e1316a9f3a4e60d397a99ec70129637d74a6",
+      "bytes": 2620
+    },
+    {
+      "path": "Presets/Decade/Neon Synthwave.xmp",
+      "sha256": "2d32b8362c772ec84ae1d56dc1fe9705ae619d29cc707528fdc82365d46fb67e",
+      "bytes": 2561
+    },
+    {
+      "path": "Presets/Decade/New Wave.xmp",
+      "sha256": "a9249e405f6feca72b181d72f55013b2c10f0b7993612cd8caf2363c63d0ae34",
+      "bytes": 2588
+    },
+    {
+      "path": "Presets/Decade/Post-War Optimism.xmp",
+      "sha256": "f2ee35edacf2146fdc9f9b7f0561ec5b3ccfae583ea92b6a83450f2411eb045a",
+      "bytes": 2726
+    },
+    {
+      "path": "Presets/Decade/Prohibition Sepia.xmp",
+      "sha256": "c10f80c5991576f968ec6da90a7d17ca12e4ef4a5e5becd784079373a3ed68fb",
+      "bytes": 2853
+    },
+    {
+      "path": "Presets/Decade/Punk Rock.xmp",
+      "sha256": "c402f03ff134b068942c9b3bd524fffb7cd318cd4e9be2621b411072633df934",
+      "bytes": 2660
+    },
+    {
+      "path": "Presets/Decade/Summer of Love.xmp",
+      "sha256": "12d637068d233391277a4b120e236c837d96880ac5d5847a566479afb77d7da4",
+      "bytes": 2750
+    },
+    {
+      "path": "Presets/Decade/Victorian Daguerreotype.xmp",
+      "sha256": "14b8e54c38b994f656e09c7be2ca95cb368f02c61fd63c690a447b5377b6e7f7",
+      "bytes": 2908
+    },
+    {
+      "path": "Presets/Decade/WWII Newsreel.xmp",
+      "sha256": "c8d7500cc683a6f4125acf7d8465ed51a7843e402611abc8e77624c78973381f",
+      "bytes": 2816
+    },
+    {
+      "path": "Presets/Decade/Y2K Digicam.xmp",
+      "sha256": "39ce5b5a79afba98e4999cec01c0b4404ed37c58727e4fdf820b40032069b40f",
+      "bytes": 2751
+    },
+    {
+      "path": "Presets/Genre/Bright & Airy Wedding.xmp",
+      "sha256": "368423818c543dc207cf41fd65c75d4a50a374a3b6a206f6ee7976d7263563de",
+      "bytes": 2654
+    },
+    {
+      "path": "Presets/Genre/Bright Neutral Interior.xmp",
+      "sha256": "cd443bb9af6bd5af66844814f6793830a1c2e44e2a235398030c900e1ef1310f",
+      "bytes": 2527
+    },
+    {
+      "path": "Presets/Genre/Classic Timeless Wedding.xmp",
+      "sha256": "c0fac340e0d21d5e30dab67cbae1849303592e53f694844fc618099c900fffdf",
+      "bytes": 2557
+    },
+    {
+      "path": "Presets/Genre/Clean Baby Portrait.xmp",
+      "sha256": "e72e1adf62d5384ec71f82d4580b67e502d6bdd2eac50889677da9228280d0ad",
+      "bytes": 2549
+    },
+    {
+      "path": "Presets/Genre/Clean Bright Food.xmp",
+      "sha256": "b9e8f6103d1ceebb087827d376913f4426f343d74959457edd2ffe5335b486b0",
+      "bytes": 2532
+    },
+    {
+      "path": "Presets/Genre/Color Decisive Moment.xmp",
+      "sha256": "8d808ad12ab6f0581af3001dcde996a1e1cd064eee0ef8bff1e9631207515fed",
+      "bytes": 2574
+    },
+    {
+      "path": "Presets/Genre/Color Recovery.xmp",
+      "sha256": "9eb561a7223499b4d76b69d5d95e5431091f5be91fcea500a3bd538b0d39813d",
+      "bytes": 2723
+    },
+    {
+      "path": "Presets/Genre/Cool Modern Interior.xmp",
+      "sha256": "f2b87154cfa3e8b5a3727ea4adc9d8b0fb1e3002ed238171d05389f4969fbc8c",
+      "bytes": 2576
+    },
+    {
+      "path": "Presets/Genre/Court Action Indoor.xmp",
+      "sha256": "9b3f453ccbd83ecd5cc7eae4d938de47338f7dcf20d34774b2ff1fae386c7a97",
+      "bytes": 2558
+    },
+    {
+      "path": "Presets/Genre/Dark Moody Culinary.xmp",
+      "sha256": "5887ea61f34cfb0de87e954b1ae54bc8e599d91bb8010840f9d72e1ba6a7e120",
+      "bytes": 2735
+    },
+    {
+      "path": "Presets/Genre/Detail Pop.xmp",
+      "sha256": "539154a09d425580ba0a1d5fa4c2039799f11eedc0118c62506d5a6bb996eee5",
+      "bytes": 2628
+    },
+    {
+      "path": "Presets/Genre/Dreamy Maternity.xmp",
+      "sha256": "e3b7b29c4e604b84c499f5528b826a7da35658d66d6845c4a4d681efd1a3c24d",
+      "bytes": 2583
+    },
+    {
+      "path": "Presets/Genre/Epic Landscape.xmp",
+      "sha256": "c5b676328a7150bebd9997473a9f2bd5d6b9f052bb1f0200c50727b603ebe58e",
+      "bytes": 2616
+    },
+    {
+      "path": "Presets/Genre/Eye Enhance.xmp",
+      "sha256": "fdd2d12c1bb46ac667c440773e9bfc49ab0a805f769de18bcdfa5a45c6c4ecd4",
+      "bytes": 2574
+    },
+    {
+      "path": "Presets/Genre/Golden Grid Architecture.xmp",
+      "sha256": "4689b95a66b2b41f10942515fdd456c54f7d7bdc33686fba4c68dcce29b8cae2",
+      "bytes": 3510
+    },
+    {
+      "path": "Presets/Genre/Grass Natural Exterior.xmp",
+      "sha256": "d09324583f4191073d6627e922dc56fff8ace633eefd73aced4a029e61634f72",
+      "bytes": 2565
+    },
+    {
+      "path": "Presets/Genre/Haze Removal.xmp",
+      "sha256": "030f6cec211262b1b5a4d07088074daf53b51105b9f01880fa036b3df00062cc",
+      "bytes": 2546
+    },
+    {
+      "path": "Presets/Genre/High Contrast Editorial.xmp",
+      "sha256": "9242fb93ce0a5774054a22da3059dfdcd456681b86056c70365356e2d66e7860",
+      "bytes": 2711
+    },
+    {
+      "path": "Presets/Genre/Lifestyle Product.xmp",
+      "sha256": "5187217016853ad0fca07add57850df780974f41a4c48fccfb6ca12c02d5d37d",
+      "bytes": 2568
+    },
+    {
+      "path": "Presets/Genre/Low Light Performance.xmp",
+      "sha256": "55c2d824aef21831c585d1429e90a5e4ecb7045f02e04ff1e520ea558d4d4851",
+      "bytes": 2575
+    },
+    {
+      "path": "Presets/Genre/Milky Way Core.xmp",
+      "sha256": "6795498b080811240f2efe5e9b83b1ac4912e3a0e403639b55831b52fce7cf57",
+      "bytes": 2625
+    },
+    {
+      "path": "Presets/Genre/Moody Editorial Wedding.xmp",
+      "sha256": "0b5e929c4b24b39725d3144baff19822f2a44fdc27643a89c9128f9fb8a88d43",
+      "bytes": 2725
+    },
+    {
+      "path": "Presets/Genre/Muted Avant-Garde.xmp",
+      "sha256": "6733d8ca0bca2bdcb319c44b044b4f9a6925a8982300ad47ecf9f382a9aa520d",
+      "bytes": 2613
+    },
+    {
+      "path": "Presets/Genre/Night Sky Landscape.xmp",
+      "sha256": "3ec673fe6f1d0381d0196ea8db037638fbff3b0d7d043e77b2b3cf2878ac6607",
+      "bytes": 2595
+    },
+    {
+      "path": "Presets/Genre/Sky Pop Exterior.xmp",
+      "sha256": "0441044d5ec5ffa3fd62f4fd2d710c0f2b50ef24d553d902cfb5bb6760787883",
+      "bytes": 2565
+    },
+    {
+      "path": "Presets/Genre/Soft Milky Newborn.xmp",
+      "sha256": "04f67642ef6239b37b50404bc53b2d361aad73c35b9dbdda83f65293411cfb26",
+      "bytes": 2673
+    },
+    {
+      "path": "Presets/Genre/Stage Lighting.xmp",
+      "sha256": "0a5ea1bd82027eebb50598e5c06622c402ca76b9f1c84742e8154e3880b09ccd",
+      "bytes": 2554
+    },
+    {
+      "path": "Presets/Genre/Star Trails.xmp",
+      "sha256": "bff2d3f5ad7b4463403ef8fc3760d4fc0bc79305880614d1ddd9210a7b968707",
+      "bytes": 2579
+    },
+    {
+      "path": "Presets/Genre/Vibrant Field Action.xmp",
+      "sha256": "f0021ccf09d68936e0aa58ace8d453da2e8c3ca2a7cce7a74111ac0155b8fb33",
+      "bytes": 2611
+    },
+    {
+      "path": "Presets/Genre/Warm Appetizing Food.xmp",
+      "sha256": "9ac7437815715ea733ec46af89ae43b0dd040e1112d9e348c751aad89a4dcc1a",
+      "bytes": 2617
+    },
+    {
+      "path": "Presets/Genre/Warm Home Interior.xmp",
+      "sha256": "ff4ac556d1ab54a910300c136e0d04e5cd1a4b30a70815b6d1f3a5100db41cb9",
+      "bytes": 2580
+    },
+    {
+      "path": "Presets/Genre/White BG E-Commerce.xmp",
+      "sha256": "6d045123cd05d660ff0eee88108f38157b1fc791573a3da793305f1caaba6c3b",
+      "bytes": 2501
+    },
+    {
+      "path": "Presets/Genre/Zone Focus B&W.xmp",
+      "sha256": "0ca3d1ec82474601063a8bc8a6ff5b572f139cb56e702671741a9c8365498f45",
+      "bytes": 2731
+    },
+    {
+      "path": "Presets/Geographic/Bali Tropical.xmp",
+      "sha256": "f9e49f67cd75ebe92edc09e1b0d3c3b3f83c49c4d83f342bfc238a5be559170f",
+      "bytes": 2904
+    },
+    {
+      "path": "Presets/Geographic/Bangkok Street.xmp",
+      "sha256": "f52cd66d6153c5318d5608dca2a9d77d403e9903bca4d0ed7fd1dd321b462957",
+      "bytes": 2881
+    },
+    {
+      "path": "Presets/Geographic/Brazilian Amazon.xmp",
+      "sha256": "7d277a983b507ba11cf11ae5d9a41d7c889495e5614690fbc4c3cac55f4a83f6",
+      "bytes": 2875
+    },
+    {
+      "path": "Presets/Geographic/Byron Bay Surf.xmp",
+      "sha256": "4e52180008c74b03b52bf70a679522572d5769e073f606a283b0b6d6a2e90dce",
+      "bytes": 2838
+    },
+    {
+      "path": "Presets/Geographic/Cape Town Coast.xmp",
+      "sha256": "e15e78c57b8607f68d57f9eebde5c3543af370e21431f97674ebb3554efcc6db",
+      "bytes": 2835
+    },
+    {
+      "path": "Presets/Geographic/CCCP Nostalgia.xmp",
+      "sha256": "2246738920b51416bdbe53f5337b9f8d566743ea3f293bc702f770c7a9d8cbc6",
+      "bytes": 2899
+    },
+    {
+      "path": "Presets/Geographic/Desert Luxury.xmp",
+      "sha256": "0f6e662550b0aacb970d3bbcc30536e72247c0fa4e829ac2769c799af59f926e",
+      "bytes": 2944
+    },
+    {
+      "path": "Presets/Geographic/Dubai Modern.xmp",
+      "sha256": "9dd771346e8dc5d172e15217a2b312194be20c8ee94d6dcdc67f44d35719482f",
+      "bytes": 2820
+    },
+    {
+      "path": "Presets/Geographic/English Garden.xmp",
+      "sha256": "9e6a20dfc2f1d8827fcb1e1a1210a51183ab82111c9cb616f43c243822521bc2",
+      "bytes": 2873
+    },
+    {
+      "path": "Presets/Geographic/Fjord Moody.xmp",
+      "sha256": "f6149550ea0b22041db4b4819c6a0c264ca80b46fe70f65e644c5f9d4a133df4",
+      "bytes": 2976
+    },
+    {
+      "path": "Presets/Geographic/Greek Islands White+Blue.xmp",
+      "sha256": "e8bddac1f2b0a2e401d898357b8af1e30718c6f5cc33f3d5ec547034fd2ab1a0",
+      "bytes": 2893
+    },
+    {
+      "path": "Presets/Geographic/Holi Vibrant.xmp",
+      "sha256": "93b8d6654f80557ad380411c17cbc2b235615b53cb670879d7210b77c2e14ebf",
+      "bytes": 2903
+    },
+    {
+      "path": "Presets/Geographic/Italian Riviera.xmp",
+      "sha256": "00e7346c0e0093062a8b805a14c61408efb863d1a287b5870ca1b289ef998b89",
+      "bytes": 2999
+    },
+    {
+      "path": "Presets/Geographic/K-Drama Cinematic.xmp",
+      "sha256": "27aa1668dd4ccdcad206068661adddc2f2e40a06383b5e30be1e7efb7d144ff2",
+      "bytes": 2906
+    },
+    {
+      "path": "Presets/Geographic/K-Pop Vibrant.xmp",
+      "sha256": "dc7331582239926323d0aa8a80e79b38c8d139a34ace3daf9913955ec6ba5439",
+      "bytes": 2896
+    },
+    {
+      "path": "Presets/Geographic/Kyoto Temple.xmp",
+      "sha256": "e264ac77bd5a0818d67ed65e670dcc17d38148988a4796748a104007861fddf4",
+      "bytes": 2937
+    },
+    {
+      "path": "Presets/Geographic/London Grey Overcast.xmp",
+      "sha256": "8ca996c8c42cbc4799575a2de0ed96472ffcdf9af96521f942717ed5b4a5accf",
+      "bytes": 2856
+    },
+    {
+      "path": "Presets/Geographic/LOTR Epic.xmp",
+      "sha256": "f23fafde81d75d6d70a3ffa8eff9f2d0d6117a6999027789894b26fde80797c9",
+      "bytes": 2922
+    },
+    {
+      "path": "Presets/Geographic/Marrakech Souk.xmp",
+      "sha256": "22c969c42f6567688920faac84bc4b9da86d489ec36b55c0766df46423dcfda7",
+      "bytes": 2985
+    },
+    {
+      "path": "Presets/Geographic/Mexican Pueblo.xmp",
+      "sha256": "3e91cacb409d80080fde92c5ab009a632aa3391af2063023d5a1df4598c5b4b4",
+      "bytes": 2917
+    },
+    {
+      "path": "Presets/Geographic/Nordic Minimal.xmp",
+      "sha256": "36701588929f8d09503f3879363022add5e5dee6fae7f1497323ba8c5ff5c60e",
+      "bytes": 2871
+    },
+    {
+      "path": "Presets/Geographic/Outback Red Earth.xmp",
+      "sha256": "21aa7bf6578beabf348d225c45cfc8c8ac2d69e977773c6a40a913c136f45556",
+      "bytes": 2912
+    },
+    {
+      "path": "Presets/Geographic/Parisian Morning.xmp",
+      "sha256": "1074946f8835e02cd2fe87167ebffeda80308e773bfae93bc5d0b2b787de56fd",
+      "bytes": 2822
+    },
+    {
+      "path": "Presets/Geographic/Rajasthan Golden.xmp",
+      "sha256": "67fa743d0bb934e1606f045e743049b0b0bf4f42cef1b4d749e2299a2535194f",
+      "bytes": 2969
+    },
+    {
+      "path": "Presets/Geographic/Sahara Desert.xmp",
+      "sha256": "cf59204df6f6a00ecf0276555043ac39d4cb3ae64cd3b53455e2e9b21b35df98",
+      "bytes": 2972
+    },
+    {
+      "path": "Presets/Geographic/Sakura Season.xmp",
+      "sha256": "80058ae3b709110e7c4c5a5dc382c3d36d53ea8e0ae2d763707f962054594f80",
+      "bytes": 2828
+    },
+    {
+      "path": "Presets/Geographic/Savanna Golden.xmp",
+      "sha256": "3d48cc57987eb209206af8af6d143efe9dc42c3b536e1e324883330744470257",
+      "bytes": 2911
+    },
+    {
+      "path": "Presets/Geographic/South Island Fjords.xmp",
+      "sha256": "b711093991c52fe2463bb63ddacabdd0d3bcdcc26e92d163d14c156749b9023b",
+      "bytes": 2918
+    },
+    {
+      "path": "Presets/Geographic/Spanish Costa.xmp",
+      "sha256": "a34eae395a48c3e24178b176bb63d503c8a2604efbdc49ea5153c03f0e399200",
+      "bytes": 2929
+    },
+    {
+      "path": "Presets/Geographic/Tokyo Neon Night.xmp",
+      "sha256": "fb09fca2ffe6ebaf2fba738a843c9cc6238913b1748709c902ae0247d565ad83",
+      "bytes": 3026
+    },
+    {
+      "path": "Presets/Geographic/Vietnam Rice Terraces.xmp",
+      "sha256": "a1033ea031eeac241e54160adcebbf7d6a579142b0b66c0ed32c3959071108e9",
+      "bytes": 2833
+    },
+    {
+      "path": "Presets/Geographic/Wabi-Sabi Zen.xmp",
+      "sha256": "cc39c96a0061ea9de00e27e8e7f49a3f52b4f71e39aa5138d510cf1b69bf20ee",
+      "bytes": 2811
+    },
+    {
+      "path": "Presets/Mobile/Bright Selfie.xmp",
+      "sha256": "7a1619f6395af637cf2f231091f48e44060a37cf36bb00e68bbecf80d9837b6b",
+      "bytes": 2794
+    },
+    {
+      "path": "Presets/Mobile/Clarendon.xmp",
+      "sha256": "b246f62d3f8d68eaf1b58ffdaeab0c67c6a99ae59b6054d86c6f2d3ea3149da1",
+      "bytes": 2362
+    },
+    {
+      "path": "Presets/Mobile/Coffee Shop Warm.xmp",
+      "sha256": "eaedc7547f88b9c6634763d71463615971bc56903b8e4ceb9a19ec7e05620ce0",
+      "bytes": 2948
+    },
+    {
+      "path": "Presets/Mobile/Cozy Reading.xmp",
+      "sha256": "9b686f177b0d285f804d519683369c15870434060289024a9aa72557fd775146",
+      "bytes": 2819
+    },
+    {
+      "path": "Presets/Mobile/Filmic Casual.xmp",
+      "sha256": "b8498094dcb12c66d79c61d461056f13a57d1bdc87eb04eb3290cce8e2be928f",
+      "bytes": 2822
+    },
+    {
+      "path": "Presets/Mobile/Flash + Neon.xmp",
+      "sha256": "56c25d3a041183d931271a1bd4639be8e02ed456e4a68df701e5133e472bc5bd",
+      "bytes": 2558
+    },
+    {
+      "path": "Presets/Mobile/Food Flatlay.xmp",
+      "sha256": "2850a52f7503228ea95a5f7b21174ee9c7ca47233b2b9ca29e62e38bdb9aa008",
+      "bytes": 2570
+    },
+    {
+      "path": "Presets/Mobile/Gingham.xmp",
+      "sha256": "6768f04f2c1e0c0f15e02ce81518be83cc28905bf84e2bcfe3f2355431a7ebfa",
+      "bytes": 2712
+    },
+    {
+      "path": "Presets/Mobile/Golden Hour Selfie.xmp",
+      "sha256": "39220688d1e2717b4565314035c4e93efe2e788e34596749509ce16bc8692507",
+      "bytes": 2843
+    },
+    {
+      "path": "Presets/Mobile/High Energy Contrast.xmp",
+      "sha256": "d39b88c99e6dc84b4140a1d2c13b0750a5468ddaabdeca7230c0d07c6ea946e2",
+      "bytes": 2472
+    },
+    {
+      "path": "Presets/Mobile/Juno.xmp",
+      "sha256": "32f1f27f19683e8ac0253d31f7ffe1ccc4e17aa78245d07e2527fbfff21fb095",
+      "bytes": 2579
+    },
+    {
+      "path": "Presets/Mobile/Lark.xmp",
+      "sha256": "9aabe4e81e4e919f9a177ecfda636816ab463a96cdc229719d0c7dd67f2ad3a2",
+      "bytes": 2818
+    },
+    {
+      "path": "Presets/Mobile/Lo-Fi.xmp",
+      "sha256": "d13f10988e452721f1f4119ad5fcec640ebfed7f0a7769fdd4bf90591e3bff2e",
+      "bytes": 2565
+    },
+    {
+      "path": "Presets/Mobile/Nashville.xmp",
+      "sha256": "80adcb943467621c1ab402ea07a3573031e1e484ac7594df5f593ee2b94c4d07",
+      "bytes": 2811
+    },
+    {
+      "path": "Presets/Mobile/Natural Skin.xmp",
+      "sha256": "f97baec0bceaa9f850b7ded86b865ecfc06e4b9bb35ba1def65fdcbcb6b351e2",
+      "bytes": 2437
+    },
+    {
+      "path": "Presets/Mobile/Northern Lights Pop.xmp",
+      "sha256": "e5e1dda46c6d6ca1767d1d0d5728f0e738379d16c54a6dc171bef10a99b8177b",
+      "bytes": 2669
+    },
+    {
+      "path": "Presets/Mobile/Overhead Clean.xmp",
+      "sha256": "f796d3160bb95508612841f6b135f5f8ad8d53fff06784a1be2540145f775599",
+      "bytes": 2382
+    },
+    {
+      "path": "Presets/Mobile/Showroom Reflection.xmp",
+      "sha256": "772025ed2ef519f09e96cac2a90937609b8bb61237e830d2a60a500771a29dcc",
+      "bytes": 2468
+    },
+    {
+      "path": "Presets/Mobile/Streetwear Contrast.xmp",
+      "sha256": "beeaea850743ab2eb9e4978caf5a0658d3186887bf16508225b73cda29e1e8d0",
+      "bytes": 2597
+    },
+    {
+      "path": "Presets/Mobile/Thumbnail Max Pop.xmp",
+      "sha256": "623b4bed42c547494aea014179ed35717a2f0703fa1ff23db71e3a4c4a1a9571",
+      "bytes": 2465
+    },
+    {
+      "path": "Presets/Mobile/Valencia.xmp",
+      "sha256": "edc1758a4403876ba2ef60f97b40b1aba8e3689126584201615ec9080b2cf515",
+      "bytes": 2789
+    },
+    {
+      "path": "Presets/Mobile/Vintage Instant.xmp",
+      "sha256": "b14cd8ce0fab33ab03b83a665694eb3c440e6830c06d2407fca12af34f9136cc",
+      "bytes": 2890
+    },
+    {
+      "path": "Presets/Mobile/X-Pro II.xmp",
+      "sha256": "de054775dccb0a6f1fc2fb9343b1a550b485bd2e4a55d54e64787b48fdd3579a",
+      "bytes": 2588
+    },
+    {
+      "path": "Presets/Photographer/Alec Soth.xmp",
+      "sha256": "99b098ca75e847de6fa187fc7031c9639997154570cb446d9e89c747c60eb390",
+      "bytes": 2520
+    },
+    {
+      "path": "Presets/Photographer/Alex Webb.xmp",
+      "sha256": "3b5d31dd2a5b1a80c88160bbae3e1978fe1fe007f0990c5f1576098d8900f2b7",
+      "bytes": 2784
+    },
+    {
+      "path": "Presets/Photographer/Ansel Adams Zone System.xmp",
+      "sha256": "a09875ca9745a053b5d712028b1832e7624f77b4d4fa7f6a3b05bc4b382e7bd1",
+      "bytes": 2712
+    },
+    {
+      "path": "Presets/Photographer/Cindy Sherman.xmp",
+      "sha256": "af2608dc5998b74d42e9003a9eedd95cd29488bd26e2b4a672ba380581210465",
+      "bytes": 2717
+    },
+    {
+      "path": "Presets/Photographer/David LaChapelle.xmp",
+      "sha256": "b8873fe0216f0b1bd4716cdd15f2d6fa198d156fad6f09d3a0cb777ac2b8c622",
+      "bytes": 2706
+    },
+    {
+      "path": "Presets/Photographer/Fan Ho.xmp",
+      "sha256": "b591cbcee0bc3252bb58a0eaf831f041bee08fe85a0888a97197f2afd6a3b887",
+      "bytes": 2676
+    },
+    {
+      "path": "Presets/Photographer/Gregory Crewdson.xmp",
+      "sha256": "9be479fde3b7ba6e1292e23ff1cc485255fc2492c4da62418bfb39ac7687adaf",
+      "bytes": 2654
+    },
+    {
+      "path": "Presets/Photographer/Henri Cartier-Bresson.xmp",
+      "sha256": "6202671242e63bff361eea757ffccdddcf5ee3794962c30e69b3323ba3b5d3f9",
+      "bytes": 2661
+    },
+    {
+      "path": "Presets/Photographer/Joel Meyerowitz.xmp",
+      "sha256": "861ac63e92b3df2a61266e210883b0b5549843b428ab954465f172ac873dabb7",
+      "bytes": 2604
+    },
+    {
+      "path": "Presets/Photographer/Martin Parr.xmp",
+      "sha256": "fd0fac52405531ae2e1249fbcd58c914424f3654588a9f3d5468ad48296e780c",
+      "bytes": 2696
+    },
+    {
+      "path": "Presets/Photographer/Michael Kenna.xmp",
+      "sha256": "eab0a519ad1d54b38cb62465f38bc306a7499049851c0719d5770532554b2c5e",
+      "bytes": 2644
+    },
+    {
+      "path": "Presets/Photographer/Nan Goldin.xmp",
+      "sha256": "22b60c3476c7c589298fc958ef5e5910ddbd043f31be12e12fe92d65531a1637",
+      "bytes": 2792
+    },
+    {
+      "path": "Presets/Photographer/Peter Lindbergh.xmp",
+      "sha256": "71756c525eb508db9ae1302a4d55f6e897faff8bb74864314a0ddac45338b0f5",
+      "bytes": 2690
+    },
+    {
+      "path": "Presets/Photographer/Saul Leiter.xmp",
+      "sha256": "6efad4384c6c8d761c6da3fd79cc34a0966d2bc900d76cb4c94e2f226dd7ed9c",
+      "bytes": 2688
+    },
+    {
+      "path": "Presets/Photographer/Sebastiao Salgado.xmp",
+      "sha256": "25c54cc5fdf57655333f1f91be965b0ad0c9c4e9cb8c7108deade8160c945a40",
+      "bytes": 2698
+    },
+    {
+      "path": "Presets/Photographer/Steve McCurry.xmp",
+      "sha256": "237314225f978c635c6c649d60328bfb2b88d5f2f9aab0952c643da59f556b70",
+      "bytes": 2714
+    },
+    {
+      "path": "Presets/Photographer/Tim Walker.xmp",
+      "sha256": "8c0eba9a15dbd7cae902b006d644a482562438208437a00c83f03f3b74696522",
+      "bytes": 2724
+    },
+    {
+      "path": "Presets/Photographer/Todd Hido.xmp",
+      "sha256": "530a07c2109c2619930f3a30714db667f709100bffb4a7b133d09fe7d67cd9cb",
+      "bytes": 2687
+    },
+    {
+      "path": "Presets/Photographer/Vivian Maier.xmp",
+      "sha256": "2a5dd63b4663a7dd4291981067a6fb92865ca0fa2add78927fba627ddaeffaab",
+      "bytes": 2688
+    },
+    {
+      "path": "Presets/Photographer/William Eggleston.xmp",
+      "sha256": "ed95c913702158e41f7669455ee5e335671082bc7784b1017b6324957a535fae",
+      "bytes": 2591
+    },
+    {
+      "path": "Presets/Seasonal/Beach Bright.xmp",
+      "sha256": "cefaec85c701eaba6e32746d5c12247f04eadb888ec5bdb8575fd45166987c58",
+      "bytes": 2602
+    },
+    {
+      "path": "Presets/Seasonal/Ceremony.xmp",
+      "sha256": "7c9e1ca8f59663ce65b48dc5246647d84a7bcfa99ea782126d920b67b18803a2",
+      "bytes": 2575
+    },
+    {
+      "path": "Presets/Seasonal/Cherry Blossom.xmp",
+      "sha256": "20cbfcb6896dd3f82326bf0cdb9cfabee125ca406f50218ea9559a5b1003ddb1",
+      "bytes": 2631
+    },
+    {
+      "path": "Presets/Seasonal/Chinese New Year.xmp",
+      "sha256": "473f1b3349af66c47386f4917a01d5b117f7c1ccc00262a2c7e6ae7cf9db6e2b",
+      "bytes": 2648
+    },
+    {
+      "path": "Presets/Seasonal/Christmas Snowy Bright.xmp",
+      "sha256": "f6703b39604bd22e36e2f2047876c7369ae30ce7e4ba9a609e6a0296a06fa097",
+      "bytes": 2576
+    },
+    {
+      "path": "Presets/Seasonal/Christmas Warm Fireside.xmp",
+      "sha256": "db792ffda57dbe118c6a93013714039c3b6aab5a566b14f50fd5ff44c21c75a6",
+      "bytes": 2732
+    },
+    {
+      "path": "Presets/Seasonal/Diwali Festive.xmp",
+      "sha256": "56460fecb20a655be46efa1733303fa95b4cbfd000bb4553a6d1445113c5a532",
+      "bytes": 2603
+    },
+    {
+      "path": "Presets/Seasonal/Fresh Pastel.xmp",
+      "sha256": "b932f4aa155eab6b4ac55c7501030de5efaf9b0e8cb84c48b05f84660f6fa5d5",
+      "bytes": 2572
+    },
+    {
+      "path": "Presets/Seasonal/Getting Ready.xmp",
+      "sha256": "49cc457a34c5a20e632afd23dc900ab60fb10636663cf5adbb65eb052bfb7583",
+      "bytes": 2490
+    },
+    {
+      "path": "Presets/Seasonal/Golden Foliage.xmp",
+      "sha256": "5e6f57ce49b3061b365c84d472c2f0e3ede2bcfcb00d93aa32be974ad0c44ef3",
+      "bytes": 2631
+    },
+    {
+      "path": "Presets/Seasonal/Golden Hour Endless.xmp",
+      "sha256": "73e37194392288885405d0002e3e7b8f8ef2fbb2fb01a9da6d92f98f8ccf1537",
+      "bytes": 2614
+    },
+    {
+      "path": "Presets/Seasonal/Graduation.xmp",
+      "sha256": "f1355d2c284e554effc2a8719a26dc2bed801f116100443c322a895f0d9289a3",
+      "bytes": 2559
+    },
+    {
+      "path": "Presets/Seasonal/Halloween Orange-Purple.xmp",
+      "sha256": "92cb2f0b9ccd9169d805f6dc7aa18a1cbedf9a9e59dbbde6d506b04d098469d9",
+      "bytes": 2626
+    },
+    {
+      "path": "Presets/Seasonal/Halloween Spooky Dark.xmp",
+      "sha256": "17b342251da3925bea12d1258e7a0f2d6a5de5bfa46b28ffd322e0f69c5c5f17",
+      "bytes": 2623
+    },
+    {
+      "path": "Presets/Seasonal/Harvest Warm.xmp",
+      "sha256": "df03f9d0f62e7072812741ca58107bdb9eef0e23a89c455554618ce6bf5c1238",
+      "bytes": 2598
+    },
+    {
+      "path": "Presets/Seasonal/Moody Fall.xmp",
+      "sha256": "e21e88d28fe296bcbf380becd92ed25113456dbc53cce83970a363ae175f71fa",
+      "bytes": 2589
+    },
+    {
+      "path": "Presets/Seasonal/Reception.xmp",
+      "sha256": "4ca2ca2139997e58698c87044794894ad1a3f0f0cf9b8efe64d5d8628dcd115d",
+      "bytes": 2594
+    },
+    {
+      "path": "Presets/Seasonal/Spring Garden.xmp",
+      "sha256": "a659bcf0669b7e29abc75d1d6a9917a177684759a8ffe319973c08e131921ee9",
+      "bytes": 2594
+    },
+    {
+      "path": "Presets/Seasonal/Summer Vibes.xmp",
+      "sha256": "f7af185c1996022410f35d625c8bf3ae7ec5601f27178acd77e12ace4a29d61b",
+      "bytes": 2594
+    },
+    {
+      "path": "Presets/Seasonal/Valentine's Romantic Pink.xmp",
+      "sha256": "0b29451ebd36d343606a5fd6f1116e886db95aaff5a51f8ca2b09065bba60169",
+      "bytes": 2589
+    },
+    {
+      "path": "Presets/Slide/AgfaChrome RS 100.xmp",
+      "sha256": "e63c435b33d3ac51442c02f54ff9314f43a67b5616d95c2af6c9023cb0fe851a",
+      "bytes": 2921
+    },
+    {
+      "path": "Presets/Slide/Ektachrome 100G.xmp",
+      "sha256": "d7e47dadfaf93a9c7dd59b4436e0004d3260c10bbb615c650187ea85a89ed040",
+      "bytes": 3002
+    },
+    {
+      "path": "Presets/Slide/Elite Chrome 200.xmp",
+      "sha256": "2311b0093ac6974a6256c51d6af87d484283e8103339f61acbc44d876dc9e005",
+      "bytes": 3014
+    },
+    {
+      "path": "Presets/Slide/Fuji Astia 100F.xmp",
+      "sha256": "23f365e17bd8b9832b398a7752a2991f18d02f8c2471382f587ecd376383a1c4",
+      "bytes": 2903
+    },
+    {
+      "path": "Presets/Slide/Fuji Fortia SP 50.xmp",
+      "sha256": "eb9467e0bf7c3a9f9923660e0e2168d6457416c8bb777f6d5081b09859836f3c",
+      "bytes": 3477
+    },
+    {
+      "path": "Presets/Slide/Fuji Provia 100F.xmp",
+      "sha256": "51ed511dbb9c932a1db7c47243c478504400e1be6770df4483d92319100e6327",
+      "bytes": 2910
+    },
+    {
+      "path": "Presets/Slide/Fuji Provia 400F.xmp",
+      "sha256": "db12cfb7bb5f74609c089074dd7a01c8bb0e12588fc65b860e0f0e21a5951592",
+      "bytes": 3115
+    },
+    {
+      "path": "Presets/Slide/Fuji Provia 400X.xmp",
+      "sha256": "8c3845b2d5526766caf18c1d99afd3e83cafb6cbe10f7d1a960af06349e2cd3d",
+      "bytes": 2898
+    },
+    {
+      "path": "Presets/Slide/Fuji Sensia 100.xmp",
+      "sha256": "22b0b42fc7731536722c40bf64bc33a71f503b2100415fbd4715aa95d6531c18",
+      "bytes": 2942
+    },
+    {
+      "path": "Presets/Slide/Fuji Velvia 100.xmp",
+      "sha256": "6c91be0dab206781c3fdfd47cb6f5b3d55f14dab2cf229beeaf45e4c7842818e",
+      "bytes": 3359
+    },
+    {
+      "path": "Presets/Slide/Fuji Velvia 50.xmp",
+      "sha256": "86b676e3d07809f7a0fd1545590db4a0535c51a134f0be880d47ce279a1f6771",
+      "bytes": 3467
+    },
+    {
+      "path": "Presets/Slide/Kodachrome 200.xmp",
+      "sha256": "d0f1f52389d0e13183db8933bbf5fc695070566e4ef5831f00b1a49452cdb102",
+      "bytes": 3037
+    },
+    {
+      "path": "Presets/Slide/Kodachrome 25.xmp",
+      "sha256": "4af48410de285b791f9c457761386d370d6d8ceae0f99d5981e21453e286a085",
+      "bytes": 3011
+    },
+    {
+      "path": "Presets/Slide/Kodachrome 64.xmp",
+      "sha256": "e36f8e408a1587a8f37d3a220e259ac39df3a0febe615de82d0b9fe732583d9d",
+      "bytes": 3087
+    },
+    {
+      "path": "Presets/Slide/Kodak Ektachrome 100VS.xmp",
+      "sha256": "df04b96006e09b26da9d65e29eed4981799c95becae7ba94b3ab5e64fcd2ee2d",
+      "bytes": 3220
+    },
+    {
+      "path": "Presets/Slide/Kodak Ektachrome 200.xmp",
+      "sha256": "b75970043e09bcc1342c1130797c6c6c9d8caab3fe8413d52c953212e79ecb26",
+      "bytes": 3084
+    },
+    {
+      "path": "Presets/Slide/Kodak Ektachrome 400X.xmp",
+      "sha256": "72a817bf37f6d2eb7093479cfcdebe3fad06d2738b068c4e598d4e2f9c5c5d54",
+      "bytes": 3125
+    },
+    {
+      "path": "Presets/Slide/Kodak Ektachrome 64.xmp",
+      "sha256": "c2807062159abc70d69523331824214fd2340aaefcc2387e0fe9f325086c22ca",
+      "bytes": 3117
+    },
+    {
+      "path": "Presets/Slide/Kodak Ektachrome E100.xmp",
+      "sha256": "9e768d59a7d52a5b4633928e75871259bdc2ac5ab88d301f0454b938b397c728",
+      "bytes": 3204
+    },
+    {
+      "path": "Presets/Slide/Kodak Elite Chrome 400.xmp",
+      "sha256": "27c0b91062771b5f533a6014392c0573c3dd3a6ef8f09c36189238db299b694f",
+      "bytes": 2943
+    },
+    {
+      "path": "Presets/Utility/Astro NR.xmp",
+      "sha256": "aaf1af5b11169098f5d3e2ba7407fce876bab7f980e3442791cfc6a995e94f57",
+      "bytes": 1953
+    },
+    {
+      "path": "Presets/Utility/Dehaze Correct.xmp",
+      "sha256": "ec8668b96a2448e19bbd9a3211f6a92b5f4cdb5f7637ac70c358ad8d0c83d9a4",
+      "bytes": 1934
+    },
+    {
+      "path": "Presets/Utility/Exposure +0.30.xmp",
+      "sha256": "ce769d22aacf240a5b6b0b3d9de1280308117230a3cbb6c8fcb35d10479f3417",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure +0.70.xmp",
+      "sha256": "1ec0f5c760587a639fa0f13751f6c199c68c2b06ec316b11539973d280fa03a7",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure +1.00.xmp",
+      "sha256": "094b0feb534f4c52ec6149e561d14b7f5ad9681ef813619569684b582b9b31c4",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure +1.50.xmp",
+      "sha256": "74fd44533db59fa7ba9f1079c78b36591124b7bae689783c8f09c1c35a755cfb",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure +2.00.xmp",
+      "sha256": "6c3fabe09c277795ae9aa8929934594783bbfb40222cf44f1d892069ee3bfe73",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure -0.30.xmp",
+      "sha256": "66a7179b5b1138d6a4b2c1055ad4ae69d25aa913d9933ad184f7c0001f5a1056",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure -0.70.xmp",
+      "sha256": "977d4520e38fd2581df0d81176cdde1ee2eac55ce4a173a7a5f4dfa7fc0103f0",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Exposure -1.00.xmp",
+      "sha256": "5d93aac1e4b05fa2c30e26055c6e6399f1b3f5eee5d81646450858cb2e55a6fe",
+      "bytes": 1886
+    },
+    {
+      "path": "Presets/Utility/Full Reset.xmp",
+      "sha256": "6fda56f069c68039f4986a3518e04f3ce388dbe38c4cefb75442f95afb701958",
+      "bytes": 4811
+    },
+    {
+      "path": "Presets/Utility/Grain - Fine.xmp",
+      "sha256": "caec9d29fbc64b9a1e64dd18da141048118d8b034c88057bd78ac808e47167cb",
+      "bytes": 1983
+    },
+    {
+      "path": "Presets/Utility/Grain - Heavy.xmp",
+      "sha256": "08aabc5b3d88fb167c18fb3c8cf1c83d366a6ac295ef332d153e414d52d2a035",
+      "bytes": 1985
+    },
+    {
+      "path": "Presets/Utility/Grain - Medium.xmp",
+      "sha256": "0b915a41a4c1a0c07e45d4a59823dbd27e65bcb55d83201dd68216a84de66e34",
+      "bytes": 1987
+    },
+    {
+      "path": "Presets/Utility/Grain - Pushed.xmp",
+      "sha256": "e70d8be69da6fd470c867babb4362da96f6797d99e1b849c261bb86c1d2ab587",
+      "bytes": 1987
+    },
+    {
+      "path": "Presets/Utility/Heavy NR.xmp",
+      "sha256": "3ea776a5c9be5ec651a7b0ce57a34f97a5593ae0aeffdcadb7d01e18418f8fcd",
+      "bytes": 1953
+    },
+    {
+      "path": "Presets/Utility/High ISO NR.xmp",
+      "sha256": "0a9c4f73ffbc15e547148fbc12ff6c4a3658444f06405ce7fa935d00b6451643",
+      "bytes": 1959
+    },
+    {
+      "path": "Presets/Utility/Lens Correction - Disable.xmp",
+      "sha256": "00e04aa76a5b1183adbb5746f8b40db177e4cee7104926bcd69c74086c3bddd8",
+      "bytes": 1935
+    },
+    {
+      "path": "Presets/Utility/Lens Correction - Enable.xmp",
+      "sha256": "061247f3342969c54c27626ad2d30e3dfda9bdcfee3abec2277a55b441ef0f4f",
+      "bytes": 1933
+    },
+    {
+      "path": "Presets/Utility/Light NR.xmp",
+      "sha256": "d00481f0c9e6a5a4f76f2d333fe3b96045cfe13a25abd377a50a0f43c5b1e3d8",
+      "bytes": 1953
+    },
+    {
+      "path": "Presets/Utility/Medium NR.xmp",
+      "sha256": "b4be6e1703452a53eaa888aa71506cf8d4be221137cd56b36d282e9fe91fbdb8",
+      "bytes": 1955
+    },
+    {
+      "path": "Presets/Utility/Reset Basic.xmp",
+      "sha256": "7964a49199f9fae030e2f8ff9b5bf37d3177b8ecc16171f07fb675e317f5cab5",
+      "bytes": 2139
+    },
+    {
+      "path": "Presets/Utility/Reset Effects + Detail.xmp",
+      "sha256": "373eb3821727f8c3276da44b856453406a661bc15121206c2ecdae4e53a0113b",
+      "bytes": 2855
+    },
+    {
+      "path": "Presets/Utility/Reset HSL.xmp",
+      "sha256": "0b5638835a1fcf01ca9a59c085d338ec4159e64aac7763278b40d1bb645af625",
+      "bytes": 3373
+    },
+    {
+      "path": "Presets/Utility/Reset Tone Curve.xmp",
+      "sha256": "0d00eb533a12c911fe9695fb13f35c56023ec7d02e24ce34a21b9a6ba20ba823",
+      "bytes": 2090
+    },
+    {
+      "path": "Presets/Utility/Sharpening - Creative.xmp",
+      "sha256": "99ed3dbfcc210da5da9373d6e82caa5c5113ae150850c05ab4a049e7f0121987",
+      "bytes": 1982
+    },
+    {
+      "path": "Presets/Utility/Sharpening - Landscape.xmp",
+      "sha256": "9efe01433163859d6692b64e53f522a7d4211276bae1cb7e9a2c2ff6924fd94a",
+      "bytes": 1984
+    },
+    {
+      "path": "Presets/Utility/Sharpening - Portrait.xmp",
+      "sha256": "63a696afb7e6bfc21f5e1c91388aa417541821f1cda54df6ab31f0ec07392148",
+      "bytes": 1982
+    },
+    {
+      "path": "Presets/Utility/Sharpening - Print Output.xmp",
+      "sha256": "f1b66be068b77ca438408a403aacc8e75995b3e26bc15aa127e59025a5b023fe",
+      "bytes": 1990
+    },
+    {
+      "path": "Presets/Utility/Sharpening - Screen Output.xmp",
+      "sha256": "ddddc2d0eb8579edc8da0a10f6dae79f82006a0aef5dd27d9215adbff3597bd4",
+      "bytes": 1992
+    },
+    {
+      "path": "Presets/Utility/Vignette - Creative White.xmp",
+      "sha256": "f4de3cc6350a8c21cc415befb61ef8f9c079ddf525f5a640522b25a1f9afb891",
+      "bytes": 2063
+    },
+    {
+      "path": "Presets/Utility/Vignette - Medium.xmp",
+      "sha256": "70f08bf7aa8c7c8f59d47bc018f9723f088e18ceca2875af2e5d224967d4a94e",
+      "bytes": 2047
+    },
+    {
+      "path": "Presets/Utility/Vignette - Strong.xmp",
+      "sha256": "b9801de4f1e612a08580484d35246988d7fc852ca8a0641b3234fe171c93a343",
+      "bytes": 2047
+    },
+    {
+      "path": "Presets/Utility/Vignette - Subtle.xmp",
+      "sha256": "35b01b4a1dd84587e19101d419e47d025c7badeea1a425708a6e18c957a18947",
+      "bytes": 2047
+    },
+    {
+      "path": "Presets/Utility/WB Cloudy.xmp",
+      "sha256": "8de2b2dee26dff7a3a54a352bb05d9cf051c0d7c874029a11a93135491f64f72",
+      "bytes": 1923
+    },
+    {
+      "path": "Presets/Utility/WB Daylight.xmp",
+      "sha256": "a93fa0ab2cce121eee295a67e588d4de1ada457a5aa658bfd3d99ef4a3dcad00",
+      "bytes": 1925
+    },
+    {
+      "path": "Presets/Utility/WB Flash.xmp",
+      "sha256": "c317b36cc18df8d0940d028446bb5f362f98e885f09865a89809050e7a8d418a",
+      "bytes": 1919
+    },
+    {
+      "path": "Presets/Utility/WB Fluorescent.xmp",
+      "sha256": "491b6190c8932e42d73acd8de42d42d10dae9277b86e7471a1092a55ad3ddc1e",
+      "bytes": 1933
+    },
+    {
+      "path": "Presets/Utility/WB Shade.xmp",
+      "sha256": "466d6cd1eb983609a2f2c342a67ccd52dc286c93ff729357f5e5af815fe8e0f7",
+      "bytes": 1921
+    },
+    {
+      "path": "Presets/Utility/WB Tungsten.xmp",
+      "sha256": "c5e6a4553f7bc8ec9da433bcf06b0f0d3aa9b84f5b7070c66e8377d5c3ebe5f4",
+      "bytes": 1925
+    },
+    {
+      "path": "Presets/Video/Bleach Bypass Video.xmp",
+      "sha256": "8188c1df532a1d43f0001401bd70479290dc37e9056df926002d797c63af68a1",
+      "bytes": 3098
+    },
+    {
+      "path": "Presets/Video/Cinematic Dream Look Video.xmp",
+      "sha256": "768ae99fe458bdd47d112bf87e03b32ef5005c77dd14ee5e4129630641b2ddc6",
+      "bytes": 3034
+    },
+    {
+      "path": "Presets/Video/Cinestill 800T Video.xmp",
+      "sha256": "89ecd3baf370cfac19d125e1bae3d7b542d8a98eaf42b8c2e5963b3db7d5f2bc",
+      "bytes": 2845
+    },
+    {
+      "path": "Presets/Video/Cross-Processed Velvia Video.xmp",
+      "sha256": "a1c4c550090699d66b20d0242a6919968100baad97951cd63363c5ea56bccc4f",
+      "bytes": 3434
+    },
+    {
+      "path": "Presets/Video/Cyberpunk Neon Video.xmp",
+      "sha256": "c91c3a0b7ddd8dc1d04f06bff69b9478ef81d65aa835064809d8ccba99a45811",
+      "bytes": 3010
+    },
+    {
+      "path": "Presets/Video/Ektar 100 Video.xmp",
+      "sha256": "6cfce1084fe41b23508190c3a78439feffccc1e20275f2e8ccc9ce2ae3dfdbd0",
+      "bytes": 3160
+    },
+    {
+      "path": "Presets/Video/Gold 200 Video.xmp",
+      "sha256": "84168cddade9d8518a5ff1ab3c4606706c13c39ba53008ebbabb4c11037c047c",
+      "bytes": 3188
+    },
+    {
+      "path": "Presets/Video/Kodachrome 64 Video.xmp",
+      "sha256": "ce512309036d871b4979770739bd85dc1640de1670e3d7636e2d419deaaafdd3",
+      "bytes": 3134
+    },
+    {
+      "path": "Presets/Video/Kodak Aerochrome Video.xmp",
+      "sha256": "9c375956a169bba99be5a18d1056f7b16d4e37f8d5c236b7813eb6fbf2ec8ce1",
+      "bytes": 3509
+    },
+    {
+      "path": "Presets/Video/Moody PNW Video.xmp",
+      "sha256": "5b1ec69d1a67d6e03194bc3242c7fc72efdeb6abd15c0324d864de29cbaf83c9",
+      "bytes": 2959
+    },
+    {
+      "path": "Presets/Video/Pastel Anime Aethereal Video.xmp",
+      "sha256": "a5a49798abaa561c005a58cbe8f4092764f07cf3b59acd932b9f331f67c7b9a3",
+      "bytes": 3096
+    },
+    {
+      "path": "Presets/Video/Polaroid SX-70 Video.xmp",
+      "sha256": "93196276847a516acfe3f71a3d2b720238ecc5300a06602276d18cdf412be9f5",
+      "bytes": 3531
+    },
+    {
+      "path": "Presets/Video/Portra 400 Video.xmp",
+      "sha256": "2e650d0ee2f48bce824d98edd37b4b37947b532311023a9b2131cd74745ab16a",
+      "bytes": 2833
+    },
+    {
+      "path": "Presets/Video/Super 8 Home Movie Video.xmp",
+      "sha256": "71b385dc839d74a42a169c721e9510088be39cc95a14b8a91e96188990a4272f",
+      "bytes": 3357
+    },
+    {
+      "path": "Presets/Video/Teal & Orange Cinematic Video.xmp",
+      "sha256": "c3d2c088490d0a854cda8dd7064fda226b126ffa05238f6a29d7faede6da90ce",
+      "bytes": 3029
+    },
+    {
+      "path": "Presets/Video/Tri-X 400 Video.xmp",
+      "sha256": "960f3a7590a7638d096d4569562cd34d7072497eb47afe49dee58f23a03f242f",
+      "bytes": 2702
+    },
+    {
+      "path": "Presets/Video/Velvia 50 Video.xmp",
+      "sha256": "60ff5619568580f88da9704e2eac28c591633503c5823cf026cdf8ec4c1748e8",
+      "bytes": 3497
+    },
+    {
+      "path": "Presets/Video/VHS Synthwave Video.xmp",
+      "sha256": "f03fbfdce3a9ccd84049a6e036df1853205301293ce2be8ffcda2f7f3b49fc62",
+      "bytes": 3719
+    },
+    {
+      "path": "Presets/Video/Wes Anderson Pastel Video.xmp",
+      "sha256": "cf120101890d8ad4347542b3b8c0e91cbe35dbc70e6073ecd36749ad4b3facd3",
+      "bytes": 3515
+    },
+    {
+      "path": "Presets/Video/WKW Hong Kong Video.xmp",
+      "sha256": "a9d6a3149f0338856f9d5a1992dc8d3a33361b170285ab76d6053d499ac273be",
+      "bytes": 3637
+    }
+  ]
+}

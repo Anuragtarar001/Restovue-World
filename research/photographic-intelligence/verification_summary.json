@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "checks": [
+    {
+      "name": "production XMP count",
+      "passed": true,
+      "detail": "451"
+    },
+    {
+      "name": "parse completeness",
+      "passed": true,
+      "detail": "records=451 errors=0"
+    },
+    {
+      "name": "unique preset IDs",
+      "passed": true,
+      "detail": "duplicates=0"
+    },
+    {
+      "name": "source references",
+      "passed": true,
+      "detail": "missing=0"
+    },
+    {
+      "name": "representative Albumen Print contrast",
+      "passed": true,
+      "detail": "raw=+18 parsed=18"
+    },
+    {
+      "name": "representative Albumen Print highlights",
+      "passed": true,
+      "detail": "raw=-15 parsed=-15"
+    },
+    {
+      "name": "representative Albumen Print shadows",
+      "passed": true,
+      "detail": "raw=+25 parsed=25"
+    },
+    {
+      "name": "representative Albumen Print clarity",
+      "passed": true,
+      "detail": "raw=0 parsed=0"
+    },
+    {
+      "name": "representative Albumen Print dehaze",
+      "passed": true,
+      "detail": "raw=0 parsed=0"
+    },
+    {
+      "name": "representative Gatsby Art Deco exposure",
+      "passed": true,
+      "detail": "raw=-0.10 parsed=-0.1"
+    },
+    {
+      "name": "representative Gatsby Art Deco contrast",
+      "passed": true,
+      "detail": "raw=+30 parsed=30"
+    },
+    {
+      "name": "representative Gatsby Art Deco highlights",
+      "passed": true,
+      "detail": "raw=-50 parsed=-50"
+    },
+    {
+      "name": "representative Gatsby Art Deco shadows",
+      "passed": true,
+      "detail": "raw=+15 parsed=15"
+    },
+    {
+      "name": "representative WKW Hong Kong Video exposure",
+      "passed": true,
+      "detail": "raw=-0.40 parsed=-0.4"
+    },
+    {
+      "name": "representative WKW Hong Kong Video contrast",
+      "passed": true,
+      "detail": "raw=20 parsed=20"
+    },
+    {
+      "name": "representative WKW Hong Kong Video highlights",
+      "passed": true,
+      "detail": "raw=-58 parsed=-58"
+    },
+    {
+      "name": "representative WKW Hong Kong Video shadows",
+      "passed": true,
+      "detail": "raw=+20 parsed=20"
+    },
+    {
+      "name": "representative WKW Hong Kong Video vibrance",
+      "passed": true,
+      "detail": "raw=+0 parsed=0"
+    },
+    {
+      "name": "representative WKW Hong Kong Video saturation",
+      "passed": true,
+      "detail": "raw=0 parsed=0"
+    },
+    {
+      "name": "representative WKW Hong Kong Video clarity",
+      "passed": true,
+      "detail": "raw=0 parsed=0"
+    },
+    {
+      "name": "representative WKW Hong Kong Video dehaze",
+      "passed": true,
+      "detail": "raw=0 parsed=0"
+    },
+    {
+      "name": "representative values checked",
+      "passed": true,
+      "detail": "values=17"
+    },
+    {
+      "name": "CSV schema xmp_parameter_matrix.csv",
+      "passed": true,
+      "detail": "missing=[]"
+    },
+    {
+      "name": "CSV schema preset_condition_mapping.csv",
+      "passed": true,
+      "detail": "missing=[]"
+    },
+    {
+      "name": "CSV schema smart_value_database.csv",
+      "passed": true,
+      "detail": "missing=[]"
+    },
+    {
+      "name": "matrix row count",
+      "passed": true,
+      "detail": "451"
+    },
+    {
+      "name": "scene taxonomy",
+      "passed": true,
+      "detail": "count=140"
+    },
+    {
+      "name": "smart value IDs",
+      "passed": true,
+      "detail": "count=21"
+    },
+    {
+      "name": "numeric provenance",
+      "passed": true,
+      "detail": "all numeric summaries identify XMP provenance"
+    },
+    {
+      "name": "Android source unchanged",
+      "passed": true,
+      "detail": "forbidden=[]"
+    }
+  ],
+  "all_passed": true,
+  "statistics": {
+    "xmp_inspected": 451,
+    "xmp_parsed": 451,
+    "xmp_failed": 0,
+    "unique_parameters": 121,
+    "scene_conditions": 140,
+    "smart_value_records": 21,
+    "region_records": 22,
+    "conflict_rules": 15,
+    "csv_rows": {
+      "xmp_parameter_matrix.csv": 451,
+      "preset_condition_mapping.csv": 516,
+      "smart_value_database.csv": 21
+    }
+  },
+  "git_status": [
+    "?? app.zip",
+    "?? docs/",
+    "?? research/"
+  ]
+}
