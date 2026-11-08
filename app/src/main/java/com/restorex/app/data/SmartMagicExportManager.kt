@@ -9,6 +9,12 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.core.net.toUri
 import com.restorex.app.domain.model.RasterImage
+import com.restorex.app.domain.photointelligence.ProductionRenderOutcome
+import com.restorex.app.domain.photointelligence.SmartMagicProductionSession
+import com.restorex.app.domain.photointelligence.SmartMagicProductionRender
+import com.restorex.app.domain.photointelligence.SmartMagicWorkStage
+import com.restorex.app.domain.photointelligence.SmartMagicWorkState
+import com.restorex.app.domain.photointelligence.SmartMagicWorkUpdate
 import com.restorex.app.domain.smartmagic.SmartMagicParameters
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -26,13 +32,50 @@ data class SmartMagicExportResult(
     val height: Int,
     val mimeType: String,
     val elapsedMillis: Long,
+    val productionOutcome: ProductionRenderOutcome? = null,
 )
 
 /** Full-resolution, safely finalized MediaStore export for the dedicated one-tap workflow. */
 class SmartMagicExportManager(
     private val resolver: ContentResolver,
     private val pipeline: SmartMagicPipeline,
+    private val coordinator: SmartMagicProcessingCoordinator,
 ) {
+    suspend fun export(
+        source: String,
+        session: SmartMagicProductionSession,
+        preview: SmartMagicProductionRender,
+        onProgress: (SmartMagicWorkUpdate) -> Unit = {},
+    ): SmartMagicExportResult = withContext(Dispatchers.IO) {
+        check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            "Direct gallery saving requires Android 10 or newer. Use the editor export workflow on Android 9."
+        }
+        require(source == session.sourceIdentity) { "Smart Magic session belongs to a different photograph" }
+        val started = System.nanoTime()
+        onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.PREPARING_EXPORT, SmartMagicWorkState.STARTED,
+            detail = "Opening full-resolution photograph"))
+        val raster = decodeRaster(source.toUri())
+        val hasTransparency = raster.argb.any { it ushr 24 != 255 }
+        currentCoroutineContext().ensureActive()
+        onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.PREPARING_EXPORT, SmartMagicWorkState.COMPLETED,
+            detail = "Full-resolution photograph prepared"))
+        onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.RENDERING_EXPORT, SmartMagicWorkState.STARTED,
+            detail = "Applying ${preview.level.name.lowercase()} correction"))
+        val context = currentCoroutineContext()
+        val rendered = coordinator.renderForExport(raster, session, preview) { !context.isActive }
+        context.ensureActive()
+        onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.RENDERING_EXPORT, SmartMagicWorkState.COMPLETED,
+            detail = "Full-resolution correction rendered"))
+        saveRendered(rendered.image, hasTransparency, started, rendered.outcome) { detail ->
+            onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.ENCODING_AND_SAVING,
+                SmartMagicWorkState.ACTIVE, detail = detail))
+        }.also {
+            onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.FINALIZING, SmartMagicWorkState.COMPLETED,
+                detail = "Saved to gallery"))
+        }
+    }
+
+    /** Legacy global-only entry retained for regression tests and callers outside production Smart Magic. */
     suspend fun export(
         source: String,
         parameters: SmartMagicParameters,
@@ -43,9 +86,7 @@ class SmartMagicExportManager(
         }
         val started = System.nanoTime()
         onStage("Opening full-resolution photo")
-        val bitmap = decodeFullResolution(source.toUri())
-        var raster: RasterImage? = bitmap.toRaster(1f)
-        bitmap.recycle()
+        var raster: RasterImage? = decodeRaster(source.toUri())
         currentCoroutineContext().ensureActive()
         val hasTransparency = requireNotNull(raster).argb.any { it ushr 24 != 255 }
         onStage("Applying full-resolution enhancement")
@@ -53,6 +94,16 @@ class SmartMagicExportManager(
         val enhanced = pipeline.enhance(requireNotNull(raster), parameters, { !context.isActive }, reuseSourcePixels = true)
         raster = null
         context.ensureActive()
+        saveRendered(enhanced, hasTransparency, started, null, onStage)
+    }
+
+    private suspend fun saveRendered(
+        enhanced: RasterImage,
+        hasTransparency: Boolean,
+        started: Long,
+        outcome: ProductionRenderOutcome?,
+        onStage: (String) -> Unit,
+    ): SmartMagicExportResult {
         val format = if (hasTransparency) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
         val mimeType = if (hasTransparency) "image/png" else "image/jpeg"
         val extension = if (hasTransparency) "png" else "jpg"
@@ -68,7 +119,7 @@ class SmartMagicExportManager(
         val destination = requireNotNull(resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)) {
             "Android could not create a gallery destination"
         }
-        try {
+        return try {
             onStage("Saving to gallery")
             val output = enhanced.toBitmap()
             try {
@@ -77,11 +128,11 @@ class SmartMagicExportManager(
                     check(output.compress(format, if (hasTransparency) 100 else 95, stream)) { "Image encoding failed" }
                 }
             } finally { output.recycle() }
-            context.ensureActive()
+            currentCoroutineContext().ensureActive()
             resolver.update(destination, ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }, null, null)
             SmartMagicExportResult(
                 destination.toString(), displayName, enhanced.width, enhanced.height, mimeType,
-                (System.nanoTime() - started) / 1_000_000L,
+                (System.nanoTime() - started) / 1_000_000L, outcome,
             )
         } catch (cancelled: CancellationException) {
             resolver.delete(destination, null, null); throw cancelled
@@ -90,9 +141,16 @@ class SmartMagicExportManager(
         }
     }
 
+    private fun decodeRaster(uri: Uri): RasterImage {
+        val bitmap = decodeFullResolution(uri)
+        return try { bitmap.toRaster(1f) } finally { bitmap.recycle() }
+    }
+
     private fun decodeFullResolution(uri: Uri): Bitmap {
-        val safePixels = (Runtime.getRuntime().maxMemory() * .65 / ESTIMATED_PEAK_BYTES_PER_PIXEL).toLong()
-            .coerceAtLeast(2_000_000L)
+        // The decoded Bitmap is recycled immediately after the owned RasterImage is created. The
+        // production coordinator then keeps at most source + one full-size output for regional
+        // rendering; spatial preview-only stages are not retained during export.
+        val safePixels = ExportMemoryPolicy.safePixelCount(Runtime.getRuntime().maxMemory(), spatiallyExpensive = false)
         return ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
             decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             ExportMemoryPolicy.requireSafe(info.size.width, info.size.height, safePixels)
@@ -100,7 +158,6 @@ class SmartMagicExportManager(
     }
 
     private companion object {
-        const val ESTIMATED_PEAK_BYTES_PER_PIXEL = 13.0
         val NAME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
     }
 }

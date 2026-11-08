@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "runtime": { "artifact": "org.tensorflow:tensorflow-lite", "version": "2.17.0", "license": "Apache-2.0", "telemetry": false },
+  "models": [
+    {
+      "id": "mediapipe-blazeface-short-range-float16-v1",
+      "file": "blaze_face_short_range.tflite",
+      "source": "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
+      "sha256": "b4578f35940bf5a1a655214a1cce5cab13eba73c1297cd78e1a04c2380b0152f",
+      "bytes": 229746,
+      "license": "Apache-2.0",
+      "classes": ["face"]
+    },
+    {
+      "id": "mediapipe-selfie-segmenter-float16-v1",
+      "file": "selfie_segmenter.tflite",
+      "source": "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/1/selfie_segmenter.tflite",
+      "sha256": "191ac9529ae506ee0beefa6b2c945a172dab9d07d1e802a290a4e4038226658b",
+      "bytes": 249537,
+      "license": "Apache-2.0",
+      "classes": ["person-confidence"]
+    }
+  ]
+}

@@ -99,12 +99,21 @@ class SmartMagicPipeline(
             y = .72f + (y - .72f) / (1f + (y - .72f) * shoulderStrength)
         }
         y = y.coerceIn(0f, 1f)
+        // Perceptual brightness changes the middle of the luminance range while keeping exact
+        // black and white fixed. Unlike exposure it does not scale scene-linear RGB uniformly.
+        if (abs(p.brightness) > EPSILON) {
+            val brightnessBasis = sqrt(y.coerceAtLeast(0f)) * (1f - y)
+            y = (y + p.brightness * brightnessBasis).coerceIn(0f, 1f)
+        }
         val shadowBasis = y * (1f - y) * (1f - y)
         val highlightBasis = y * y * (1f - y)
         y += p.shadows * shadowBasis * 1.35f
         y += p.highlights * highlightBasis * .9f
         y += p.whites * y * y * y * (1f - y) * .55f
         y += p.blacks * y * (1f - y).pow(3) * .7f
+        if (abs(p.midtoneGamma - 1f) > EPSILON) {
+            y = y.coerceIn(0f, 1f).pow(1f / p.midtoneGamma)
+        }
         val smooth = y * y * (3f - 2f * y)
         y += p.contrast * (smooth - y)
         return y.coerceIn(0f, 1f)

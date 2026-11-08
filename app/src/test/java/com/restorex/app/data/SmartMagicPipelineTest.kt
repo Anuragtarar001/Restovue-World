@@ -11,6 +11,19 @@ import java.util.concurrent.CancellationException
 import kotlin.math.abs
 
 class SmartMagicPipelineTest {
+    @Test fun `brightness is neutral and distinct from exposure while preserving endpoints`() {
+        val pipeline = SmartMagicPipeline()
+        val black = pipeline.toneMapLuminance(0f, SmartMagicParameters(brightness = .15f))
+        val white = pipeline.toneMapLuminance(1f, SmartMagicParameters(brightness = .15f))
+        val neutral = pipeline.toneMapLuminance(.25f, SmartMagicParameters())
+        val bright = pipeline.toneMapLuminance(.25f, SmartMagicParameters(brightness = .15f))
+        val exposed = pipeline.toneMapLuminance(.25f * Math.pow(2.0, .15).toFloat(), SmartMagicParameters())
+        assertEquals(0f, black, 0f)
+        assertEquals(1f, white, 0f)
+        assertEquals(.25f, neutral, 1e-6f)
+        assertTrue(bright > neutral)
+        assertTrue(kotlin.math.abs(bright - exposed) > 1e-4f)
+    }
     private val pipeline = SmartMagicPipeline()
 
     @Test fun toneCurveIsMonotonicAcrossAllowedParameters() {

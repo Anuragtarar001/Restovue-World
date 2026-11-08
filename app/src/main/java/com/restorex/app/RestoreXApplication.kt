@@ -35,7 +35,11 @@ class AppContainer(application: Application) {
     val memoryPressure = MemoryPressureRegistry()
     val smartMagicPipeline = com.restorex.app.data.SmartMagicPipeline()
     val smartMagicParameterEngine = com.restorex.app.domain.smartmagic.SmartMagicParameterEngine()
-    val smartMagicExportManager = com.restorex.app.data.SmartMagicExportManager(application.contentResolver, smartMagicPipeline)
+    val semanticAnalyzer = com.restorex.app.data.LiteRtSemanticAnalyzer(application)
+    val smartMagicCoordinator = com.restorex.app.data.SmartMagicProcessingCoordinator(smartMagicPipeline, semanticAnalyzer)
+    val smartMagicExportManager = com.restorex.app.data.SmartMagicExportManager(
+        application.contentResolver, smartMagicPipeline, smartMagicCoordinator,
+    )
     val lutStore = LutStore(application.contentResolver, application.filesDir)
     private val processor = AndroidImageProcessor(
         lutStore,

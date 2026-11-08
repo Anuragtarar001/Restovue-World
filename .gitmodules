@@ -1,0 +1,3 @@
+[submodule "research/photographic-intelligence/_sources/EmulsionPresets"]
+	path = research/photographic-intelligence/_sources/EmulsionPresets
+	url = https://github.com/peva3/EmulsionPresets.git

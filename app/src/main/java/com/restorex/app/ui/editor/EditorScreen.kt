@@ -313,6 +313,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
                     }, "Share Smart Magic photo"))
                 }.onFailure { Toast.makeText(context, "No app can share this photo", Toast.LENGTH_SHORT).show() }
             },
+            onSelectLevel = smartMagicViewModel::selectLevel,
         )
         return
     }

@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.restorex.app.RestoreXApplication
 import com.restorex.app.domain.smartmagic.SmartMagicParameters
 import com.restorex.app.domain.model.RasterImage
+import com.restorex.app.domain.photointelligence.EnhancementLevel
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -65,6 +66,40 @@ class SmartMagicExportManagerTest {
             assertEquals(width, decoded.width); assertEquals(height, decoded.height)
             assertTrue(result.displayName.startsWith("Restovue_SmartMagic_"))
             println("SMART_MAGIC_DEVICE_EXPORT pixels=${width * height} elapsedMs=${result.elapsedMillis} heapBefore=$usedBefore heapAfter=$usedAfter maxHeap=${runtime.maxMemory()}")
+            decoded.recycle()
+        } finally {
+            exported?.let { application.contentResolver.delete(it, null, null) }
+            source.delete()
+        }
+    }
+
+    @Test fun twelveMegapixelProductionExportReusesPreviewSessionAndLevel() = runBlocking {
+        val application = ApplicationProvider.getApplicationContext<RestoreXApplication>()
+        val source = File(application.cacheDir, "smart_magic_production_12mp.png")
+        val width = 4000; val height = 3000
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val row = IntArray(width)
+        for (y in 0 until height) {
+            val value = 40 + y * 150 / height
+            row.indices.forEach { x -> row[x] = Color.rgb(value + x * 20 / width, value, value + 8) }
+            bitmap.setPixels(row, 0, width, 0, y, width, 1)
+        }
+        source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+        val preview = RasterImage(800, 600, IntArray(800 * 600) { index ->
+            val x = index % 800; val y = index / 800; val value = 40 + y * 150 / 600
+            Color.rgb(value + x * 20 / 800, value, value + 8)
+        }, .2f)
+        val uri = Uri.fromFile(source).toString()
+        var exported: Uri? = null
+        try {
+            val session = application.container.smartMagicCoordinator.createSession(uri, preview)
+            val selected = application.container.smartMagicCoordinator.render(preview, session, EnhancementLevel.ENHANCED)
+            val result = application.container.smartMagicExportManager.export(uri, session, selected)
+            exported = Uri.parse(result.uri)
+            val decoded = ImageDecoder.decodeBitmap(ImageDecoder.createSource(application.contentResolver, exported))
+            assertEquals(width, decoded.width); assertEquals(height, decoded.height)
+            assertEquals(selected.outcome, result.productionOutcome)
+            println("M45_PRODUCTION_12MP outcome=${result.productionOutcome} elapsedMs=${result.elapsedMillis} maxHeap=${Runtime.getRuntime().maxMemory()}")
             decoded.recycle()
         } finally {
             exported?.let { application.contentResolver.delete(it, null, null) }

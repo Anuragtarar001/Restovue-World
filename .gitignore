@@ -13,3 +13,29 @@ captures/
 *.aab
 Thumbs.db
 .DS_Store
+
+# Owner-supplied private calibration photographs and derived visual diagnostics.
+orig1.jpeg
+origfixed.jpeg
+papa-original.jpeg
+papa-extreme.jpeg
+wedding.jpeg
+wedding-natural.jpeg
+wedding-enhance.jpeg
+wedding-extreme.jpeg
+research/photographic-intelligence/milestone6-1/
+research/photographic-intelligence/milestone6-2-1/
+research/photographic-intelligence/milestone6-3/
+
+# Generated validation renders and temporary review packages. Canonical test fixtures live in
+# app/src/androidTest/assets; private and generated evidence is preserved in private backups.
+/Restovue-Milestone4-Review.zip
+/file.txt
+research/photographic-intelligence/milestone3-diagnostics/
+research/photographic-intelligence/milestone4-5-validation/
+research/photographic-intelligence/milestone4-corrective-validation/
+research/photographic-intelligence/milestone4-corrective-validation.zip
+research/photographic-intelligence/milestone4-diagnostics/
+research/photographic-intelligence/milestone4-fixtures/
+research/photographic-intelligence/milestone5-validation/
+research/photographic-intelligence/milestone6-validation/
