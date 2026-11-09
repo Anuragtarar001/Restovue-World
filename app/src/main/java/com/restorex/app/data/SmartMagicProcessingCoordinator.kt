@@ -10,6 +10,9 @@ import com.restorex.app.domain.photointelligence.AdjustmentDiagnosticReport
 import com.restorex.app.domain.photointelligence.CompositionReasoningEngine
 import com.restorex.app.domain.photointelligence.DecisionReason
 import com.restorex.app.domain.photointelligence.EnhancementLevel
+import com.restorex.app.domain.photointelligence.FaceLightAdjustment
+import com.restorex.app.domain.photointelligence.FaceLightRenderer
+import com.restorex.app.domain.photointelligence.FaceEvidence
 import com.restorex.app.domain.photointelligence.PerceptualImpactEstimator
 import com.restorex.app.domain.photointelligence.PhotographicDiagnosisEngine
 import com.restorex.app.domain.photointelligence.PhotometricAnalyzerV2
@@ -64,11 +67,13 @@ class SmartMagicProcessingCoordinator(
     private val impactEstimator: PerceptualImpactEstimator = PerceptualImpactEstimator(),
     private val diagnosticBuilder: AdjustmentDiagnosticBuilder = AdjustmentDiagnosticBuilder(),
     private val proFinishEngine: ProFinishEngineAdapter = ProFinishEngineAdapter(),
+    private val faceLightRenderer: FaceLightRenderer = FaceLightRenderer(),
     val processingBudget: SmartMagicProcessingBudget = SmartMagicProcessingBudgetPolicy.forRuntime(
         Runtime.getRuntime().maxMemory(), Runtime.getRuntime().availableProcessors(),
     ),
 ) {
     private val finishGridCache = ConcurrentHashMap<EnhancementLevel, AffineBilateralGrid>()
+    private val faceLightCache = ConcurrentHashMap<EnhancementLevel, List<FaceLightAdjustment>>()
     @Volatile private var finishGridSessionId: String? = null
 
     suspend fun createSession(
@@ -83,6 +88,11 @@ class SmartMagicProcessingCoordinator(
         checkCancelled(shouldCancel)
         val fingerprint = fingerprint(analysisSource)
         val sessionId = "sm45-$fingerprint-g$geometryVersion"
+        synchronized(finishGridCache) {
+            if (finishGridSessionId != sessionId) finishGridCache.clear()
+            faceLightCache.clear()
+            finishGridSessionId = sessionId
+        }
         var mark = System.nanoTime()
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.ANALYZING_LIGHTING, SmartMagicWorkState.STARTED,
             detail = "Measuring exposure, color and detail"))
@@ -349,10 +359,73 @@ class SmartMagicProcessingCoordinator(
             addIf("luma-noise", "Luminance noise reduction", p.luminanceNoiseReduction, 0f, "normalized")
             addIf("chroma-noise", "Color noise reduction", p.chromaNoiseReduction, 0f, "normalized")
         }
-        return (globalAdjustments + regionalAdjustments).ifEmpty {
+        val faceLightAdjustments = render.explanation.filter { it.code == "FACE_LIGHT_APPLIED" }.map {
+            SmartMagicAdjustment("face-light", "Face Light", it.explanation)
+        }
+        return (globalAdjustments + regionalAdjustments + faceLightAdjustments).ifEmpty {
             listOf(SmartMagicAdjustment("no-op", "Correction", "No measurable adjustment selected"))
         }
     }
+
+    /**
+     * Applies an approved per-face light to the preview and refits the same cached affine grid used
+     * by fast export. Full-resolution save therefore remains one parallel photographic pass.
+     */
+    fun applyFaceLight(
+        previewSource: RasterImage,
+        session: SmartMagicProductionSession,
+        baseRender: SmartMagicProductionRender,
+        adjustment: FaceLightAdjustment,
+        shouldCancel: () -> Boolean = { false },
+    ): SmartMagicProductionRender = applyFaceLights(
+        previewSource, session, baseRender, listOf(adjustment), shouldCancel,
+    )
+
+    fun applyFaceLights(
+        previewSource: RasterImage,
+        session: SmartMagicProductionSession,
+        baseRender: SmartMagicProductionRender,
+        adjustments: List<FaceLightAdjustment>,
+        shouldCancel: () -> Boolean = { false },
+    ): SmartMagicProductionRender {
+        val started = System.nanoTime()
+        requireCompatibleGeometry(previewSource, session)
+        require(adjustments.isNotEmpty()) { "At least one face light is required" }
+        require(adjustments.map { it.faceId }.distinct().size == adjustments.size) { "Only one light may target each face" }
+        checkCancelled(shouldCancel)
+        val litPreview = faceLightRenderer.renderAll(baseRender.image, session.semanticResult.faces, adjustments)
+        checkCancelled(shouldCancel)
+        cacheFaceLights(session, baseRender.level, adjustments)
+        val impact = impactEstimator.estimate(previewSource, litPreview)
+        return baseRender.copy(
+            image = litPreview,
+            strategy = if (baseRender.strategy == ProductionRenderStrategy.NO_OP) ProductionRenderStrategy.REGIONAL_ONLY else baseRender.strategy,
+            outcome = ProductionRenderOutcome.APPLIED,
+            impact = impact,
+            explanation = baseRender.explanation.filterNot { it.code == "FACE_LIGHT_APPLIED" } + DecisionReason(
+                "FACE_LIGHT_APPLIED",
+                "${adjustments.size} directed face ${if (adjustments.size == 1) "light" else "lights"} applied",
+            ),
+            elapsedNanos = System.nanoTime() - started,
+        )
+    }
+
+    fun previewFaceLight(
+        source: RasterImage,
+        session: SmartMagicProductionSession,
+        adjustment: FaceLightAdjustment,
+    ): RasterImage = previewFaceLights(source, session, listOf(adjustment))
+
+    fun previewFaceLights(
+        source: RasterImage,
+        session: SmartMagicProductionSession,
+        adjustments: List<FaceLightAdjustment>,
+    ): RasterImage = faceLightRenderer.renderAll(source, session.semanticResult.faces, adjustments)
+
+    fun facesDarkestFirst(
+        source: RasterImage,
+        session: SmartMagicProductionSession,
+    ): List<FaceEvidence> = session.semanticResult.faces.sortedBy { faceLightRenderer.meanFaceLuminance(source, it) }
 
     fun adjustmentDiagnosticReport(
         session: SmartMagicProductionSession,
@@ -387,21 +460,34 @@ class SmartMagicProcessingCoordinator(
         requireCompatibleGeometry(source, session)
         val started = System.nanoTime()
         val finishGrid = cachedFinishGrid(session, preview.level)
+        val faceLights = cachedFaceLights(session, preview.level)
         val wantsRegional = preview.strategy == ProductionRenderStrategy.COMBINED ||
             preview.strategy == ProductionRenderStrategy.REGIONAL_ONLY
         val globalImage = proFinishEngine.render(source, session.proFinishPlans.getValue(preview.level),
             if (wantsRegional) finishGrid else null, shouldCancel)
-        val globalImpact = impactEstimator.estimate(source, globalImage)
-        return if (!globalImage.argb.contentEquals(source.argb)) {
+        checkCancelled(shouldCancel)
+        // A bilateral grid is ideal for smooth scene corrections but can average away a small,
+        // deliberately localized face light. Reapply that compact ROI operation exactly at source
+        // resolution; its cost scales with the detected faces rather than the full photograph.
+        val finalImage = if (faceLights.isEmpty()) globalImage else
+            faceLightRenderer.renderAll(globalImage, session.semanticResult.faces, faceLights)
+        val globalImpact = impactEstimator.estimate(source, finalImage)
+        return if (!finalImage.argb.contentEquals(source.argb)) {
             SmartMagicProductionRender(
-                globalImage, preview.level,
+                finalImage, preview.level,
                 if (wantsRegional && finishGrid != null) preview.strategy else ProductionRenderStrategy.GLOBAL_ONLY,
                 ProductionRenderOutcome.APPLIED, globalImpact, null,
                 preview.explanation + DecisionReason(
-                    if (wantsRegional && finishGrid != null) "EXPORT_CACHED_BILATERAL_FINISH" else "EXPORT_GLOBAL_FALLBACK",
-                    if (wantsRegional && finishGrid != null)
-                        "The approved preview correction was upsampled during the single full-resolution photographic pass"
-                    else "The validated global plan was saved because no approved regional fit was cached",
+                    when {
+                        faceLights.isNotEmpty() -> "EXPORT_EXACT_FACE_LIGHT"
+                        wantsRegional && finishGrid != null -> "EXPORT_CACHED_BILATERAL_FINISH"
+                        else -> "EXPORT_GLOBAL_FALLBACK"
+                    },
+                    when {
+                        faceLights.isNotEmpty() -> "Directed face lights were reproduced exactly at full resolution after the fast scene pass"
+                        wantsRegional && finishGrid != null -> "The approved preview correction was upsampled during the single full-resolution photographic pass"
+                        else -> "The validated global plan was saved because no approved regional fit was cached"
+                    },
                 ),
                 System.nanoTime() - started,
             )
@@ -431,10 +517,44 @@ class SmartMagicProcessingCoordinator(
         finishGridCache[level] = proFinishEngine.fitFinishGrid(globalPreview, approvedPreview, shouldCancel)
     }
 
+    private fun cacheFaceLights(
+        session: SmartMagicProductionSession,
+        level: EnhancementLevel,
+        adjustments: List<FaceLightAdjustment>,
+    ) = synchronized(finishGridCache) {
+        if (finishGridSessionId != session.sessionId) {
+            finishGridCache.clear(); faceLightCache.clear(); finishGridSessionId = session.sessionId
+        }
+        faceLightCache[level] = adjustments.toList()
+    }
+
+    private fun cachedFaceLights(
+        session: SmartMagicProductionSession,
+        level: EnhancementLevel,
+    ): List<FaceLightAdjustment> = synchronized(finishGridCache) {
+        if (finishGridSessionId == session.sessionId) faceLightCache[level].orEmpty() else emptyList()
+    }
+
+    fun faceLightAdjustments(
+        session: SmartMagicProductionSession,
+        level: EnhancementLevel,
+    ): List<FaceLightAdjustment> = cachedFaceLights(session, level).toList()
+
+    fun restoreFaceLightAdjustments(
+        session: SmartMagicProductionSession,
+        level: EnhancementLevel,
+        adjustments: List<FaceLightAdjustment>,
+    ) = synchronized(finishGridCache) {
+        if (finishGridSessionId != session.sessionId) {
+            finishGridCache.clear(); faceLightCache.clear(); finishGridSessionId = session.sessionId
+        }
+        if (adjustments.isEmpty()) faceLightCache.remove(level) else faceLightCache[level] = adjustments.toList()
+    }
+
     private fun removeFinishGrid(session: SmartMagicProductionSession, level: EnhancementLevel) {
         synchronized(finishGridCache) {
             if (finishGridSessionId != session.sessionId) {
-                finishGridCache.clear()
+                finishGridCache.clear(); faceLightCache.clear()
                 finishGridSessionId = session.sessionId
             }
             finishGridCache.remove(level)

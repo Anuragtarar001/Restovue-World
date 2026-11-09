@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.geometry.Offset
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.photointelligence.EnhancementLevel
+import com.restorex.app.domain.photointelligence.FaceEvidence
+import com.restorex.app.domain.photointelligence.NormalizedRect
 import com.restorex.app.domain.smartmagic.SmartMagicAnalysis
 import com.restorex.app.domain.smartmagic.SmartMagicColorStatistics
 import com.restorex.app.domain.smartmagic.SmartMagicDetailStatistics
@@ -43,6 +45,7 @@ class RestovueSmartMagicScreenTest {
                         completedLevel = EnhancementLevel.ENHANCED,
                         completedRenderGeneration = 1,
                         modeSelectionEnabled = true,
+                        canUndoFaceLight = true,
                     ),
                     onBack = {}, onChooseAnother = {}, onSave = {}, onCancel = {},
                     onOpen = { _, _ -> }, onShare = { _, _ -> },
@@ -58,6 +61,7 @@ class RestovueSmartMagicScreenTest {
         composeRule.onNodeWithContentDescription("Extreme enhancement").assertHasClickAction()
         composeRule.onNodeWithText("What changed").assertExists()
         composeRule.onNodeWithText("Save Photo", substring = true).assertExists()
+        composeRule.onNodeWithText("Undo Face Light", substring = true).assertHasClickAction()
     }
 
     @Test fun outdoorBacklitPortraitNeverClaimsIndoor() {
@@ -74,6 +78,12 @@ class RestovueSmartMagicScreenTest {
                         completedLevel = EnhancementLevel.ENHANCED,
                         completedRenderGeneration = 2,
                         modeSelectionEnabled = true,
+                        faces = listOf(
+                            FaceEvidence("face-0", NormalizedRect(.05f, .15f, .20f, .42f), .9f, .9f, emptyList()),
+                            FaceEvidence("face-1", NormalizedRect(.28f, .14f, .43f, .41f), .9f, .9f, emptyList()),
+                            FaceEvidence("face-2", NormalizedRect(.53f, .13f, .68f, .40f), .9f, .9f, emptyList()),
+                            FaceEvidence("face-3", NormalizedRect(.77f, .15f, .92f, .42f), .9f, .9f, emptyList()),
+                        ),
                     ),
                     onBack = {}, onChooseAnother = {}, onSave = {}, onCancel = {},
                     onOpen = { _, _ -> }, onShare = { _, _ -> },
@@ -85,7 +95,12 @@ class RestovueSmartMagicScreenTest {
         composeRule.onNodeWithText("Face light balanced · Highlights protected").assertExists()
         composeRule.onNodeWithText("Group Face Light").assertHasClickAction()
         composeRule.onNodeWithText("Group Face Light").performClick()
-        composeRule.onNodeWithContentDescription("Apply face light unavailable").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Face 1, selected").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Face 4").assertExists()
+        composeRule.onNodeWithContentDescription("Movable light for selected face").assertExists()
+        composeRule.onNodeWithText("Beam width").assertExists()
+        composeRule.onNodeWithContentDescription("Lift face light").assertHasClickAction()
+        composeRule.onNodeWithText("Apply 1 Light", substring = true).assertHasClickAction()
     }
 
     @Test fun comparisonShowsOriginalOnLeftAndEnhancedOnRight() {

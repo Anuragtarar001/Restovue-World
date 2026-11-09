@@ -18,8 +18,8 @@ android {
         applicationId = "com.restorex.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 22
-        versionName = "0.12.3-beta11"
+        versionCode = 27
+        versionName = "0.14.2-beta16"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

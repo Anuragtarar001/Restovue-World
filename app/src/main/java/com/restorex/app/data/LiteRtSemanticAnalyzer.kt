@@ -46,11 +46,11 @@ class LiteRtSemanticAnalyzer(
             coroutineContext.ensureActive(); if (shouldCancel()) throw CancellationException("Semantic analysis cancelled")
             val mask = segmentPerson(image).feather(1)
             coroutineContext.ensureActive(); if (shouldCancel()) throw CancellationException("Semantic analysis cancelled")
-            val fullFrameFaces = detectFaces(image)
-            // Short-range BlazeFace can miss a small face in a wide environmental portrait. A
-            // second, bounded pass uses only the upper part of a reliable human region. The model
-            // still has to detect a real face; the person mask never becomes a synthetic face box.
-            val faces = if (fullFrameFaces.isEmpty()) detectFacesInPersonUpperRegion(image, mask) else fullFrameFaces
+            val multiScaleFaces = detectFacesAcrossScales(image)
+            // Keep the person-guided fallback for a distant single subject, but do not make it the
+            // only closer pass. Group photos commonly produce one full-frame detection while the
+            // other, smaller faces need square crops to reach BlazeFace's useful input scale.
+            val faces = if (multiScaleFaces.isEmpty()) detectFacesInPersonUpperRegion(image, mask) else multiScaleFaces
             var quality = mask.quality()
             val associations = FacePersonAssociator.associate(faces, mask)
             if (faces.isNotEmpty() && associations.all { it.personCoverageWithinFace < .25f }) {
@@ -111,6 +111,84 @@ class LiteRtSemanticAnalyzer(
             FaceEvidence("face-$index", candidate.bounds, candidate.score, candidate.score * .75f + scaleQuality * .25f,
                 candidate.points.mapIndexed { pointIndex, point -> FaceLandmarkEvidence("KEYPOINT_$pointIndex", point) })
         }
+    }
+
+    private fun detectFacesAcrossScales(image: RasterImage): List<FaceEvidence> {
+        val detections = ArrayList<FaceEvidence>()
+        detections += detectFaces(image)
+        groupSearchCrops(image.width, image.height).forEachIndexed { cropIndex, crop ->
+            detections += detectAndMapFaces(image, crop, "face-group-$cropIndex")
+        }
+        return mergeFaceDetections(detections)
+    }
+
+    /**
+     * BlazeFace short-range receives a square 128x128 tensor. Feeding a portrait or panorama as a
+     * single stretched frame makes small group faces only a few input pixels wide. These square,
+     * overlapping windows preserve face shape and provide a closer view without inventing faces.
+     */
+    private fun groupSearchCrops(imageWidth: Int, imageHeight: Int): List<NormalizedRect> {
+        if (imageWidth <= 0 || imageHeight <= 0) return emptyList()
+        val shorter = min(imageWidth, imageHeight).toFloat()
+        val windows = ArrayList<NormalizedRect>()
+        listOf(1f, .62f).forEach { scale ->
+            val side = (shorter * scale).coerceAtLeast(48f)
+            if (side >= imageWidth * .98f && side >= imageHeight * .98f) return@forEach
+            val xStarts = windowStarts(imageWidth.toFloat(), side)
+            val yStarts = windowStarts(imageHeight.toFloat(), side)
+            for (top in yStarts) for (left in xStarts) {
+                windows += NormalizedRect(
+                    left / imageWidth,
+                    top / imageHeight,
+                    ((left + side) / imageWidth).coerceAtMost(1f),
+                    ((top + side) / imageHeight).coerceAtMost(1f),
+                )
+            }
+        }
+        return windows.distinctBy { crop ->
+            listOf(crop.left, crop.top, crop.right, crop.bottom).joinToString(":") { value ->
+                (value * 10_000f).toInt().toString()
+            }
+        }
+    }
+
+    private fun windowStarts(total: Float, window: Float): List<Float> {
+        if (window >= total - 1f) return listOf(0f)
+        val last = total - window
+        val starts = ArrayList<Float>()
+        var value = 0f
+        val stride = window * .68f
+        while (value < last) {
+            starts += value
+            value += stride
+        }
+        starts += last
+        return starts.distinctBy { (it * 10f).toInt() }
+    }
+
+    private fun mergeFaceDetections(detections: List<FaceEvidence>): List<FaceEvidence> {
+        val selected = ArrayList<FaceEvidence>()
+        detections.sortedWith(
+            compareByDescending<FaceEvidence> { it.detectorScore ?: it.heuristicQuality }
+                .thenByDescending { it.bounds.area }
+        ).forEach { candidate ->
+            val duplicate = selected.any { existing ->
+                iou(existing.bounds, candidate.bounds) > .24f || sameFaceCenter(existing.bounds, candidate.bounds)
+            }
+            if (!duplicate) selected += candidate
+        }
+        return selected
+            .sortedWith(compareBy<FaceEvidence> { it.bounds.left }.thenBy { it.bounds.top })
+            .take(20)
+            .mapIndexed { index, face -> face.copy(id = "face-$index") }
+    }
+
+    private fun sameFaceCenter(a: NormalizedRect, b: NormalizedRect): Boolean {
+        val acx = (a.left + a.right) * .5f; val acy = (a.top + a.bottom) * .5f
+        val bcx = (b.left + b.right) * .5f; val bcy = (b.top + b.bottom) * .5f
+        val minWidth = min(a.right - a.left, b.right - b.left)
+        val minHeight = min(a.bottom - a.top, b.bottom - b.top)
+        return abs(acx - bcx) <= minWidth * .35f && abs(acy - bcy) <= minHeight * .35f
     }
 
     private fun detectFacesInPersonUpperRegion(image: RasterImage, mask: ConfidenceMask): List<FaceEvidence> {

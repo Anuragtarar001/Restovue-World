@@ -5,6 +5,8 @@ import com.restorex.app.domain.photointelligence.ConfidenceMask
 import com.restorex.app.domain.photointelligence.EnhancementLevel
 import com.restorex.app.domain.photointelligence.FaceEvidence
 import com.restorex.app.domain.photointelligence.FacePersonAssociator
+import com.restorex.app.domain.photointelligence.FaceLightAdjustment
+import com.restorex.app.domain.photointelligence.FaceLightStyle
 import com.restorex.app.domain.photointelligence.NormalizedRect
 import com.restorex.app.domain.photointelligence.ProductionRenderStrategy
 import com.restorex.app.domain.photointelligence.SemanticAnalysisResult
@@ -134,6 +136,30 @@ class SmartMagicProcessingCoordinatorTest {
         assertEquals(null, exported.regionalResult)
         assertTrue(exported.explanation.any { it.code == "EXPORT_CACHED_BILATERAL_FINISH" })
         assertFalse(exported.image.argb.contentEquals(fullSource.argb))
+    }
+
+    @Test fun `applied face light is included in fast full resolution export`() = runBlocking {
+        val previewSource = backlitFixture()
+        val coordinator = SmartMagicProcessingCoordinator(SmartMagicPipeline(),
+            personAnalyzer(previewSource.width, previewSource.height))
+        val session = coordinator.createSession("face-light-export", previewSource)
+        val base = coordinator.render(previewSource, session, EnhancementLevel.EXTREME)
+        val fullSource = backlitFixture(384, 256)
+        val baseExport = coordinator.renderForExport(fullSource, session, base)
+        val lit = coordinator.applyFaceLight(previewSource, session, base,
+            FaceLightAdjustment("face", FaceLightStyle.SOFT, .65f))
+        assertTrue(lit.explanation.any { it.code == "FACE_LIGHT_APPLIED" })
+        assertFalse(lit.image.argb.contentEquals(base.image.argb))
+
+        val exported = coordinator.renderForExport(fullSource, session, lit)
+        assertTrue(exported.explanation.any { it.code == "EXPORT_EXACT_FACE_LIGHT" })
+        assertEquals(ProductionRenderStrategy.COMBINED, exported.strategy)
+        val face = session.semanticResult.faces.first()
+        val renderer = com.restorex.app.domain.photointelligence.FaceLightRenderer()
+        assertTrue(
+            "full-resolution face light was averaged away",
+            renderer.meanFaceLuminance(exported.image, face) > renderer.meanFaceLuminance(baseExport.image, face) + .004f,
+        )
     }
 
     @Test fun `no person uses independently calculated global plans`() = runBlocking {

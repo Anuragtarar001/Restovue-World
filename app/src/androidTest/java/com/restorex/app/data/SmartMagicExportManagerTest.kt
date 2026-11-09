@@ -13,6 +13,9 @@ import com.restorex.app.domain.smartmagic.SmartMagicParameters
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.photointelligence.EnhancementLevel
 import com.restorex.app.domain.photointelligence.FaceEvidence
+import com.restorex.app.domain.photointelligence.FaceLightAdjustment
+import com.restorex.app.domain.photointelligence.FaceLightRenderer
+import com.restorex.app.domain.photointelligence.FaceLightStyle
 import com.restorex.app.domain.photointelligence.NormalizedRect
 import com.restorex.app.domain.photointelligence.ConfidenceMask
 import com.restorex.app.domain.photointelligence.RegionalCorrectionPlan
@@ -33,6 +36,37 @@ import java.io.ByteArrayOutputStream
 
 @RunWith(AndroidJUnit4::class)
 class SmartMagicExportManagerTest {
+    @Test fun twelveMegapixelAppliedFaceLightExportProfile() = runBlocking {
+        val application = ApplicationProvider.getApplicationContext<RestoreXApplication>()
+        val testAssets = InstrumentationRegistry.getInstrumentation().context.assets
+        val decoded = testAssets.open("public_domain_portrait.jpg").use(BitmapFactory::decodeStream)
+        val fullBitmap = Bitmap.createScaledBitmap(decoded, 4000, 3000, true)
+        decoded.recycle()
+        val previewBitmap = Bitmap.createScaledBitmap(fullBitmap, 800, 600, true)
+        val full = fullBitmap.toRaster(1f); val preview = previewBitmap.toRaster(.2f)
+        fullBitmap.recycle(); previewBitmap.recycle()
+        val coordinator = application.container.smartMagicCoordinator
+        val session = coordinator.createSession("diagnostic://face-light", preview)
+        val face = session.semanticResult.faces.first()
+        val base = coordinator.render(preview, session, EnhancementLevel.EXTREME)
+        val baselineExport = coordinator.renderForExport(full, session, base)
+        val lit = coordinator.applyFaceLight(preview, session, base,
+            FaceLightAdjustment(face.id, FaceLightStyle.SOFT, .65f))
+        val started = System.nanoTime()
+        val exported = coordinator.renderForExport(full, session, lit)
+        val elapsedMillis = (System.nanoTime() - started) / 1_000_000L
+        println("SMART_MAGIC_FACE_LIGHT_12MP renderMs=$elapsedMillis strategy=${exported.strategy} " +
+            "changed=${exported.impact.changedFraction}")
+        assertEquals(12_000_000, exported.image.argb.size)
+        assertTrue(exported.explanation.any { it.code == "EXPORT_EXACT_FACE_LIGHT" })
+        val faceRenderer = FaceLightRenderer()
+        assertTrue(
+            "full-resolution face illumination was weaker than the unlit export",
+            faceRenderer.meanFaceLuminance(exported.image, face) > faceRenderer.meanFaceLuminance(baselineExport.image, face) + .003f,
+        )
+        assertTrue(elapsedMillis < 15_000L)
+    }
+
     @Test fun twelveMegapixelCachedBilateralFinishProfile() {
         val testAssets = InstrumentationRegistry.getInstrumentation().context.assets
         val decoded = testAssets.open("public_domain_portrait.jpg").use(BitmapFactory::decodeStream)

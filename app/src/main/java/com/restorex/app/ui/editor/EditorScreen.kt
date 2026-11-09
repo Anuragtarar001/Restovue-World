@@ -341,6 +341,10 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
                 }.onFailure { Toast.makeText(context, "No app can share this photo", Toast.LENGTH_SHORT).show() }
             },
             onSelectLevel = smartMagicViewModel::selectLevel,
+            onPreviewFaceLight = smartMagicViewModel::previewFaceLights,
+            onApplyFaceLight = smartMagicViewModel::applyFaceLights,
+            onUndoFaceLight = smartMagicViewModel::undoFaceLight,
+            onCancelFaceLight = smartMagicViewModel::cancelFaceLight,
         )
         return
     }

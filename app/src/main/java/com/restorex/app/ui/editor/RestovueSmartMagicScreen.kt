@@ -3,12 +3,18 @@ package com.restorex.app.ui.editor
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -28,20 +34,27 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.photointelligence.EnhancementLevel
+import com.restorex.app.domain.photointelligence.FaceEvidence
+import com.restorex.app.domain.photointelligence.FaceLightAdjustment
+import com.restorex.app.domain.photointelligence.FaceLightStyle
 import com.restorex.app.presentation.SmartMagicPhase
 import com.restorex.app.presentation.SmartMagicUiState
 import com.restorex.app.ui.theme.*
 import kotlin.math.roundToInt
+import kotlin.math.max
+import kotlinx.coroutines.delay
 
 /** Approved Restovue Smart Magic experience. Every claim is derived from the active engine state. */
 @Composable
@@ -55,12 +68,27 @@ fun RestovueSmartMagicScreen(
     onShare: (String, String?) -> Unit,
     onSelectLevel: (EnhancementLevel) -> Unit = {},
     onComparisonChanged: (Boolean) -> Unit = {},
+    onPreviewFaceLight: (List<FaceLightAdjustment>) -> Unit = {},
+    onApplyFaceLight: (List<FaceLightAdjustment>) -> Unit = {},
+    onUndoFaceLight: () -> Unit = {},
+    onCancelFaceLight: () -> Unit = {},
 ) {
     var showFaceLight by rememberSaveable(state.sourceGeneration) { mutableStateOf(false) }
     if (showFaceLight) {
         GroupFaceLightScreen(
-            photo = state.enhanced ?: state.original,
-            onBack = { showFaceLight = false },
+            photo = state.faceLightPreview ?: state.enhanced ?: state.original,
+            beforePhoto = state.enhanced ?: state.original,
+            faces = state.faces,
+            working = state.faceLightWorking,
+            onPreview = onPreviewFaceLight,
+            onApply = {
+                onApplyFaceLight(it)
+                showFaceLight = false
+            },
+            onBack = {
+                onCancelFaceLight()
+                showFaceLight = false
+            },
         )
         return
     }
@@ -77,6 +105,7 @@ fun RestovueSmartMagicScreen(
         onComparisonChanged(compare)
     }
     LaunchedEffect(state.sourceGeneration) { divider = .5f }
+    LaunchedEffect(state.faceLightRevision) { divider = .5f }
     val visible = if (state.displayedPreviewIsCurrent) state.enhanced else state.original
 
     Column(
@@ -268,8 +297,11 @@ fun RestovueSmartMagicScreen(
                         Spacer(Modifier.height(7.dp))
                     }
                 }
-                if ((state.analysis?.scenes?.portrait ?: 0f) >= .3f) {
+                if (state.faces.isNotEmpty()) {
                     BrandSecondaryButton("Group Face Light", Modifier.fillMaxWidth()) { showFaceLight = true }
+                }
+                if (state.canUndoFaceLight) {
+                    BrandSecondaryButton("↶  Undo Face Light", Modifier.fillMaxWidth(), onClick = onUndoFaceLight)
                 }
             }
 
@@ -298,10 +330,31 @@ fun RestovueSmartMagicScreen(
 }
 
 @Composable
-private fun GroupFaceLightScreen(photo: RasterImage?, onBack: () -> Unit) {
+private fun GroupFaceLightScreen(
+    photo: RasterImage?,
+    beforePhoto: RasterImage?,
+    faces: List<FaceEvidence>,
+    working: Boolean,
+    onPreview: (List<FaceLightAdjustment>) -> Unit,
+    onApply: (List<FaceLightAdjustment>) -> Unit,
+    onBack: () -> Unit,
+) {
     BackHandler(onBack = onBack)
-    var style by rememberSaveable { mutableStateOf("Lift") }
-    var strength by rememberSaveable { mutableFloatStateOf(.6f) }
+    var selectedFaceId by rememberSaveable(faces) { mutableStateOf(faces.firstOrNull()?.id) }
+    val lights = remember(faces) { mutableStateMapOf<String, FaceLightAdjustment>() }
+    val selectedFace = faces.firstOrNull { it.id == selectedFaceId }
+    val selectedLight = selectedFaceId?.let { lights[it] }
+    val orderedLights = faces.mapNotNull { lights[it.id] }
+    LaunchedEffect(faces) {
+        faces.firstOrNull()?.let { face ->
+            if (lights[face.id] == null) lights[face.id] = FaceLightAdjustment(face.id, FaceLightStyle.LIFT, .6f)
+        }
+    }
+    LaunchedEffect(orderedLights) {
+        if (orderedLights.isEmpty()) return@LaunchedEffect
+        delay(90)
+        onPreview(orderedLights)
+    }
     Column(
         Modifier.fillMaxSize().background(
             Brush.verticalGradient(listOf(Color(0xFF080E29), RestoreXBackground, Color(0xFF040515))),
@@ -319,14 +372,22 @@ private fun GroupFaceLightScreen(photo: RasterImage?, onBack: () -> Unit) {
                 .border(1.dp, Color(0xFF302A59), RoundedCornerShape(20.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            photo?.let {
-                Image(
-                    bitmap = rememberBrandRaster(it),
-                    contentDescription = "Group face light photograph",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    filterQuality = FilterQuality.High,
+            photo?.let { image ->
+                TorchCanvas(
+                    photo = image,
+                    beforePhoto = beforePhoto,
+                    face = selectedFace,
+                    light = selectedLight,
+                    onSourceChange = { x, y ->
+                        selectedFaceId?.let { id -> lights[id] = (lights[id]
+                            ?: FaceLightAdjustment(id, FaceLightStyle.LIFT, .6f)).copy(sourceX = x, sourceY = y) }
+                    },
                 )
+            }
+            if (working) {
+                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .22f)), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = RestoreXAccent, strokeWidth = 3.dp, modifier = Modifier.size(34.dp))
+                }
             }
         }
         Column(Modifier.fillMaxWidth().weight(.52f).padding(horizontal = 12.dp, vertical = 10.dp)) {
@@ -337,32 +398,343 @@ private fun GroupFaceLightScreen(photo: RasterImage?, onBack: () -> Unit) {
             ) {
                 Text("Face Light", color = RestoreXText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "Choose a lighting style and strength. Per-face selection will be connected in the next engine pass.",
+                    if (faces.size > 1) "The darkest detected face is selected. Tap another face if needed."
+                    else "Adjust soft, skin-aware light for the detected face.",
                     color = RestoreXMuted,
                     fontSize = 11.sp,
                 )
+                if (photo != null && faces.isNotEmpty()) {
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        faces.forEachIndexed { index, face ->
+                            FaceThumbnail(
+                                photo, face, index + 1, face.id == selectedFaceId, lights.containsKey(face.id),
+                            ) {
+                                selectedFaceId = face.id
+                                if (lights[face.id] == null) lights[face.id] = FaceLightAdjustment(face.id, FaceLightStyle.LIFT, .6f)
+                            }
+                        }
+                    }
+                } else {
+                    Text("No reliable face was detected in this photo.", color = RestoreXMuted, fontSize = 11.sp)
+                }
+                Text("Light character", color = RestoreXText, fontWeight = FontWeight.SemiBold)
+                Text("Lift is neutral, Soft is diffused, and Dramatic adds stronger direction. Strength is controlled separately below.", color = RestoreXMuted, fontSize = 10.sp)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Lift", "Soft", "Dramatic").forEach { option ->
-                        BrandSecondaryButton(if (style == option) "✓ $option" else option, Modifier.weight(1f)) { style = option }
+                    FaceLightStyle.entries.forEach { option ->
+                        FaceLightStyleButton(option, selectedLight?.style == option, Modifier.weight(1f)) {
+                            selectedFaceId?.let { id -> lights[id] = (lights[id]
+                                ?: FaceLightAdjustment(id, option, .6f)).copy(style = option) }
+                        }
+                    }
+                }
+                Text("Light direction", color = RestoreXText, fontWeight = FontWeight.SemiBold)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("Left" to Offset(-1.25f, 0f), "Front" to Offset.Zero, "Top" to Offset(0f, -1.25f), "Right" to Offset(1.25f, 0f)).forEach { (label, source) ->
+                        val active = selectedLight != null && kotlin.math.abs(selectedLight.sourceX - source.x) < .08f && kotlin.math.abs(selectedLight.sourceY - source.y) < .08f
+                        Box(
+                            Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(10.dp))
+                                .background(if (active) RestoreXAccent else Color(0xFF171633))
+                                .border(1.dp, if (active) RestoreXAccent else Color(0xFF3A355E), RoundedCornerShape(10.dp))
+                                .clickable {
+                                    selectedFaceId?.let { id -> lights[id] = (lights[id]
+                                        ?: FaceLightAdjustment(id, FaceLightStyle.LIFT, .6f)).copy(sourceX = source.x, sourceY = source.y) }
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) { Text(label, color = Color.White, fontSize = 10.sp) }
                     }
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Beam width", color = RestoreXText, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.weight(1f))
+                    val beam = selectedLight?.beamWidth ?: .65f
+                    Text("${(beam * 100).roundToInt()}% · ${if (beam < .48f) "Narrow" else "Broad"}", color = RestoreXText)
+                }
+                Slider(
+                    value = selectedLight?.beamWidth ?: .65f,
+                    onValueChange = { value -> selectedFaceId?.let { id -> lights[id] = (lights[id]
+                        ?: FaceLightAdjustment(id, FaceLightStyle.LIFT, .6f)).copy(beamWidth = value) } },
+                    valueRange = 0f..1f,
+                )
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Strength", color = RestoreXText, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Text("${(strength * 100).roundToInt()}", color = RestoreXText)
+                    Text("${((selectedLight?.strength ?: .6f) * 100).roundToInt()}", color = RestoreXText)
                 }
-                Slider(value = strength, onValueChange = { strength = it }, valueRange = 0f..1f)
-                Text("Manual radial and linear light remain available in Manual Edit.", color = RestoreXMuted, fontSize = 10.sp)
+                Slider(
+                    value = selectedLight?.strength ?: .6f,
+                    onValueChange = { value -> selectedFaceId?.let { id -> lights[id] = (lights[id]
+                        ?: FaceLightAdjustment(id, FaceLightStyle.LIFT, .6f)).copy(strength = value) } },
+                    valueRange = 0f..1f,
+                )
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Drag the light on the photo. Pinch or drag elsewhere to move the image.", color = RestoreXMuted, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { selectedFaceId?.let { id -> lights.remove(id) } }) { Text("Remove", color = RestoreXMuted) }
+                }
             }
             Spacer(Modifier.height(10.dp))
-            Box(
-                Modifier.fillMaxWidth().height(50.dp).background(RestoreXDisabled, RoundedCornerShape(14.dp))
-                    .semantics { contentDescription = "Apply face light unavailable" },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("Apply Light — engine connection pending", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            BrandPrimaryButton(
+                label = if (working) "Preparing lights…" else "✓   Apply ${orderedLights.size} ${if (orderedLights.size == 1) "Light" else "Lights"}",
+                enabled = orderedLights.isNotEmpty() && !working,
+                onClick = { onApply(orderedLights) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun TorchCanvas(
+    photo: RasterImage,
+    beforePhoto: RasterImage?,
+    face: FaceEvidence?,
+    light: FaceLightAdjustment?,
+    onSourceChange: (Float, Float) -> Unit,
+) {
+    var zoom by remember(photo) { mutableFloatStateOf(1f) }
+    var pan by remember(photo) { mutableStateOf(Offset.Zero) }
+    var divider by remember(photo) { mutableFloatStateOf(.5f) }
+    val latestLight by rememberUpdatedState(light)
+    val latestSourceChange by rememberUpdatedState(onSourceChange)
+    BoxWithConstraints(
+        Modifier.fillMaxSize().clipToBounds().pointerInput(photo) {
+            // A single finger belongs exclusively to a light handle. Requiring two fingers
+            // here prevents the photograph from stealing a beam drag.
+            awaitEachGesture {
+                var navigating = false
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val pressed = event.changes.filter { it.pressed }
+                    if (pressed.isEmpty()) break
+                    if (pressed.size >= 2) {
+                        navigating = true
+                        val zoomChange = event.calculateZoom()
+                        val panChange = event.calculatePan()
+                        zoom = (zoom * zoomChange).coerceIn(1f, 4f)
+                        pan = if (zoom <= 1.01f) Offset.Zero else pan + panChange
+                        event.changes.forEach { it.consume() }
+                    } else if (navigating) {
+                        event.changes.forEach { it.consume() }
+                    }
+                }
+            }
+        },
+    ) {
+        val density = LocalDensity.current
+        val canvasWidth = with(density) { maxWidth.toPx() }
+        val canvasHeight = with(density) { maxHeight.toPx() }
+        val cropScale = max(canvasWidth / photo.width, canvasHeight / photo.height)
+        val imageWidth = photo.width * cropScale
+        val imageHeight = photo.height * cropScale
+        val imageOffsetX = (canvasWidth - imageWidth) * .5f
+        val imageOffsetY = (canvasHeight - imageHeight) * .5f
+        val faceWidth = face?.let { (it.bounds.right - it.bounds.left) * imageWidth } ?: 1f
+        val faceHeight = face?.let { (it.bounds.bottom - it.bounds.top) * imageHeight } ?: 1f
+        val faceCenterX = face?.let { imageOffsetX + (it.bounds.left + it.bounds.right) * .5f * imageWidth } ?: canvasWidth * .5f
+        val faceCenterY = face?.let { imageOffsetY + (it.bounds.top + it.bounds.bottom) * .5f * imageHeight } ?: canvasHeight * .5f
+        val frontFacing = light != null && kotlin.math.abs(light.sourceX) < .08f && kotlin.math.abs(light.sourceY) < .08f
+        val displayedSourceX = if (frontFacing) 0f else light?.sourceX ?: 0f
+        val displayedSourceY = if (frontFacing) 1.45f else light?.sourceY ?: 0f
+        val sourceX = faceCenterX + displayedSourceX * faceWidth * .72f
+        val sourceY = faceCenterY + displayedSourceY * faceHeight * .72f
+        Box(
+            Modifier.fillMaxSize().graphicsLayer {
+                scaleX = zoom; scaleY = zoom
+                translationX = pan.x; translationY = pan.y
+            },
+        ) {
+            Image(
+                bitmap = rememberBrandRaster(photo),
+                contentDescription = "Group face light photograph",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                filterQuality = FilterQuality.High,
+            )
+            beforePhoto?.let { before ->
+                Image(
+                    bitmap = rememberBrandRaster(before),
+                    contentDescription = "Face light before photo",
+                    modifier = Modifier.fillMaxSize().drawWithContent {
+                        clipRect(right = size.width * divider) { this@drawWithContent.drawContent() }
+                    },
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.High,
+                )
+            }
+            if (face != null) FaceSelectionRing(photo, face)
+            if (face != null && light != null) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val source = Offset(sourceX, sourceY)
+                    val target = Offset(faceCenterX, faceCenterY)
+                    val delta = target - source
+                    val length = kotlin.math.sqrt(delta.x * delta.x + delta.y * delta.y).coerceAtLeast(1f)
+                    val perpendicular = Offset(-delta.y / length, delta.x / length)
+                    val sourceHalfWidth = 3.dp.toPx()
+                    val styleSpread = when (light.style) {
+                        FaceLightStyle.LIFT -> 1f
+                        FaceLightStyle.SOFT -> 1.08f
+                        FaceLightStyle.DRAMATIC -> .94f
+                    }
+                    // This is the exact footprint used by FaceLightRenderer: 50% is one face
+                    // diameter and 100% is two. The on-photo guide therefore predicts export.
+                    val beamRadius = light.beamWidth.coerceAtLeast(.18f) * styleSpread
+                    val targetRadiusX = faceWidth * beamRadius
+                    val targetRadiusY = faceHeight * beamRadius
+                    val targetHalfWidth = max(targetRadiusX, targetRadiusY)
+                    val cone = Path().apply {
+                        moveTo(source.x + perpendicular.x * sourceHalfWidth, source.y + perpendicular.y * sourceHalfWidth)
+                        lineTo(target.x + perpendicular.x * targetHalfWidth, target.y + perpendicular.y * targetHalfWidth)
+                        lineTo(target.x - perpendicular.x * targetHalfWidth, target.y - perpendicular.y * targetHalfWidth)
+                        lineTo(source.x - perpendicular.x * sourceHalfWidth, source.y - perpendicular.y * sourceHalfWidth)
+                        close()
+                    }
+                    // A true 50%-opacity beam guide: visible enough to place precisely while
+                    // still leaving the photograph readable underneath.
+                    drawPath(cone, RestoreXAccent.copy(alpha = .50f))
+                    drawLine(RestoreXAccent.copy(alpha = .72f), source + perpendicular * sourceHalfWidth, target + perpendicular * targetHalfWidth, 1.5.dp.toPx())
+                    drawLine(RestoreXAccent.copy(alpha = .72f), source - perpendicular * sourceHalfWidth, target - perpendicular * targetHalfWidth, 1.5.dp.toPx())
+                    drawOval(
+                        RestoreXAccent.copy(alpha = .08f + light.strength * .28f),
+                        topLeft = Offset(target.x - targetRadiusX, target.y - targetRadiusY),
+                        size = androidx.compose.ui.geometry.Size(targetRadiusX * 2f, targetRadiusY * 2f),
+                    )
+                    drawOval(
+                        RestoreXAccent.copy(alpha = .9f),
+                        topLeft = Offset(target.x - targetRadiusX, target.y - targetRadiusY),
+                        size = androidx.compose.ui.geometry.Size(targetRadiusX * 2f, targetRadiusY * 2f),
+                        style = Stroke(width = 1.5.dp.toPx()),
+                    )
+                }
+                Box(
+                    Modifier.offset { IntOffset((sourceX - 28.dp.toPx()).roundToInt(), (sourceY - 28.dp.toPx()).roundToInt()) }
+                        .size(56.dp)
+                        .pointerInput(face.id) {
+                            var dragX = 0f; var dragY = 0f
+                            detectDragGestures(
+                                onDragStart = {
+                                    val current = latestLight
+                                    val isFront = current != null && kotlin.math.abs(current.sourceX) < .08f && kotlin.math.abs(current.sourceY) < .08f
+                                    dragX = if (isFront) 0f else current?.sourceX ?: 0f
+                                    dragY = if (isFront) 1.45f else current?.sourceY ?: 0f
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    val unitX = (faceWidth * .72f).coerceAtLeast(1f)
+                                    val unitY = (faceHeight * .72f).coerceAtLeast(1f)
+                                    val margin = 18.dp.toPx()
+                                    val minX = ((margin - faceCenterX) / unitX).coerceAtLeast(-12f)
+                                    val maxX = ((canvasWidth - margin - faceCenterX) / unitX).coerceAtMost(12f)
+                                    val minY = ((margin - faceCenterY) / unitY).coerceAtLeast(-12f)
+                                    val maxY = ((canvasHeight - margin - faceCenterY) / unitY).coerceAtMost(12f)
+                                    dragX = (dragX + dragAmount.x / unitX).coerceIn(minX, maxX)
+                                    dragY = (dragY + dragAmount.y / unitY).coerceIn(minY, maxY)
+                                    latestSourceChange(dragX, dragY)
+                                },
+                            )
+                        }.semantics { contentDescription = "Movable light for selected face" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        Modifier.size(32.dp).background(RestoreXAccent, CircleShape)
+                            .border(2.dp, Color.White, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("☀", color = Color.White, fontSize = 17.sp) }
+                }
             }
         }
+        SharedComparisonDivider(
+            fraction = divider,
+            canvasWidthPx = canvasWidth.roundToInt().coerceAtLeast(1),
+            onFractionChange = { divider = it },
+            modifier = Modifier.align(Alignment.TopStart).offset {
+                IntOffset((canvasWidth * divider - 24.dp.toPx()).roundToInt(), 0)
+            },
+        )
+        BrandCanvasLabel("Before", Modifier.align(Alignment.TopStart))
+        BrandCanvasLabel("After", Modifier.align(Alignment.TopEnd), accent = true)
+        if (light != null) {
+            Text(
+                "Intensity ${(light.strength * 100).roundToInt()}%  •  Beam ${(light.beamWidth * 100).roundToInt()}% ${if (light.beamWidth < .48f) "Narrow" else "Broad"}",
+                color = Color.White,
+                fontSize = 10.sp,
+                modifier = Modifier.align(Alignment.BottomStart).padding(10.dp)
+                    .background(Color(0xB3000000), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.FaceSelectionRing(photo: RasterImage, face: FaceEvidence) {
+    Canvas(Modifier.fillMaxSize()) {
+        val scale = max(size.width / photo.width, size.height / photo.height)
+        val imageWidth = photo.width * scale; val imageHeight = photo.height * scale
+        val offsetX = (size.width - imageWidth) * .5f; val offsetY = (size.height - imageHeight) * .5f
+        val left = offsetX + face.bounds.left * imageWidth
+        val top = offsetY + face.bounds.top * imageHeight
+        val width = (face.bounds.right - face.bounds.left) * imageWidth
+        val height = (face.bounds.bottom - face.bounds.top) * imageHeight
+        drawOval(
+            color = RestoreXAccent,
+            topLeft = Offset(left - width * .08f, top - height * .08f),
+            size = androidx.compose.ui.geometry.Size(width * 1.16f, height * 1.16f),
+            style = Stroke(width = 3.dp.toPx()),
+        )
+    }
+}
+
+@Composable
+private fun FaceThumbnail(photo: RasterImage, face: FaceEvidence, number: Int, selected: Boolean, hasLight: Boolean, onClick: () -> Unit) {
+    val bitmap = rememberBrandRaster(photo)
+    val shape = RoundedCornerShape(13.dp)
+    Box(
+        Modifier.size(72.dp, 82.dp).clip(shape)
+            .border(if (selected) 3.dp else 1.dp, if (selected) RestoreXAccent else Color(0xFF504A73), shape)
+            .clickable(onClick = onClick).semantics {
+                contentDescription = "Face $number${if (selected) ", selected" else ""}"
+            },
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val padX = (face.bounds.right - face.bounds.left) * .28f
+            val padY = (face.bounds.bottom - face.bounds.top) * .20f
+            val left = ((face.bounds.left - padX) * photo.width).toInt().coerceIn(0, photo.width - 1)
+            val top = ((face.bounds.top - padY) * photo.height).toInt().coerceIn(0, photo.height - 1)
+            val right = ((face.bounds.right + padX) * photo.width).toInt().coerceIn(left + 1, photo.width)
+            val bottom = ((face.bounds.bottom + padY) * photo.height).toInt().coerceIn(top + 1, photo.height)
+            drawImage(
+                image = bitmap,
+                srcOffset = IntOffset(left, top),
+                srcSize = IntSize(right - left, bottom - top),
+                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                filterQuality = FilterQuality.High,
+            )
+        }
+        if (hasLight) {
+            Box(Modifier.align(Alignment.TopEnd).padding(3.dp).size(18.dp).background(RestoreXAccent, CircleShape),
+                contentAlignment = Alignment.Center) { Text("✓", color = Color.White, fontSize = 10.sp) }
+        }
+    }
+}
+
+@Composable
+private fun FaceLightStyleButton(style: FaceLightStyle, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val icon = when (style) {
+        FaceLightStyle.LIFT -> "☀"
+        FaceLightStyle.SOFT -> "♧"
+        FaceLightStyle.DRAMATIC -> "◐"
+    }
+    Column(
+        modifier.height(70.dp).clip(RoundedCornerShape(13.dp))
+            .background(if (selected) Brush.linearGradient(listOf(RestoreXAccentViolet, RestoreXAccent)) else Brush.linearGradient(listOf(RestoreXPanel, RestoreXPanel)))
+            .border(1.dp, if (selected) RestoreXAccent else Color(0xFF3A355E), RoundedCornerShape(13.dp))
+            .clickable(onClick = onClick).semantics { contentDescription = "${style.label} face light" },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(icon, color = Color.White, fontSize = 24.sp)
+        Text(style.label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

@@ -10,6 +10,8 @@ import com.restorex.app.data.SmartMagicProcessingCoordinator
 import com.restorex.app.domain.model.ImageSource
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.photointelligence.EnhancementLevel
+import com.restorex.app.domain.photointelligence.FaceEvidence
+import com.restorex.app.domain.photointelligence.FaceLightAdjustment
 import com.restorex.app.domain.photointelligence.ProductionRenderOutcome
 import com.restorex.app.domain.photointelligence.SmartMagicProductionSession
 import com.restorex.app.domain.photointelligence.SmartMagicProductionRender
@@ -88,6 +90,11 @@ data class SmartMagicUiState(
     val progress: SmartMagicProgressEvent? = null,
     val adjustments: List<SmartMagicAdjustment> = emptyList(),
     val adjustmentReport: AdjustmentDiagnosticReport? = null,
+    val faces: List<FaceEvidence> = emptyList(),
+    val faceLightPreview: RasterImage? = null,
+    val faceLightWorking: Boolean = false,
+    val canUndoFaceLight: Boolean = false,
+    val faceLightRevision: Long = 0,
 ) {
     val canCompare get() = original != null && enhanced != null && completedLevel == selectedLevel
     val isWorking get() = phase in setOf(SmartMagicPhase.LOADING_SOURCE, SmartMagicPhase.ANALYZING,
@@ -109,15 +116,21 @@ class SmartMagicViewModel(
     private var analysisJob: Job? = null
     private var renderJob: Job? = null
     private var exportJob: Job? = null
+    private var faceLightJob: Job? = null
     private val generations = SmartMagicGenerationTracker()
     private var session: SmartMagicProductionSession? = null
     private var previewSource: RasterImage? = null
     private val previewCache = mutableMapOf<EnhancementLevel, SmartMagicProductionRender>()
+    private data class FaceLightUndo(
+        val render: SmartMagicProductionRender,
+        val adjustments: List<FaceLightAdjustment>,
+    )
+    private val faceLightUndo = mutableMapOf<EnhancementLevel, MutableList<FaceLightUndo>>()
 
     fun process(source: String, initialLevel: EnhancementLevel = EnhancementLevel.NATURAL) {
-        analysisJob?.cancel(); renderJob?.cancel(); exportJob?.cancel()
+        analysisJob?.cancel(); renderJob?.cancel(); exportJob?.cancel(); faceLightJob?.cancel()
         val sourceRequest = generations.newSource()
-        previewCache.clear(); session = null; previewSource = null
+        previewCache.clear(); faceLightUndo.clear(); session = null; previewSource = null
         trace("source_selected", sourceRequest, null, "sourceKey=${source.hashCode()}")
         analysisJob = viewModelScope.launch {
             val started = System.nanoTime()
@@ -146,6 +159,7 @@ class SmartMagicViewModel(
                 session = productionSession
                 _state.update { it.copy(analysis = productionSession.smartAnalysis,
                     sessionIdentity = productionSession.sessionId, modeSelectionEnabled = true,
+                    faces = coordinator.facesDarkestFirst(preview, productionSession),
                     analysisElapsedMillis = productionSession.createdElapsedNanos / 1_000_000L) }
                 trace("analysis_ready", sourceRequest, null, "session=${productionSession.sessionId}")
                 requestLevelRender(initialLevel, productionSession, preview, sourceRequest, started)
@@ -169,7 +183,118 @@ class SmartMagicViewModel(
         if (_state.value.phase == SmartMagicPhase.SAVING) return
         val activeSession = session ?: return
         val source = previewSource ?: return
+        faceLightJob?.cancel()
+        _state.update { it.copy(faceLightPreview = null, faceLightWorking = false,
+            canUndoFaceLight = faceLightUndo[level]?.isNotEmpty() == true) }
         requestLevelRender(level, activeSession, source, generations.currentSource(), null)
+    }
+
+    fun previewFaceLight(adjustment: FaceLightAdjustment) {
+        previewFaceLights(listOf(adjustment))
+    }
+
+    fun previewFaceLights(adjustments: List<FaceLightAdjustment>) {
+        if (adjustments.isEmpty()) {
+            cancelFaceLight()
+            return
+        }
+        val activeSession = session ?: return
+        val base = previewCache[_state.value.selectedLevel] ?: return
+        faceLightJob?.cancel()
+        val sourceGeneration = _state.value.sourceGeneration
+        faceLightJob = viewModelScope.launch {
+            _state.update { it.copy(faceLightWorking = true, message = null) }
+            try {
+                val preview = withContext(Dispatchers.Default) {
+                    coordinator.previewFaceLights(base.image, activeSession, adjustments)
+                }
+                if (generations.isSourceCurrent(sourceGeneration)) {
+                    _state.update { it.copy(faceLightPreview = preview, faceLightWorking = false) }
+                }
+            } catch (_: CancellationException) {
+                // A newer face/style/strength preview superseded this one.
+            } catch (error: Throwable) {
+                if (generations.isSourceCurrent(sourceGeneration)) _state.update {
+                    it.copy(faceLightWorking = false, message = error.message ?: "Face light preview failed")
+                }
+            }
+        }
+    }
+
+    fun cancelFaceLight() {
+        faceLightJob?.cancel()
+        _state.update { it.copy(faceLightPreview = null, faceLightWorking = false) }
+    }
+
+    fun applyFaceLight(adjustment: FaceLightAdjustment) {
+        applyFaceLights(listOf(adjustment))
+    }
+
+    fun applyFaceLights(adjustments: List<FaceLightAdjustment>) {
+        if (adjustments.isEmpty()) return
+        val activeSession = session ?: return
+        val source = previewSource ?: return
+        val level = _state.value.selectedLevel
+        val base = previewCache[level] ?: return
+        val previousFaceLights = coordinator.faceLightAdjustments(activeSession, level)
+        faceLightJob?.cancel()
+        val sourceGeneration = _state.value.sourceGeneration
+        faceLightJob = viewModelScope.launch {
+            _state.update { it.copy(phase = SmartMagicPhase.RENDERING, faceLightWorking = true,
+                faceLightPreview = null, stage = "Applying face light", message = null) }
+            try {
+                val context = currentCoroutineContext()
+                val rendered = withContext(Dispatchers.Default) {
+                    coordinator.applyFaceLights(source, activeSession, base, adjustments) {
+                        !context.isActive || !generations.isSourceCurrent(sourceGeneration)
+                    }
+                }
+                context.ensureActive()
+                if (generations.isSourceCurrent(sourceGeneration)) {
+                    faceLightUndo.getOrPut(level) { mutableListOf() } += FaceLightUndo(base, previousFaceLights)
+                    previewCache[level] = rendered
+                    val adjustments = coordinator.describeAdjustments(activeSession, rendered)
+                    _state.update { it.copy(phase = SmartMagicPhase.READY, enhanced = rendered.image,
+                        renderOutcome = rendered.outcome, adjustments = adjustments,
+                        faceLightWorking = false, stage = null, message = "Face light applied",
+                        canUndoFaceLight = true, faceLightRevision = it.faceLightRevision + 1) }
+                }
+            } catch (_: CancellationException) {
+                if (generations.isSourceCurrent(sourceGeneration)) _state.update {
+                    it.copy(phase = SmartMagicPhase.READY, faceLightWorking = false, stage = null)
+                }
+            } catch (error: Throwable) {
+                if (generations.isSourceCurrent(sourceGeneration)) _state.update {
+                    it.copy(phase = SmartMagicPhase.READY, faceLightWorking = false, stage = null,
+                        message = error.message ?: "Could not apply face light")
+                }
+            }
+        }
+    }
+
+    fun undoFaceLight() {
+        val activeSession = session ?: return
+        val level = _state.value.selectedLevel
+        val stack = faceLightUndo[level] ?: return
+        val undo = stack.removeLastOrNull() ?: return
+        faceLightJob?.cancel()
+        coordinator.restoreFaceLightAdjustments(activeSession, level, undo.adjustments)
+        previewCache[level] = undo.render
+        val described = coordinator.describeAdjustments(activeSession, undo.render)
+        _state.update {
+            it.copy(
+                phase = SmartMagicPhase.READY,
+                enhanced = undo.render.image,
+                renderOutcome = undo.render.outcome,
+                adjustments = described,
+                faceLightPreview = null,
+                faceLightWorking = false,
+                stage = null,
+                message = "Face light undone",
+                canUndoFaceLight = stack.isNotEmpty(),
+                faceLightRevision = it.faceLightRevision + 1,
+            )
+        }
     }
 
     private fun requestLevelRender(
@@ -297,7 +422,7 @@ class SmartMagicViewModel(
     }
 
     fun cancel() {
-        analysisJob?.cancel(); renderJob?.cancel(); exportJob?.cancel()
+        analysisJob?.cancel(); renderJob?.cancel(); exportJob?.cancel(); faceLightJob?.cancel()
         _state.update { current ->
             if (!current.isWorking) current else current.copy(
                 phase = if (current.enhanced != null) SmartMagicPhase.READY else if (current.original != null) SmartMagicPhase.ORIGINAL_READY else SmartMagicPhase.IDLE,
@@ -307,7 +432,7 @@ class SmartMagicViewModel(
             )
         }
     }
-    fun reset() { generations.newSource(); cancel(); session = null; previewSource = null; previewCache.clear(); _state.value = SmartMagicUiState() }
+    fun reset() { generations.newSource(); cancel(); session = null; previewSource = null; previewCache.clear(); faceLightUndo.clear(); _state.value = SmartMagicUiState() }
     fun consumeMessage() = _state.update { it.copy(message = null) }
 
     override fun onCleared() { cancel(); super.onCleared() }
