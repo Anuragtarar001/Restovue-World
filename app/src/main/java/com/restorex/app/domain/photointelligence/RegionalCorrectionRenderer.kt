@@ -8,6 +8,17 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+/** Exact 8-bit decode and bounded 12-bit encode tables for the regional hot loops. */
+private object RegionalColorLut {
+    private const val ENCODE_MAX = 4095
+    val linear = FloatArray(256) { SmartMagicColorMath.srgbToLinear(it / 255f) }
+    private val encoded = IntArray(ENCODE_MAX + 1) { index ->
+        (SmartMagicColorMath.linearToSrgb(index / ENCODE_MAX.toFloat()) * 255f + .5f).toInt().coerceIn(0, 255)
+    }
+    fun decode(value: Int): Float = linear[value and 255]
+    fun encode(value: Float): Int = encoded[(value.coerceIn(0f, 1f) * ENCODE_MAX + .5f).toInt()]
+}
+
 /**
  * Executes validated regional plans. Pixel math and compositing are Android-independent so the
  * same implementation can be used by reduced previews and source-resolution export.
@@ -67,11 +78,19 @@ class RegionalCorrectionRenderer(
                 // little to a global average. Do not discard a safe local correction solely
                 // because full-frame OKLab impact is small when the target interior changed by a
                 // meaningful amount. This is an objective correction, not a strength multiplier.
-                val targetVisibilityChanged = abs(metrics.targetMeanLuminanceChange) >= when (request.plan.level) {
+                val visibilityThreshold = when (request.plan.level) {
                     EnhancementLevel.NATURAL -> .0030f
                     EnhancementLevel.ENHANCED -> .0040f
                     EnhancementLevel.EXTREME -> .0050f
                 }
+                val faceVisibilityChange = if (executable.all {
+                        it.type == RegionalOperationType.MIDTONE_GAMMA
+                    } && request.faces.isNotEmpty()
+                ) maximumFaceMeanLuminanceChange(request.source, output, request.faces) else 0f
+                val targetVisibilityChanged = max(
+                    abs(metrics.targetMeanLuminanceChange),
+                    faceVisibilityChange,
+                ) >= visibilityThreshold
                 if (impact.perceptuallyNegligible && !targetVisibilityChanged) {
                     return RegionalRenderResult(
                         image = request.source,
@@ -98,6 +117,46 @@ class RegionalCorrectionRenderer(
                     ),
                     candidateEvaluations = candidates,
                 )
+            }
+        }
+        // A mixed person/background proposal is validated as one candidate, while the validator
+        // deliberately protects the complement of the first operation's target. If background
+        // finishing fails (or a useful face lift changes that protected complement), do not throw
+        // away an independently safe subject correction. Retry the person operations alone so
+        // their target and protected regions are evaluated consistently.
+        val personOperations = request.plan.operations.filter { it.target == RegionalTarget.PERSON }
+        val hasBackgroundOperations = request.plan.operations.any { it.target == RegionalTarget.BACKGROUND }
+        if (personOperations.isNotEmpty() && hasBackgroundOperations) {
+            val personResult = render(
+                request.copy(plan = request.plan.copy(operations = personOperations)),
+                shouldCancel,
+            )
+            if (personResult.status == RegionalRenderStatus.APPLIED ||
+                personResult.status == RegionalRenderStatus.REDUCED
+            ) {
+                return personResult.copy(decisions = personResult.decisions + DecisionReason(
+                    "REGIONAL_PERSON_FALLBACK_APPLIED",
+                    "Mixed regional finishing was rejected; the independently validated person correction was preserved",
+                ))
+            }
+            val faceOperations = personOperations.filter {
+                it.type == RegionalOperationType.MIDTONE_GAMMA
+            }
+            if (request.faces.isNotEmpty() && faceOperations.isNotEmpty() &&
+                faceOperations.size < personOperations.size
+            ) {
+                val faceResult = render(
+                    request.copy(plan = request.plan.copy(operations = faceOperations)),
+                    shouldCancel,
+                )
+                if (faceResult.status == RegionalRenderStatus.APPLIED ||
+                    faceResult.status == RegionalRenderStatus.REDUCED
+                ) {
+                    return faceResult.copy(decisions = faceResult.decisions + DecisionReason(
+                        "REGIONAL_FACE_FALLBACK_APPLIED",
+                        "Broader regional recovery was rejected; the independently validated localized face correction was preserved",
+                    ))
+                }
             }
         }
         return RegionalRenderResult(
@@ -140,16 +199,11 @@ class RegionalCorrectionRenderer(
         val groupGuard = if (request.faces.size > 1) .78f else 1f
         val needsNeighborhood = operations.any { it.type == RegionalOperationType.SELECTIVE_DEHAZE ||
             it.type == RegionalOperationType.LOCAL_CONTRAST || it.type == RegionalOperationType.DETAIL }
-        val previewLuminance = if (needsNeighborhood && source.argb.size <= 1_200_000) {
-            FloatArray(source.argb.size) { index ->
-                val color = source.argb[index]
-                SmartMagicColorMath.luminance(
-                    SmartMagicColorMath.srgbToLinear((color ushr 16 and 255) / 255f),
-                    SmartMagicColorMath.srgbToLinear((color ushr 8 and 255) / 255f),
-                    SmartMagicColorMath.srgbToLinear((color and 255) / 255f),
-                )
-            }
-        } else null
+        // Never evaluate a 5x5 colour-conversion kernel independently for every source pixel.
+        // At 12 MP that old path performed about 900 million sRGB conversions and accounted for
+        // several minutes of export time. A bounded summed-area luminance proxy preserves the
+        // same mid-frequency evidence and answers every neighbourhood query in constant time.
+        val neighborhoodLuminance = if (needsNeighborhood) LocalLuminanceSummary.create(source) else null
         val atmosphere = if (operations.any { it.type == RegionalOperationType.SELECTIVE_DEHAZE })
             estimateAtmosphericLight(source, backgroundSampler) else floatArrayOf(1f, 1f, 1f)
         val faceMidtones = if (operations.any { it.type == RegionalOperationType.MIDTONE_GAMMA })
@@ -161,9 +215,9 @@ class RegionalCorrectionRenderer(
                 val argb = source.argb[index]
                 val alpha = argb ushr 24 and 255
                 if (alpha == 0) { out[index] = argb; continue }
-                var red = SmartMagicColorMath.srgbToLinear((argb ushr 16 and 255) / 255f)
-                var green = SmartMagicColorMath.srgbToLinear((argb ushr 8 and 255) / 255f)
-                var blue = SmartMagicColorMath.srgbToLinear((argb and 255) / 255f)
+                var red = RegionalColorLut.decode(argb ushr 16)
+                var green = RegionalColorLut.decode(argb ushr 8)
+                var blue = RegionalColorLut.decode(argb)
                 var cachedLocalMean = -1f
                 for (operation in operations) {
                     val sampler = if (operation.target == RegionalTarget.PERSON) personSampler else backgroundSampler
@@ -228,7 +282,7 @@ class RegionalCorrectionRenderer(
                             // Conservative atmospheric-scattering inversion. The estimate is global
                             // and the bounded transmission is locally guarded by highlights and
                             // smooth bright areas. This is not a depth estimate.
-                            if (needsNeighborhood && cachedLocalMean < 0f) cachedLocalMean = localMeanLuminance(source, x, y, previewLuminance)
+                            if (needsNeighborhood && cachedLocalMean < 0f) cachedLocalMean = localMeanLuminance(source, x, y, neighborhoodLuminance)
                             val localMean = if (cachedLocalMean >= 0f) cachedLocalMean else sourceLuminance
                             val highlightGuard = 1f - smoothStep(.58f, .92f, sourceLuminance)
                             val flatBrightGuard = 1f - smoothStep(.45f, .80f, localMean) *
@@ -242,7 +296,7 @@ class RegionalCorrectionRenderer(
                             blue = ((blue - atmosphere[2]) / transmission + atmosphere[2]).coerceAtLeast(0f)
                         }
                         RegionalOperationType.LOCAL_CONTRAST -> {
-                            if (cachedLocalMean < 0f) cachedLocalMean = localMeanLuminance(source, x, y, previewLuminance)
+                            if (cachedLocalMean < 0f) cachedLocalMean = localMeanLuminance(source, x, y, neighborhoodLuminance)
                             val localMean = cachedLocalMean
                             val detail = (sourceLuminance - localMean).coerceIn(-.18f, .18f)
                             val skyAndSkinGuard = 1f - smoothStep(.62f, .93f, sourceLuminance)
@@ -252,7 +306,7 @@ class RegionalCorrectionRenderer(
                             red = rgb[0]; green = rgb[1]; blue = rgb[2]
                         }
                         RegionalOperationType.DETAIL -> {
-                            if (cachedLocalMean < 0f) cachedLocalMean = localMeanLuminance(source, x, y, previewLuminance)
+                            if (cachedLocalMean < 0f) cachedLocalMean = localMeanLuminance(source, x, y, neighborhoodLuminance)
                             val localMean = cachedLocalMean
                             val detail = (sourceLuminance - localMean).coerceIn(-.10f, .10f)
                             val noiseGuard = smoothStep(.018f, .055f, abs(detail)) *
@@ -294,9 +348,9 @@ class RegionalCorrectionRenderer(
         for (y in 0 until source.height step step) for (x in 0 until source.width step step) {
             val color = source.argb[y * source.width + x]
             if ((color ushr 24 and 255) == 0) continue
-            val lr = SmartMagicColorMath.srgbToLinear((color ushr 16 and 255) / 255f)
-            val lg = SmartMagicColorMath.srgbToLinear((color ushr 8 and 255) / 255f)
-            val lb = SmartMagicColorMath.srgbToLinear((color and 255) / 255f)
+            val lr = RegionalColorLut.decode(color ushr 16)
+            val lg = RegionalColorLut.decode(color ushr 8)
+            val lb = RegionalColorLut.decode(color)
             val luma = SmartMagicColorMath.luminance(lr, lg, lb)
             val w = background.sample(x, y, source.width, source.height) * smoothStep(.48f, .82f, luma)
             if (w > .01f) { r += lr * w; g += lg * w; b += lb * w; weight += w }
@@ -325,9 +379,9 @@ class RegionalCorrectionRenderer(
             if (mask < .25f) continue
             val color = source.argb[y * source.width + x]
             val luma = SmartMagicColorMath.luminance(
-                SmartMagicColorMath.srgbToLinear((color ushr 16 and 255) / 255f),
-                SmartMagicColorMath.srgbToLinear((color ushr 8 and 255) / 255f),
-                SmartMagicColorMath.srgbToLinear((color and 255) / 255f))
+                RegionalColorLut.decode(color ushr 16),
+                RegionalColorLut.decode(color ushr 8),
+                RegionalColorLut.decode(color))
             sum += luma * mask; weight += mask
         }
         if (weight <= 1e-5) .24f else (sum / weight).toFloat().coerceIn(0f, 1f)
@@ -346,36 +400,81 @@ class RegionalCorrectionRenderer(
         faces.forEachIndexed { index, face ->
             val bounds = face.bounds
             val cx = (bounds.left + bounds.right) * .5f; val cy = (bounds.top + bounds.bottom) * .52f
-            val rx = max(.001f, (bounds.right - bounds.left) * .58f)
-            val ry = max(.001f, (bounds.bottom - bounds.top) * .62f)
-            val distance = ((nx - cx) / rx).pow(2) + ((ny - cy) / ry).pow(2)
-            if (distance < 1f) {
-                val spatial = smoothStep(1f, .22f, distance)
-                val deficit = smoothStep(.30f, .075f, midtones.getOrElse(index) { .24f })
-                result = max(result, spatial * deficit)
-            }
+            val faceWidth = bounds.right - bounds.left
+            val faceHeight = bounds.bottom - bounds.top
+            val rx = max(.001f, faceWidth * .58f)
+            val ry = max(.001f, faceHeight * .62f)
+            val faceDistance = ((nx - cx) / rx).pow(2) + ((ny - cy) / ry).pow(2)
+            val faceSpatial = if (faceDistance < 1f) smoothStep(1f, .22f, faceDistance) else 0f
+
+            // A second, weaker lobe carries the virtual fill into the neck and upper torso.
+            // The reliable person mask is still applied by the compositor, so this cannot
+            // invent a body region or spill into the background. Keeping it weaker than the
+            // face avoids a bright circular face disconnected from naturally shaded clothing.
+            val neckCy = bounds.bottom + faceHeight * .34f
+            val neckRx = max(.001f, faceWidth * .78f)
+            val neckRy = max(.001f, faceHeight * .70f)
+            val neckDistance = ((nx - cx) / neckRx).pow(2) + ((ny - neckCy) / neckRy).pow(2)
+            val neckSpatial = if (neckDistance < 1f) smoothStep(1f, .18f, neckDistance) * .58f else 0f
+            val deficit = smoothStep(.30f, .075f, midtones.getOrElse(index) { .24f })
+            result = max(result, max(faceSpatial, neckSpatial) * deficit)
         }
         return result
     }
 
-    private fun localMeanLuminance(source: RasterImage, x: Int, y: Int, luminance: FloatArray?): Float {
-        var sum = 0f; var count = 0
+    private fun localMeanLuminance(source: RasterImage, x: Int, y: Int, summary: LocalLuminanceSummary?): Float {
         // Mid-frequency photographic contrast must scale with image dimensions. A fixed 5x5
         // kernel measures sensor/JPEG texture on a modern photograph rather than atmosphere.
         val radius = (minOf(source.width, source.height) / 48).coerceIn(2, 24)
-        for (dy in -2..2) for (dx in -2..2) {
-            val sx = (x + dx * radius / 2).coerceIn(0, source.width - 1)
-            val sy = (y + dy * radius / 2).coerceIn(0, source.height - 1)
-            val index = sy * source.width + sx
-            if (luminance != null) { sum += luminance[index]; count++; continue }
-            val c = source.argb[index]
-            if ((c ushr 24 and 255) == 0) continue
-            val r = SmartMagicColorMath.srgbToLinear((c ushr 16 and 255) / 255f)
-            val g = SmartMagicColorMath.srgbToLinear((c ushr 8 and 255) / 255f)
-            val b = SmartMagicColorMath.srgbToLinear((c and 255) / 255f)
-            sum += SmartMagicColorMath.luminance(r, g, b); count++
+        return requireNotNull(summary).mean(x, y, source.width, source.height, radius)
+    }
+
+    /** Bounded luminance integral image used only while a regional render is active. */
+    private class LocalLuminanceSummary(
+        private val width: Int,
+        private val height: Int,
+        private val integral: DoubleArray,
+    ) {
+        fun mean(x: Int, y: Int, sourceWidth: Int, sourceHeight: Int, radius: Int): Float {
+            val left = ((x - radius).coerceAtLeast(0).toLong() * width / sourceWidth).toInt()
+            val top = ((y - radius).coerceAtLeast(0).toLong() * height / sourceHeight).toInt()
+            val right = ((((x + radius + 1).coerceAtMost(sourceWidth)).toLong() * width + sourceWidth - 1) /
+                sourceWidth).toInt().coerceIn(left + 1, width)
+            val bottom = ((((y + radius + 1).coerceAtMost(sourceHeight)).toLong() * height + sourceHeight - 1) /
+                sourceHeight).toInt().coerceIn(top + 1, height)
+            val stride = width + 1
+            val sum = integral[bottom * stride + right] - integral[top * stride + right] -
+                integral[bottom * stride + left] + integral[top * stride + left]
+            return (sum / ((right - left) * (bottom - top))).toFloat()
         }
-        return if (count == 0) 0f else sum / count
+
+        companion object {
+            private const val MAX_PROXY_PIXELS = 1_048_576
+
+            fun create(source: RasterImage): LocalLuminanceSummary {
+                val scale = kotlin.math.sqrt((MAX_PROXY_PIXELS.toDouble() / source.argb.size).coerceAtMost(1.0))
+                val width = (source.width * scale).toInt().coerceAtLeast(1)
+                val height = (source.height * scale).toInt().coerceAtLeast(1)
+                val stride = width + 1
+                val integral = DoubleArray(stride * (height + 1))
+                for (y in 0 until height) {
+                    val sourceY = ((y + .5f) * source.height / height).toInt().coerceIn(0, source.height - 1)
+                    var row = 0.0
+                    for (x in 0 until width) {
+                        val sourceX = ((x + .5f) * source.width / width).toInt().coerceIn(0, source.width - 1)
+                        val color = source.argb[sourceY * source.width + sourceX]
+                        val luminance = if ((color ushr 24 and 255) == 0) 0f else SmartMagicColorMath.luminance(
+                            RegionalColorLut.decode(color ushr 16),
+                            RegionalColorLut.decode(color ushr 8),
+                            RegionalColorLut.decode(color),
+                        )
+                        row += luminance
+                        integral[(y + 1) * stride + x + 1] = integral[y * stride + x + 1] + row
+                    }
+                }
+                return LocalLuminanceSummary(width, height, integral)
+            }
+        }
     }
 
     private fun faceInfluence(x: Int, y: Int, width: Int, height: Int, faces: List<FaceEvidence>): Float {
@@ -392,6 +491,34 @@ class RegionalCorrectionRenderer(
         return influence
     }
 
+    private fun maximumFaceMeanLuminanceChange(
+        source: RasterImage,
+        output: RasterImage,
+        faces: List<FaceEvidence>,
+    ): Float = faces.maxOfOrNull { face ->
+        val left = (face.bounds.left * source.width).toInt().coerceIn(0, source.width - 1)
+        val top = (face.bounds.top * source.height).toInt().coerceIn(0, source.height - 1)
+        val right = (face.bounds.right * source.width).toInt().coerceIn(left + 1, source.width)
+        val bottom = (face.bounds.bottom * source.height).toInt().coerceIn(top + 1, source.height)
+        val area = (right - left).toLong() * (bottom - top)
+        val step = kotlin.math.ceil(kotlin.math.sqrt((area / 65_536.0).coerceAtLeast(1.0))).toInt()
+        var before = 0f
+        var after = 0f
+        var count = 0
+        for (y in top until bottom step step) for (x in left until right step step) {
+            val index = y * source.width + x
+            fun luminance(color: Int): Float = SmartMagicColorMath.luminance(
+                RegionalColorLut.decode(color ushr 16),
+                RegionalColorLut.decode(color ushr 8),
+                RegionalColorLut.decode(color),
+            )
+            before += luminance(source.argb[index])
+            after += luminance(output.argb[index])
+            count++
+        }
+        if (count == 0) 0f else abs(after / count - before / count)
+    } ?: 0f
+
     private fun tonalLuminance(r: Float, g: Float, b: Float, transform: (Float) -> Float): Float =
         transform(SmartMagicColorMath.luminance(r, g, b)).coerceIn(0f, 1.35f)
 
@@ -407,8 +534,7 @@ class RegionalCorrectionRenderer(
         return t * t * (3f - 2f * t)
     }
 
-    private fun toSrgbByte(value: Float): Int =
-        (SmartMagicColorMath.linearToSrgb(value.coerceIn(0f, 1f)) * 255f + .5f).toInt().coerceIn(0, 255)
+    private fun toSrgbByte(value: Float): Int = RegionalColorLut.encode(value)
 
     private fun unchanged(
         request: RegionalRenderRequest,
@@ -439,15 +565,22 @@ class RegionalQualityValidator {
         var shadowNoise = 0f; var shadowNoiseWeight = 0f
         var maximum = 0f; var finite = true
         val target = operations.first().target
-        for (y in 0 until source.height) for (x in 0 until source.width) {
+        // Full-frame validation is statistically redundant at camera resolutions and used to add
+        // another expensive colour conversion pass after rendering. Keep every pixel for small
+        // previews; use a deterministic uniform grid capped near 500k samples for exports.
+        val step = kotlin.math.ceil(kotlin.math.sqrt(
+            (source.argb.size / MAX_VALIDATION_SAMPLES.toDouble()).coerceAtLeast(1.0),
+        )).toInt()
+        var sampleCount = 0
+        for (y in 0 until source.height step step) for (x in 0 until source.width step step) {
             val i = y * source.width + x
             val beforeColor = source.argb[i]; val afterColor = output.argb[i]
-            val beforeR = SmartMagicColorMath.srgbToLinear((beforeColor ushr 16 and 255) / 255f)
-            val beforeG = SmartMagicColorMath.srgbToLinear((beforeColor ushr 8 and 255) / 255f)
-            val beforeB = SmartMagicColorMath.srgbToLinear((beforeColor and 255) / 255f)
-            val afterR = SmartMagicColorMath.srgbToLinear((afterColor ushr 16 and 255) / 255f)
-            val afterG = SmartMagicColorMath.srgbToLinear((afterColor ushr 8 and 255) / 255f)
-            val afterB = SmartMagicColorMath.srgbToLinear((afterColor and 255) / 255f)
+            val beforeR = RegionalColorLut.decode(beforeColor ushr 16)
+            val beforeG = RegionalColorLut.decode(beforeColor ushr 8)
+            val beforeB = RegionalColorLut.decode(beforeColor)
+            val afterR = RegionalColorLut.decode(afterColor ushr 16)
+            val afterG = RegionalColorLut.decode(afterColor ushr 8)
+            val afterB = RegionalColorLut.decode(afterColor)
             if (!beforeR.isFinite() || !beforeG.isFinite() || !beforeB.isFinite() ||
                 !afterR.isFinite() || !afterG.isFinite() || !afterB.isFinite()) finite = false
             maximum = max(maximum, max(afterR, max(afterG, afterB)))
@@ -473,23 +606,24 @@ class RegionalQualityValidator {
                 val beforeSaturation = (beforePeak - minOf(beforeR, beforeG, beforeB)) / beforePeak
                 val afterSaturation = (afterPeak - minOf(afterR, afterG, afterB)) / afterPeak
                 shadowChroma += (afterSaturation - beforeSaturation).coerceAtLeast(0f); shadowChromaWeight++
-                if (x > 0) {
-                    val beforeLeftColor = source.argb[i - 1]; val afterLeftColor = output.argb[i - 1]
+                if (x >= step) {
+                    val beforeLeftColor = source.argb[i - step]; val afterLeftColor = output.argb[i - step]
                     val beforeLeftLuma = SmartMagicColorMath.luminance(
-                        SmartMagicColorMath.srgbToLinear((beforeLeftColor ushr 16 and 255) / 255f),
-                        SmartMagicColorMath.srgbToLinear((beforeLeftColor ushr 8 and 255) / 255f),
-                        SmartMagicColorMath.srgbToLinear((beforeLeftColor and 255) / 255f))
+                        RegionalColorLut.decode(beforeLeftColor ushr 16),
+                        RegionalColorLut.decode(beforeLeftColor ushr 8),
+                        RegionalColorLut.decode(beforeLeftColor))
                     val afterLeftLuma = SmartMagicColorMath.luminance(
-                        SmartMagicColorMath.srgbToLinear((afterLeftColor ushr 16 and 255) / 255f),
-                        SmartMagicColorMath.srgbToLinear((afterLeftColor ushr 8 and 255) / 255f),
-                        SmartMagicColorMath.srgbToLinear((afterLeftColor and 255) / 255f))
+                        RegionalColorLut.decode(afterLeftColor ushr 16),
+                        RegionalColorLut.decode(afterLeftColor ushr 8),
+                        RegionalColorLut.decode(afterLeftColor))
                     val beforeLocal = abs(beforeLuma - beforeLeftLuma)
                     val afterLocal = abs(afterLuma - afterLeftLuma)
                     shadowNoise += (afterLocal - beforeLocal).coerceAtLeast(0f); shadowNoiseWeight++
                 }
             }
+            sampleCount++
         }
-        val pixels = source.argb.size.toFloat()
+        val pixels = sampleCount.toFloat().coerceAtLeast(1f)
         val newHighlights = ((outputHighlights - sourceHighlights).coerceAtLeast(0) / pixels)
         val newShadows = ((outputShadows - sourceShadows).coerceAtLeast(0) / pixels)
         val targetChange = if (targetWeight == 0f) 0f else targetAfter / targetWeight - targetBefore / targetWeight
@@ -497,6 +631,11 @@ class RegionalQualityValidator {
         val boundary = if (boundaryWeight == 0f) 0f else boundaryDifference / boundaryWeight
         val chromaAmplification = if (shadowChromaWeight == 0f) 0f else shadowChroma / shadowChromaWeight
         val noiseAmplification = if (shadowNoiseWeight == 0f) 0f else shadowNoise / shadowNoiseWeight
+        val chromaChanging = operations.any { operation ->
+            operation.type == RegionalOperationType.VIBRANCE ||
+                operation.type == RegionalOperationType.WHITE_BALANCE ||
+                operation.type == RegionalOperationType.SELECTIVE_DEHAZE
+        }
         val failures = buildList {
             if (!finite) add("NON_FINITE_OUTPUT")
             if (newHighlights > .012f) add("NEW_HIGHLIGHT_CLIPPING")
@@ -504,12 +643,20 @@ class RegionalQualityValidator {
             if (protected > .0045f) add("PROTECTED_INTERIOR_CHANGED")
             if (boundary > .12f) add("BOUNDARY_DISCONTINUITY_RISK")
             val chromaLimit = if (groupMode) .025f else .035f
-            if (chromaAmplification > chromaLimit) add("SHADOW_CHROMA_AMPLIFICATION")
+            // Exposure and tone operators multiply RGB together and cannot introduce a hue or
+            // saturation shift in linear light. Dark 8-bit pixels can nevertheless report a
+            // large relative saturation delta after quantization, so reserve this rejection for
+            // operations that actually alter channel ratios or atmospheric color.
+            if (chromaChanging && chromaAmplification > chromaLimit) add("SHADOW_CHROMA_AMPLIFICATION")
             if (noiseAmplification > .010f) add("SHADOW_NOISE_AMPLIFICATION")
             if (maximum > 1.0001f) add("OUTPUT_OUT_OF_GAMUT")
         }
         return RegionalQualityMetrics(newHighlights, newShadows, targetChange, protected, boundary,
             chromaAmplification, noiseAmplification, protected, maximum, finite, failures.isEmpty(), failures)
+    }
+
+    private companion object {
+        const val MAX_VALIDATION_SAMPLES = 524_288
     }
 
 }

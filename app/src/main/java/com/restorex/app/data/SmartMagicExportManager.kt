@@ -33,6 +33,9 @@ data class SmartMagicExportResult(
     val mimeType: String,
     val elapsedMillis: Long,
     val productionOutcome: ProductionRenderOutcome? = null,
+    val decodeMillis: Long = 0,
+    val renderMillis: Long = 0,
+    val encodeAndSaveMillis: Long = 0,
 )
 
 /** Full-resolution, safely finalized MediaStore export for the dedicated one-tap workflow. */
@@ -52,9 +55,11 @@ class SmartMagicExportManager(
         }
         require(source == session.sourceIdentity) { "Smart Magic session belongs to a different photograph" }
         val started = System.nanoTime()
+        var stageStarted = System.nanoTime()
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.PREPARING_EXPORT, SmartMagicWorkState.STARTED,
             detail = "Opening full-resolution photograph"))
         val raster = decodeRaster(source.toUri())
+        val decodeMillis = (System.nanoTime() - stageStarted) / 1_000_000L
         val hasTransparency = raster.argb.any { it ushr 24 != 255 }
         currentCoroutineContext().ensureActive()
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.PREPARING_EXPORT, SmartMagicWorkState.COMPLETED,
@@ -62,14 +67,21 @@ class SmartMagicExportManager(
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.RENDERING_EXPORT, SmartMagicWorkState.STARTED,
             detail = "Applying ${preview.level.name.lowercase()} correction"))
         val context = currentCoroutineContext()
+        stageStarted = System.nanoTime()
         val rendered = coordinator.renderForExport(raster, session, preview) { !context.isActive }
+        val renderMillis = (System.nanoTime() - stageStarted) / 1_000_000L
         context.ensureActive()
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.RENDERING_EXPORT, SmartMagicWorkState.COMPLETED,
             detail = "Full-resolution correction rendered"))
+        stageStarted = System.nanoTime()
         saveRendered(rendered.image, hasTransparency, started, rendered.outcome) { detail ->
             onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.ENCODING_AND_SAVING,
                 SmartMagicWorkState.ACTIVE, detail = detail))
-        }.also {
+        }.copy(
+            decodeMillis = decodeMillis,
+            renderMillis = renderMillis,
+            encodeAndSaveMillis = (System.nanoTime() - stageStarted) / 1_000_000L,
+        ).also {
             onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.FINALIZING, SmartMagicWorkState.COMPLETED,
                 detail = "Saved to gallery"))
         }

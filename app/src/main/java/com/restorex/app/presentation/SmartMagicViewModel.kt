@@ -75,7 +75,7 @@ data class SmartMagicUiState(
     val modeRenderElapsedMillis: Long? = null,
     val firstVisibleElapsedMillis: Long? = null,
     val exportElapsedMillis: Long? = null,
-    val selectedLevel: EnhancementLevel = EnhancementLevel.ENHANCED,
+    val selectedLevel: EnhancementLevel = EnhancementLevel.NATURAL,
     val completedLevel: EnhancementLevel? = null,
     val renderOutcome: ProductionRenderOutcome? = null,
     val sourceGeneration: Long = 0,
@@ -114,7 +114,7 @@ class SmartMagicViewModel(
     private var previewSource: RasterImage? = null
     private val previewCache = mutableMapOf<EnhancementLevel, SmartMagicProductionRender>()
 
-    fun process(source: String) {
+    fun process(source: String, initialLevel: EnhancementLevel = EnhancementLevel.NATURAL) {
         analysisJob?.cancel(); renderJob?.cancel(); exportJob?.cancel()
         val sourceRequest = generations.newSource()
         previewCache.clear(); session = null; previewSource = null
@@ -122,7 +122,7 @@ class SmartMagicViewModel(
         analysisJob = viewModelScope.launch {
             val started = System.nanoTime()
             _state.value = SmartMagicUiState(phase = SmartMagicPhase.LOADING_SOURCE, stage = "Loading photograph",
-                source = source, sourceGeneration = sourceRequest,
+                source = source, sourceGeneration = sourceRequest, selectedLevel = initialLevel,
                 progress = progressEvent(sourceRequest, null, null, SmartMagicWorkUpdate(
                     SmartMagicWorkStage.LOADING_PHOTOGRAPH, SmartMagicWorkState.STARTED,
                     detail = "Opening the selected photograph")))
@@ -148,7 +148,7 @@ class SmartMagicViewModel(
                     sessionIdentity = productionSession.sessionId, modeSelectionEnabled = true,
                     analysisElapsedMillis = productionSession.createdElapsedNanos / 1_000_000L) }
                 trace("analysis_ready", sourceRequest, null, "session=${productionSession.sessionId}")
-                requestLevelRender(EnhancementLevel.ENHANCED, productionSession, preview, sourceRequest, started)
+                requestLevelRender(initialLevel, productionSession, preview, sourceRequest, started)
             } catch (cancelled: CancellationException) {
                 if (generations.isSourceCurrent(sourceRequest) && session == null) {
                     _state.update { it.copy(phase = if (it.original == null) SmartMagicPhase.IDLE else SmartMagicPhase.ORIGINAL_READY,

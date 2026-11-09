@@ -12,9 +12,17 @@ class AdjustmentDiagnosticBuilder {
         renderGeneration: Long,
     ): AdjustmentDiagnosticReport {
         val parameters = session.globalParameters.getValue(render.level)
+        val personOnlyFallback = render.regionalResult?.decisions?.any {
+            it.code == "REGIONAL_PERSON_FALLBACK_APPLIED"
+        } == true
+        val faceOnlyFallback = render.regionalResult?.decisions?.any {
+            it.code == "REGIONAL_FACE_FALLBACK_APPLIED"
+        } == true
         val regionalOperations = residualRegionalOperations(
             session.regionalPlans[render.level]?.operations.orEmpty(), parameters,
             session.subjectAssessment?.decision == SemanticSubjectDecision.PROTECT_CORRECTLY_EXPOSED_SUBJECT)
+            .filter { !personOnlyFallback || it.target == RegionalTarget.PERSON }
+            .filter { !faceOnlyFallback || it.type == RegionalOperationType.MIDTONE_GAMMA }
         val appliedRegionalStrength = render.regionalResult?.appliedStrength ?: 0f
         val regionalAccepted = render.strategy in setOf(ProductionRenderStrategy.REGIONAL_ONLY, ProductionRenderStrategy.COMBINED) &&
             render.outcome in setOf(ProductionRenderOutcome.APPLIED, ProductionRenderOutcome.REDUCED_FOR_QUALITY)

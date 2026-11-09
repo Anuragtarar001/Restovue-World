@@ -2,7 +2,7 @@ package com.restorex.app.ui.editor
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,11 +21,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
@@ -108,11 +106,16 @@ fun SmartMagicScreen(
                 }, contentAlignment = Alignment.Center,
         ) {
             visible?.let { displayed ->
-                TransformedPhoto(displayed, zoom, panX, panY)
+                TransformedComparisonPhoto(
+                    processed = displayed,
+                    original = state.original,
+                    comparisonEnabled = compareEnabled && state.canCompare,
+                    dividerFraction = dividerFraction,
+                    zoom = zoom,
+                    panX = panX,
+                    panY = panY,
+                )
                 if (compareEnabled && state.canCompare) {
-                    Box(Modifier.fillMaxSize().drawWithContent {
-                        clipRect(right = size.width * dividerFraction) { this@drawWithContent.drawContent() }
-                    }) { state.original?.let { TransformedPhoto(it, zoom, panX, panY) } }
                     Box(
                         Modifier.fillMaxHeight().width(48.dp).offset {
                             IntOffset((viewport.width * dividerFraction - 24.dp.toPx()).roundToInt(), 0)
@@ -295,11 +298,40 @@ private fun ProcessingMonitor(state: SmartMagicUiState) {
 }
 
 @Composable
-private fun TransformedPhoto(raster: RasterImage, zoom: Float, panX: Float, panY: Float) {
-    Image(rememberRasterImage(raster), null, Modifier.fillMaxSize().graphicsLayer {
+private fun TransformedComparisonPhoto(
+    processed: RasterImage,
+    original: RasterImage?,
+    comparisonEnabled: Boolean,
+    dividerFraction: Float,
+    zoom: Float,
+    panX: Float,
+    panY: Float,
+) {
+    val processedBitmap = rememberRasterImage(processed)
+    val originalBitmap = original?.let { rememberRasterImage(it) }
+    Canvas(Modifier.fillMaxSize().graphicsLayer {
         scaleX = zoom; scaleY = zoom; translationX = panX; translationY = panY
         transformOrigin = TransformOrigin.Center
-    }, contentScale = ContentScale.Fit)
+    }) {
+        val scale = minOf(size.width / processedBitmap.width, size.height / processedBitmap.height)
+        val targetWidth = (processedBitmap.width * scale).roundToInt().coerceAtLeast(1)
+        val targetHeight = (processedBitmap.height * scale).roundToInt().coerceAtLeast(1)
+        val targetOffset = IntOffset(
+            ((size.width - targetWidth) * .5f).roundToInt(),
+            ((size.height - targetHeight) * .5f).roundToInt(),
+        )
+        val targetSize = IntSize(targetWidth, targetHeight)
+        drawImage(processedBitmap, dstOffset = targetOffset, dstSize = targetSize,
+            filterQuality = FilterQuality.Medium)
+        if (comparisonEnabled && originalBitmap != null) {
+            clipRect(right = size.width * dividerFraction.coerceIn(0f, 1f)) {
+                // The exact same destination rectangle and graphics transform are used for both
+                // buffers. Moving the divider therefore cannot decode or reprocess either image.
+                drawImage(originalBitmap, dstOffset = targetOffset, dstSize = targetSize,
+                    filterQuality = FilterQuality.Medium)
+            }
+        }
+    }
 }
 
 @Composable

@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Restovue"
 include(":app")
+include(":smart-photo-magic-engine")

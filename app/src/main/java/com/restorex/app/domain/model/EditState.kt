@@ -100,7 +100,7 @@ data class Adjustments(
     val colorBalance: ColorBalance = ColorBalance(),
     val splitToning: SplitToning = SplitToning(),
     val autoMode: AutoEnhanceMode = AutoEnhanceMode.NONE,
-    val enhanceStrength: Float = 1f,
+    val enhanceStrength: Float = .5f,
     val structure: Float = 0f,
     val clarity: Float = 0f,
     val texture: Float = 0f,

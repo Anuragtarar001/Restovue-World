@@ -59,6 +59,29 @@ class AdvancedRegionalCorrectionTest {
         assertTrue(result.metrics.newHighlightClipping <= .012f)
     }
 
+    @Test fun `virtual fill includes feathered neck inside person mask without background spill`() {
+        val width = 80; val height = 80
+        val image = RasterImage(width, height, IntArray(width * height) { 0xff383838.toInt() })
+        val mask = ConfidenceMask.fromFloats("portrait", 40, 40, FloatArray(1600) { index ->
+            val x = index % 40; val y = index / 40
+            if (x in 12..27 && y in 8..34) 1f else 0f
+        }).feather(1)
+        val face = FaceEvidence("face", NormalizedRect(.32f, .16f, .68f, .48f), .9f, .9f, emptyList())
+        val regional = SemanticRegionalEvidence(
+            WeightedRegionStatistics(1f, .06f, .3f, 0f, 0f, 0f, .04f, .1f),
+            WeightedRegionStatistics(1f, .14f, .1f, 0f, 0f, 0f, .03f, .1f), -.08f, mask.id)
+        val operation = RegionalOperation("fill", RegionalOperationType.MIDTONE_GAMMA,
+            RegionalTarget.PERSON, .30f, "gamma_delta", .9f, listOf("UNDERLIT_FACE"), listOf("NO_HALOS"))
+        val plan = RegionalCorrectionPlan(sourceIdentity = "fill", transformationVersion = 0,
+            maskId = mask.id, level = EnhancementLevel.ENHANCED, operations = listOf(operation),
+            protections = emptyList(), explanation = emptyList())
+        val result = RegionalCorrectionRenderer().render(RegionalRenderRequest(
+            image, "fill", 0, plan, mask, mask.quality(), listOf(face), regional))
+
+        assertTrue(channel(result.image.argb[50 * width + 40]) > channel(image.argb[50 * width + 40]))
+        assertEquals(image.argb[50 * width + 72], result.image.argb[50 * width + 72])
+    }
+
     @Test fun `whole subject midtone recovery works without inventing a face mask`() {
         val fixture = fixture()
         val operation = RegionalOperation("subject-gamma", RegionalOperationType.MIDTONE_GAMMA,

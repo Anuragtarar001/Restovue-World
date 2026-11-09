@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Restovue Smart Magic adaptive-auto review</title>
+<style>
+body{margin:0;background:#101116;color:#eee;font:15px system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:24px}
+h1,h2{margin:.3em 0}.notice{background:#27232b;border-left:4px solid #f5c542;padding:12px;margin:18px 0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:30px}
+figure{margin:0;background:#191a20;padding:8px;border-radius:8px}img{width:100%;height:330px;object-fit:contain;background:#090a0d}
+figcaption{padding:6px 2px;color:#ccc}.wide{width:100%;height:auto}a{color:#ffd84d}
+@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}img{height:260px}}
+</style></head><body><main>
+<h1>Smart Magic adaptive baseline review</h1>
+<p>Generated from the owner-supplied local photographs using Restovue's exact linear-light
+SmartMagicPipeline and the new target-based AdaptiveAutoController.</p>
+<div class="notice"><strong>Coverage boundary:</strong> these host renders validate the adaptive global
+baseline only. Android face inference, person masks, final regional fill, export parity, and Samsung
+device performance remain blocked while the physical device is disconnected. The images below are
+not presented as full production Smart Magic results.</div>
+
+<h2>Sunrise wheat field</h2><div class="grid">
+<figure><img src="../../../orig1.jpeg"><figcaption>Original</figcaption></figure>
+<figure><img src="assets/private/orig1-natural.png"><figcaption>Natural</figcaption></figure>
+<figure><img src="assets/private/orig1-enhanced.png"><figcaption>Enhanced</figcaption></figure>
+<figure><img src="assets/private/orig1-extreme.png"><figcaption>Extreme</figcaption></figure>
+</div>
+<p>Measured median linear luminance was 0.089 versus a guarded 0.215 target. Neutral evidence was
+weak (0.039), so global white-balance neutralization was suppressed. The baseline visibly opens the
+field and subject while retaining sunrise warmth and mist. Regional face validation remains pending.</p>
+
+<h2>Indoor portrait with white clothing</h2><div class="grid">
+<figure><img src="../../../papa-original.jpeg"><figcaption>Original</figcaption></figure>
+<figure><img src="assets/private/papa-original-natural.png"><figcaption>Natural</figcaption></figure>
+<figure><img src="assets/private/papa-original-enhanced.png"><figcaption>Enhanced</figcaption></figure>
+<figure><img src="assets/private/papa-original-extreme.png"><figcaption>Extreme</figcaption></figure>
+</div>
+<p>The original median already exceeds the general target, so the controller avoids a broad lift and
+uses bounded tonal redistribution. White clothing remains visually neutral in this host review.
+Exact shoulder-cast measurements and face fill require the Android semantic pass.</p>
+
+<h2>Wedding group</h2><div class="grid">
+<figure><img src="../../../wedding.jpeg"><figcaption>Original</figcaption></figure>
+<figure><img src="assets/private/wedding-natural.png"><figcaption>Natural</figcaption></figure>
+<figure><img src="assets/private/wedding-enhanced.png"><figcaption>Enhanced</figcaption></figure>
+<figure><img src="assets/private/wedding-extreme.png"><figcaption>Extreme</figcaption></figure>
+</div>
+<p>Weak neutral evidence (0.014) correctly protects the colored stage lighting from global gray-world
+neutralization. The global baseline improves tonal visibility, but the leftmost underlit face still
+needs the per-face virtual-fill stage. That stage is implemented and unit tested, but this photograph
+has not been rerun through the Android model in this session.</p>
+
+<h2>Contact sheet</h2>
+<a href="assets/private/SMART_MAGIC_CONTACT_SHEET.png"><img class="wide" src="assets/private/SMART_MAGIC_CONTACT_SHEET.png"></a>
+<p>Machine-readable results: <a href="VALIDATION_SUMMARY.json">VALIDATION_SUMMARY.json</a>.
+Per-photo diagnostics are linked from that aggregate.</p>
+</main></body></html>

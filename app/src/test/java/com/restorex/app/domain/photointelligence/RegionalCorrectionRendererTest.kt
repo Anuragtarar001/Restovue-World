@@ -26,6 +26,21 @@ class RegionalCorrectionRendererTest {
         assertTrue(luma(result.image.argb[pixel(27, 8)]) > luma(fixture.image.argb[pixel(27, 8)]))
     }
 
+    @Test fun `mixed rejection preserves independently safe person correction`() {
+        val fixture = fixture()
+        val background = operation(RegionalTarget.BACKGROUND, .25f).copy(id = "background")
+        val person = operation(RegionalTarget.PERSON, .35f).copy(id = "person")
+
+        val result = RegionalCorrectionRenderer().render(
+            fixture.request(background, person).copy(maxCandidateAttempts = 1),
+        )
+
+        assertTrue(result.status == RegionalRenderStatus.APPLIED || result.status == RegionalRenderStatus.REDUCED)
+        assertTrue(result.decisions.any { it.code == "REGIONAL_PERSON_FALLBACK_APPLIED" })
+        assertTrue(luma(result.image.argb[pixel(8, 8)]) > luma(fixture.image.argb[pixel(8, 8)]))
+        assertEquals(fixture.image.argb[pixel(27, 8)], result.image.argb[pixel(27, 8)])
+    }
+
     @Test fun `soft mask produces a partial linear light blend`() {
         val image = RasterImage(32, 16, IntArray(512) { 0xff404040.toInt() })
         val values = FloatArray(128) { index -> when (index % 16) { in 0..5 -> 1f; in 6..9 -> .5f; else -> 0f } }
@@ -134,6 +149,8 @@ class RegionalCorrectionRendererTest {
         assertEquals(0, color ushr 16 and 255)
         assertEquals(0, color ushr 8 and 255)
         assertTrue((color and 255) in 32..50)
+        assertTrue(result.metrics.passed)
+        assertTrue("SHADOW_CHROMA_AMPLIFICATION" !in result.metrics.failureReasons)
     }
 
     private data class Fixture(val image: RasterImage, val mask: ConfidenceMask, val regional: SemanticRegionalEvidence) {

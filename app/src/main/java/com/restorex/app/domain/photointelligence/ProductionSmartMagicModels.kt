@@ -3,8 +3,9 @@ package com.restorex.app.domain.photointelligence
 import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.smartmagic.SmartMagicAnalysis
 import com.restorex.app.domain.smartmagic.SmartMagicParameters
+import com.smartphotomagic.engine.RenderPlan
 
-const val SMART_MAGIC_PRODUCTION_SCHEMA = 2
+const val SMART_MAGIC_PRODUCTION_SCHEMA = 3
 
 data class SmartMagicStageTimings(
     val globalAnalysisNanos: Long,
@@ -63,6 +64,7 @@ data class SmartMagicProductionSession(
     val photometricEvidence: PhotometricEvidence,
     val diagnoses: List<ConditionDiagnosis>,
     val advancedEvidence: AdvancedPhotometricEvidence,
+    val adaptiveAutoPlan: AdaptiveAutoPlan,
     val semanticResult: SemanticAnalysisResult,
     val sceneGraph: SceneGraph,
     val regionalEvidence: SemanticRegionalEvidence?,
@@ -70,6 +72,8 @@ data class SmartMagicProductionSession(
     val globalParameters: Map<EnhancementLevel, SmartMagicParameters>,
     val regionalPlans: Map<EnhancementLevel, RegionalCorrectionPlan>,
     val optimizationResults: Map<EnhancementLevel, AdaptiveOptimizationResult>,
+    /** Locked 0.3.5 pro-finish plans. The same immutable plan drives preview and export. */
+    val proFinishPlans: Map<EnhancementLevel, RenderPlan>,
     val stageTimings: SmartMagicStageTimings,
     val createdElapsedNanos: Long,
 ) {
@@ -78,6 +82,7 @@ data class SmartMagicProductionSession(
         require(sessionId.isNotBlank() && sourceIdentity.isNotBlank() && sourceFingerprint.isNotBlank())
         require(sourceWidth > 0 && sourceHeight > 0 && geometryVersion >= 0 && createdElapsedNanos >= 0)
         require(EnhancementLevel.entries.all { it in globalParameters })
+        require(EnhancementLevel.entries.all { it in proFinishPlans })
     }
 }
 

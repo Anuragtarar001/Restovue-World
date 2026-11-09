@@ -118,6 +118,24 @@ class SmartMagicProcessingCoordinatorTest {
         assertEquals(session.sessionId, session.regionalPlans.getValue(EnhancementLevel.ENHANCED).sourceIdentity)
     }
 
+    @Test fun `export applies cached preview fit without full resolution regional search`() = runBlocking {
+        val previewSource = backlitFixture()
+        val coordinator = SmartMagicProcessingCoordinator(SmartMagicPipeline(),
+            personAnalyzer(previewSource.width, previewSource.height))
+        val session = coordinator.createSession("cached-export", previewSource)
+        val preview = coordinator.render(previewSource, session, EnhancementLevel.EXTREME)
+        assertTrue(preview.strategy == ProductionRenderStrategy.COMBINED ||
+            preview.strategy == ProductionRenderStrategy.REGIONAL_ONLY)
+
+        val fullSource = backlitFixture(384, 256)
+        val exported = coordinator.renderForExport(fullSource, session, preview)
+
+        assertEquals(preview.strategy, exported.strategy)
+        assertEquals(null, exported.regionalResult)
+        assertTrue(exported.explanation.any { it.code == "EXPORT_CACHED_BILATERAL_FINISH" })
+        assertFalse(exported.image.argb.contentEquals(fullSource.argb))
+    }
+
     @Test fun `no person uses independently calculated global plans`() = runBlocking {
         val source = gradient(96, 64)
         val coordinator = SmartMagicProcessingCoordinator(SmartMagicPipeline(), emptyAnalyzer(source.width, source.height))
@@ -163,9 +181,9 @@ class SmartMagicProcessingCoordinatorTest {
             setOf(SemanticClass.FACE, SemanticClass.PERSON, SemanticClass.BACKGROUND), emptySet(), 1)
     }
 
-    private fun backlitFixture() = RasterImage(96, 64, IntArray(96 * 64) { index ->
-        val x = index % 96
-        if (x < 56) 0xff24232a.toInt() else 0xffd8e4ef.toInt()
+    private fun backlitFixture(width: Int = 96, height: Int = 64) = RasterImage(width, height, IntArray(width * height) { index ->
+        val x = index % width
+        if (x < width * 7 / 12) 0xff24232a.toInt() else 0xffd8e4ef.toInt()
     })
 
     private fun gradient(width: Int, height: Int) = RasterImage(width, height, IntArray(width * height) { index ->

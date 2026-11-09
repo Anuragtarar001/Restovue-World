@@ -1,6 +1,7 @@
 package com.restorex.app.ui.editor
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -37,6 +38,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -64,6 +66,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -73,10 +77,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -102,6 +108,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -111,6 +118,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.net.toUri
 import com.restorex.app.domain.engine.EditorCoordinates
@@ -151,6 +160,7 @@ import com.restorex.app.domain.model.UtilityMode
 import com.restorex.app.domain.model.UtilityOptions
 import com.restorex.app.domain.model.BatchOptions
 import com.restorex.app.domain.model.BatchFormat
+import com.restorex.app.domain.photointelligence.EnhancementLevel
 import com.restorex.app.R
 import com.restorex.app.presentation.EditorUiState
 import com.restorex.app.presentation.EditorViewModel
@@ -162,6 +172,7 @@ import com.restorex.app.presentation.RetouchUiState
 import com.restorex.app.presentation.LiquifyUiState
 import com.restorex.app.presentation.BackgroundUiState
 import com.restorex.app.ui.theme.RestoreXAccent
+import com.restorex.app.ui.theme.RestoreXAccentViolet
 import com.restorex.app.ui.theme.RestoreXBackground
 import com.restorex.app.ui.theme.RestoreXDisabled
 import com.restorex.app.ui.theme.RestoreXMuted
@@ -173,6 +184,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private enum class EditorTool(val label: String, val icon: AppIcon, val available: Boolean) {
     CROP("Crop", AppIcon.Crop, true),
@@ -204,15 +217,19 @@ private val EditorTool.category: ToolCategory get() = when (this) {
     EditorTool.UTILITIES -> ToolCategory.UTILITIES
 }
 private enum class GeometryGridMode(val label: String) { NONE("No grid"), THIRDS("Thirds"), GOLDEN("Golden") }
-private enum class HomeUtility(val label: String, val icon: AppIcon) {
-    COLLAGE("Collage", AppIcon.Collage),
-    HDR("HDR", AppIcon.Layers),
-    PANORAMA("Panorama", AppIcon.Image),
-    BATCH("Batch Edit", AppIcon.MultipleImages),
-    PASSPORT("Passport Photo", AppIcon.IdCard),
-    DOCUMENT("Document Cleanup", AppIcon.Document),
-    COMPRESS("Compress & Convert", AppIcon.Swap),
-    MORE("More Tools", AppIcon.More),
+private enum class HomeUtility(val label: String, val icon: AppIcon, val quick: Boolean) {
+    MANUAL("Manual Edit", AppIcon.Enhance, true),
+    CROP("Crop & Resize", AppIcon.Crop, true),
+    RETOUCH("Retouch & Heal", AppIcon.Retouch, true),
+    BACKGROUND("Background", AppIcon.Layers, true),
+    COLLAGE("Collage", AppIcon.Collage, true),
+    BATCH("Batch Edit", AppIcon.MultipleImages, true),
+    HDR("HDR", AppIcon.Layers, false),
+    PANORAMA("Panorama", AppIcon.Image, false),
+    PASSPORT("Passport Photo", AppIcon.IdCard, false),
+    DOCUMENT("Document Cleanup", AppIcon.Document, false),
+    COMPRESS("Compress & Convert", AppIcon.Swap, false),
+    MORE("More Tools", AppIcon.More, false),
 }
 
 @Composable
@@ -222,10 +239,11 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
     val snackbar = remember { SnackbarHostState() }
     var selectedTool by remember { mutableStateOf(EditorTool.LIGHT) }
     var holdOriginal by remember { mutableStateOf(false) }
-    var splitComparison by remember { mutableStateOf(false) }
+    var splitComparison by remember { mutableStateOf(true) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showSmartMagic by rememberSaveable { mutableStateOf(false) }
+    var smartMagicStartLevel by rememberSaveable { mutableStateOf(EnhancementLevel.NATURAL) }
     var toolPanelCollapsed by remember { mutableStateOf(false) }
     var fullScreen by remember { mutableStateOf(false) }
     var showResetAllConfirmation by remember { mutableStateOf(false) }
@@ -242,6 +260,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
     var pendingBatchOptions by remember { mutableStateOf(BatchOptions()) }
     var geometryGrid by remember { mutableStateOf(GeometryGridMode.THIRDS) }
     val context = LocalContext.current
+    var recentSources by remember { mutableStateOf(loadRecentSources(context)) }
     val windowSize = LocalWindowInfo.current.containerSize
     val previewMaxDimension = remember(windowSize) {
         PreviewSizing.maxDimensionForViewport(
@@ -251,13 +270,21 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
     }
     val developerUrl = stringResource(R.string.developer_website_url)
 
+    LaunchedEffect(state.sourceIdentity) {
+        if (state.hasImage) splitComparison = true
+    }
+
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        uri?.let { viewModel.importImage(it.toString(), previewMaxDimension) }
+        uri?.let {
+            recentSources = rememberRecentSource(context, it.toString(), recentSources)
+            viewModel.importImage(it.toString(), previewMaxDimension)
+        }
     }
     val smartMagicPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let {
+            recentSources = rememberRecentSource(context, it.toString(), recentSources)
             showSmartMagic = true
-            smartMagicViewModel.process(it.toString())
+            smartMagicViewModel.process(it.toString(), smartMagicStartLevel)
         }
     }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
@@ -296,7 +323,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
     }
 
     if (showSmartMagic) {
-        SmartMagicScreen(
+        RestovueSmartMagicScreen(
             state = smartMagicState,
             onBack = { smartMagicViewModel.reset(); showSmartMagic = false },
             onChooseAnother = { smartMagicPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
@@ -338,6 +365,7 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
 
     if (showExportDialog) {
         ExportDialog(
+            preview = state.preview,
             onDismiss = { showExportDialog = false },
             onExport = { options, share ->
                 showExportDialog = false
@@ -436,28 +464,16 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
                         onZoomChanged = viewModel::requestZoomDetail,
                     )
                     if (chrome.showBottomTools) {
-                        ContextualPanel(
-                            selectedTool,
-                            state,
-                            viewModel,
-                            collapsed = toolPanelCollapsed,
-                            onToggleCollapsed = { toolPanelCollapsed = !toolPanelCollapsed },
-                            onResetImage = { showResetAllConfirmation = true },
+                        CleanManualPanel(
+                            selectedTool = selectedTool,
+                            state = state,
+                            viewModel = viewModel,
                             onImportLut = { lutImporter.launch(arrayOf("application/octet-stream", "text/plain", "*/*")) },
-                            onImportBackground = { backgroundPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                            onUtilities = {
-                                utilityChooserTitle = "Utilities"
-                                utilityChooserModes = UtilityMode.entries.toList()
-                                showUtilityChooser = true
+                            onSelected = {
+                                if (it != EditorTool.DETAILS) viewModel.setSharpenMaskPreview(false)
+                                selectedTool = it
                             },
-                            onImportSticker = { stickerPicker.launch(arrayOf("image/png", "image/webp", "image/*")) },
-                            geometryGrid = geometryGrid,
-                            onGeometryGridChanged = { geometryGrid = it },
                         )
-                        ToolNavigation(selectedTool, onSelected = {
-                            if (it != EditorTool.DETAILS) viewModel.setSharpenMaskPreview(false)
-                            selectedTool = it
-                        })
                     }
                 } else {
                     EmptyEditor(
@@ -467,10 +483,31 @@ fun RestoreXEditorScreen(viewModel: EditorViewModel, smartMagicViewModel: SmartM
                         onCancel = viewModel::cancelUtility,
                         onSettings = { showSettings = true },
                         onDeveloperClick = { openDeveloperWebsite(context, developerUrl) },
-                        onImport = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                         onSmartMagic = { smartMagicPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        onMenu = {
+                            utilityChooserTitle = "All Tools"
+                            utilityChooserModes = UtilityMode.entries.toList()
+                            showUtilityChooser = true
+                        },
+                        smartMagicLevel = smartMagicStartLevel,
+                        onSmartMagicLevelChanged = { smartMagicStartLevel = it },
+                        recentSources = recentSources,
+                        onRecent = { source -> viewModel.importImage(source, previewMaxDimension) },
                         onUtility = { utility ->
                             when (utility) {
+                                HomeUtility.MANUAL -> picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                HomeUtility.CROP -> {
+                                    selectedTool = EditorTool.CROP
+                                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                                HomeUtility.RETOUCH -> {
+                                    selectedTool = EditorTool.RETOUCH
+                                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                                HomeUtility.BACKGROUND -> {
+                                    selectedTool = EditorTool.BACKGROUND
+                                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
                                 HomeUtility.COLLAGE -> {
                                     pendingUtilityMode = UtilityMode.COLLAGE
                                     utilityPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -585,11 +622,11 @@ private fun EditorTopBar(
     ) {
         ToolIconButton(AppIcon.Back, "Back", onClick = onBack)
         Text(
-            stringResource(R.string.app_name_short),
+            "Manual Edit",
             modifier = Modifier.weight(1f).padding(start = 4.dp),
             color = RestoreXText,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Clip,
@@ -608,16 +645,21 @@ private fun EditorTopBar(
             onClick = onToggleFullScreen,
         )
         Box(
-            Modifier.width(56.dp).height(48.dp)
+            Modifier.width(72.dp).height(38.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    if (state.hasImage && !state.isBusy) Brush.horizontalGradient(listOf(RestoreXAccentViolet, RestoreXAccent))
+                    else Brush.horizontalGradient(listOf(RestoreXDisabled, RestoreXDisabled)),
+                )
                 .clickable(enabled = state.hasImage && !state.isBusy, onClick = onExport)
                 .semantics { contentDescription = "Export photo" },
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 "Export",
-                color = if (state.hasImage && !state.isBusy) RestoreXAccent else RestoreXDisabled,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 11.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
                 maxLines = 1,
             )
         }
@@ -686,74 +728,114 @@ private fun ColumnScope.EmptyEditor(
     busyLabel: String?,
     canCancel: Boolean,
     onCancel: () -> Unit,
-    onImport: () -> Unit,
     onSmartMagic: () -> Unit,
+    onMenu: () -> Unit,
     onSettings: () -> Unit,
     onDeveloperClick: () -> Unit,
     onUtility: (HomeUtility) -> Unit,
+    smartMagicLevel: EnhancementLevel,
+    onSmartMagicLevelChanged: (EnhancementLevel) -> Unit,
+    recentSources: List<String>,
+    onRecent: (String) -> Unit,
 ) {
     BoxWithConstraints(
         Modifier.fillMaxWidth().weight(1f)
-            .background(Brush.verticalGradient(listOf(Color(0xFF121318), Color(0xFF0D0E12)))),
+            .background(Brush.verticalGradient(listOf(Color(0xFF080E29), Color(0xFF06091F)))),
     ) {
-        val columns = if (maxWidth >= 340.dp) 4 else 2
-        val cardHeight = if (columns == 4) 86.dp else 94.dp
+        val columns = if (maxWidth >= 620.dp) 4 else 2
+        val quickColumns = if (maxWidth >= 420.dp) 3 else 2
+        val cardHeight = if (columns == 4) 92.dp else 88.dp
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                .statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .statusBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            Spacer(Modifier.height(34.dp))
-            Image(
-                painter = painterResource(R.drawable.restovue_logo),
-                contentDescription = "Restovue : Photo Editor logo",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth(.78f).widthIn(max = 340.dp).aspectRatio(3f),
-            )
-            Spacer(Modifier.height(22.dp))
-            Text(
-                "Edit beautifully. Stay private.",
-                color = Color(0xFFF5F5F7),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                "Professional photo editing, completely on your device.",
-                color = Color(0xFFA4A5B0),
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(.88f),
-            )
-            Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = onImport,
-                enabled = !isBusy,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB511), contentColor = Color(0xFF171300)),
-                shape = RoundedCornerShape(18.dp),
-                modifier = Modifier.fillMaxWidth(.72f).widthIn(min = 240.dp, max = 330.dp).height(58.dp),
-            ) {
-                AppIconCanvas(AppIcon.Image, Color(0xFF171300), Modifier.size(27.dp))
-                Spacer(Modifier.width(12.dp))
-                Text("Choose Photo", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth().height(58.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(42.dp).clickable(onClick = onMenu)
+                        .semantics { contentDescription = "Open Restovue menu" },
+                    contentAlignment = Alignment.Center,
+                ) { Text("☰", color = RestoreXText, fontSize = 23.sp) }
+                Spacer(Modifier.width(4.dp))
+                Image(
+                    painter = painterResource(R.drawable.restovue_logo),
+                    contentDescription = "Restovue Photo Editor logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.width(160.dp).height(48.dp),
+                )
+                Spacer(Modifier.weight(1f))
+                Box(
+                    Modifier.size(46.dp).clickable(onClick = onSettings)
+                        .semantics { contentDescription = "Open settings" },
+                    contentAlignment = Alignment.Center,
+                ) { AppIconCanvas(AppIcon.Settings, Color(0xFFF5F5F7), Modifier.size(25.dp)) }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
             Row(
-                Modifier.fillMaxWidth(.88f).height(66.dp)
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF262229), Color(0xFF1C1D22))), RoundedCornerShape(16.dp))
-                    .border(1.dp, Color(0xFFFFB511), RoundedCornerShape(16.dp))
+                Modifier.fillMaxWidth().height(36.dp)
+                    .background(Color(0xFF15162F), RoundedCornerShape(13.dp))
+                    .border(1.dp, Color(0xFF343653), RoundedCornerShape(13.dp))
+                    .semantics { contentDescription = "Privacy first. Works offline" },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                PrivacyShield(Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Privacy first", color = RestoreXText, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                Text("   •   ", color = RestoreXAccent, fontSize = 11.sp)
+                Text("Works offline", color = RestoreXText, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+            }
+            Spacer(Modifier.height(14.dp))
+            Column(
+                Modifier.fillMaxWidth()
+                    .background(Brush.linearGradient(listOf(Color(0xFF31115E), Color(0xFF17123B))), RoundedCornerShape(20.dp))
+                    .border(1.dp, RestoreXAccent.copy(alpha = .82f), RoundedCornerShape(20.dp))
                     .clickable(enabled = !isBusy, onClick = onSmartMagic)
                     .semantics { contentDescription = "Smart Magic. Professional photo enhancement in one tap" }
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(15.dp),
             ) {
-                AppIconCanvas(AppIcon.Magic, Color(0xFFFFB511), Modifier.size(31.dp))
-                Spacer(Modifier.width(13.dp))
-                Column {
-                    Text("Smart Magic", color = Color(0xFFF5F5F7), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                    Text("Professional photo enhancement in one tap", color = Color(0xFFA4A5B0), fontSize = 11.sp, maxLines = 1)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SmartMagicArtwork(Modifier.size(width = 78.dp, height = 66.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("✦  Smart Magic", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                        Text("One-tap photo enhancement\nwith scene detection", color = Color(0xFFD5CBE5), fontSize = 11.sp)
+                    }
+                }
+                Spacer(Modifier.height(13.dp))
+                Button(
+                    onClick = onSmartMagic,
+                    enabled = !isBusy,
+                    colors = ButtonDefaults.buttonColors(containerColor = RestoreXAccent, contentColor = Color.White),
+                    shape = RoundedCornerShape(15.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                ) {
+                    AppIconCanvas(AppIcon.Image, Color.White, Modifier.size(22.dp))
+                    Spacer(Modifier.width(9.dp))
+                    Text("Choose Photo", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(11.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    EnhancementLevel.entries.forEach { level ->
+                        val selected = smartMagicLevel == level
+                        Row(
+                            Modifier.weight(1f).height(36.dp).clip(RoundedCornerShape(18.dp))
+                                .background(if (selected) RestoreXAccent.copy(alpha = .34f) else Color(0xFF15142F))
+                                .border(1.dp, if (selected) RestoreXAccent else Color(0xFF45405F), RoundedCornerShape(18.dp))
+                                .clickable(enabled = !isBusy) { onSmartMagicLevelChanged(level) }
+                                .semantics {
+                                    contentDescription = "Start Smart Magic in ${level.name.lowercase()} mode"
+                                    stateDescription = if (selected) "Selected" else "Not selected"
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Box(Modifier.size(15.dp).border(1.dp, if (selected) Color.White else RestoreXMuted, CircleShape), contentAlignment = Alignment.Center) {
+                                if (selected) Box(Modifier.size(8.dp).background(Color.White, CircleShape))
+                            }
+                            Spacer(Modifier.width(5.dp))
+                            Text(level.name.lowercase().replaceFirstChar { it.uppercase() }, color = Color.White, fontSize = 10.sp)
+                        }
+                    }
                 }
             }
             if (isBusy) {
@@ -764,8 +846,26 @@ private fun ColumnScope.EmptyEditor(
                     if (canCancel) TextButton(onClick = onCancel) { Text("Cancel", color = RestoreXAccent) }
                 }
             }
-            Spacer(Modifier.height(if (isBusy) 14.dp else 28.dp))
-            HomeUtility.entries.toList().chunked(columns).forEach { rowItems ->
+            Spacer(Modifier.height(if (isBusy) 10.dp else 12.dp))
+            Box(
+                Modifier.fillMaxWidth().height(54.dp)
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF7C2DFF), RestoreXAccent)), RoundedCornerShape(16.dp))
+                    .clickable(enabled = !isBusy) { onUtility(HomeUtility.MANUAL) }
+                    .semantics { contentDescription = "Open manual editor" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AppIconCanvas(AppIcon.Enhance, Color.White, Modifier.size(25.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text("Manual Edit", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(18.dp))
+            RecentProjects(recentSources, enabled = !isBusy, onOpen = onRecent)
+            Spacer(Modifier.height(16.dp))
+            Text("Quick Tools", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            HomeUtility.entries.filter { it.quick && it != HomeUtility.MANUAL }.chunked(quickColumns).forEach { rowItems ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                     rowItems.forEach { utility ->
                         HomeUtilityCard(
@@ -776,20 +876,134 @@ private fun ColumnScope.EmptyEditor(
                             onClick = { onUtility(utility) },
                         )
                     }
-                    repeat(columns - rowItems.size) { Spacer(Modifier.weight(1f)) }
+                    repeat(quickColumns - rowItems.size) { Spacer(Modifier.weight(1f)) }
                 }
                 Spacer(Modifier.height(8.dp))
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(10.dp))
+            HomeFooter(onDeveloperClick)
         }
-        Box(
-            Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 7.dp, end = 8.dp)
-                .size(48.dp).clickable(onClick = onSettings)
-                .semantics { contentDescription = "Open settings" },
-            contentAlignment = Alignment.Center,
-        ) { AppIconCanvas(AppIcon.Settings, Color(0xFFF5F5F7), Modifier.size(27.dp)) }
     }
-    HomeFooter(onDeveloperClick)
+}
+
+@Composable
+private fun PrivacyShield(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val shield = Path().apply {
+            moveTo(size.width * .5f, size.height * .06f)
+            lineTo(size.width * .86f, size.height * .2f)
+            lineTo(size.width * .82f, size.height * .6f)
+            quadraticTo(size.width * .72f, size.height * .86f, size.width * .5f, size.height * .96f)
+            quadraticTo(size.width * .28f, size.height * .86f, size.width * .18f, size.height * .6f)
+            lineTo(size.width * .14f, size.height * .2f)
+            close()
+        }
+        drawPath(shield, Color(0xFFBCA7FF), style = Stroke(width = 2.1.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+        drawLine(Color(0xFFBCA7FF), Offset(size.width * .32f, size.height * .5f), Offset(size.width * .46f, size.height * .64f), 2.dp.toPx(), StrokeCap.Round)
+        drawLine(Color(0xFFBCA7FF), Offset(size.width * .46f, size.height * .64f), Offset(size.width * .7f, size.height * .36f), 2.dp.toPx(), StrokeCap.Round)
+    }
+}
+
+@Composable
+private fun SmartMagicArtwork(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val cardSize = Size(size.width * .62f, size.height * .58f)
+        rotate(-10f, pivot = Offset(size.width * .38f, size.height * .54f)) {
+            drawRoundRect(Color(0xFF4B2B82), Offset(size.width * .09f, size.height * .27f), cardSize, cornerRadius = androidx.compose.ui.geometry.CornerRadius(7.dp.toPx()), style = Stroke(2.dp.toPx()))
+        }
+        rotate(8f, pivot = Offset(size.width * .5f, size.height * .55f)) {
+            drawRoundRect(Color(0xFFD4C5FF), Offset(size.width * .2f, size.height * .22f), cardSize, cornerRadius = androidx.compose.ui.geometry.CornerRadius(7.dp.toPx()), style = Stroke(2.dp.toPx()))
+        }
+        drawRoundRect(
+            Brush.linearGradient(listOf(Color(0xFF7041F2), Color(0xFFCA4DE7))),
+            Offset(size.width * .08f, size.height * .3f),
+            Size(size.width * .68f, size.height * .6f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()),
+        )
+        val mountains = Path().apply {
+            moveTo(size.width * .15f, size.height * .79f)
+            lineTo(size.width * .33f, size.height * .55f)
+            lineTo(size.width * .47f, size.height * .69f)
+            lineTo(size.width * .59f, size.height * .52f)
+            lineTo(size.width * .72f, size.height * .79f)
+            close()
+        }
+        drawPath(mountains, Color.White.copy(alpha = .9f))
+        drawCircle(Color(0xFFFFD06B), size.minDimension * .055f, Offset(size.width * .61f, size.height * .45f))
+        drawCircle(Color(0xFFFF6CCB), size.minDimension * .055f, Offset(size.width * .86f, size.height * .2f))
+        drawLine(Color.White, Offset(size.width * .86f, size.height * .08f), Offset(size.width * .86f, size.height * .32f), 2.dp.toPx(), StrokeCap.Round)
+        drawLine(Color.White, Offset(size.width * .78f, size.height * .2f), Offset(size.width * .94f, size.height * .2f), 2.dp.toPx(), StrokeCap.Round)
+    }
+}
+
+@Composable
+private fun RecentProjects(sources: List<String>, enabled: Boolean, onOpen: (String) -> Unit) {
+    var showAll by remember(sources.size) { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text("Recent Projects", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.weight(1f))
+        if (sources.size > 3) Text(
+            if (showAll) "Show Less  ⌃" else "See All  ›",
+            color = RestoreXAccent,
+            fontSize = 11.sp,
+            modifier = Modifier.clickable { showAll = !showAll }.padding(6.dp),
+        )
+    }
+    Spacer(Modifier.height(8.dp))
+    val visibleCount = if (showAll) sources.size.coerceAtLeast(3) else 3
+    repeat((visibleCount + 2) / 3) { rowIndex ->
+        if (rowIndex > 0) Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(3) { columnIndex ->
+            val index = rowIndex * 3 + columnIndex
+            val source = sources.getOrNull(index)
+            val thumbnail = source?.let { rememberRecentThumbnail(it) }
+            Box(
+                Modifier.weight(1f).height(86.dp).clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF171735))
+                    .border(1.dp, Color(0xFF3A3560), RoundedCornerShape(12.dp))
+                    .then(if (source != null) Modifier.clickable(enabled = enabled) { onOpen(source) } else Modifier)
+                    .semantics {
+                        contentDescription = if (source != null) "Open recent project ${index + 1}" else "Empty recent project slot"
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (thumbnail != null) {
+                    Image(
+                        bitmap = thumbnail,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        filterQuality = FilterQuality.Medium,
+                    )
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AppIconCanvas(AppIcon.Image, Color(0xFF6D668E), Modifier.size(24.dp))
+                        if (index == 0 && sources.isEmpty()) {
+                            Spacer(Modifier.height(5.dp))
+                            Text("Your projects", color = RestoreXMuted, fontSize = 9.sp)
+                        }
+                    }
+                }
+            }
+            }
+        }
+    }
+}
+
+@Composable
+private fun rememberRecentThumbnail(source: String): ImageBitmap? {
+    val context = LocalContext.current
+    val thumbnail by produceState<ImageBitmap?>(initialValue = null, source) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openInputStream(source.toUri())?.use { stream ->
+                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
+    return thumbnail
 }
 
 @Composable
@@ -803,15 +1017,17 @@ private fun HomeUtilityCard(
     val shape = RoundedCornerShape(14.dp)
     Column(
         modifier.height(height).background(
-            Brush.verticalGradient(listOf(Color(0xFF24262C), Color(0xFF191A1F))), shape,
-        ).border(1.dp, Color(0xFF555861), shape)
+            Brush.verticalGradient(listOf(Color(0xFF18123B), Color(0xFF0F1235))), shape,
+        ).border(1.dp, Color(0xFF302A59), shape)
             .clickable(enabled = enabled, onClick = onClick)
-            .semantics { contentDescription = "${utility.label} utility" }
+            .semantics {
+                contentDescription = if (utility == HomeUtility.MANUAL) "Open manual editor" else "${utility.label} utility"
+            }
             .padding(horizontal = 3.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        AppIconCanvas(utility.icon, Color(0xFFFFB511), Modifier.size(29.dp))
+        AppIconCanvas(utility.icon, RestoreXAccent, Modifier.size(29.dp))
         Spacer(Modifier.height(8.dp))
         Text(
             utility.label,
@@ -828,16 +1044,16 @@ private fun HomeUtilityCard(
 @Composable
 private fun ColumnScope.HomeFooter(onDeveloperClick: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().background(Color(0xFF0D0E12)).navigationBarsPadding()
+        Modifier.fillMaxWidth().background(Color(0xFF06091F)).navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(stringResource(R.string.app_name), color = Color(0xFFD2D3D8), fontSize = 11.sp)
+        Text("A complete, offline photo editor", color = Color(0xFFD2D3D8), fontSize = 11.sp)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Developed by ", color = Color(0xFFA4A5B0), fontSize = 11.sp)
+            Text("by ", color = Color(0xFFA4A5B0), fontSize = 11.sp)
             Text(
                 stringResource(R.string.developer_name),
-                color = Color(0xFFFFB511),
+                color = RestoreXAccent,
                 fontSize = 11.sp,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable(onClick = onDeveloperClick).padding(vertical = 4.dp)
@@ -924,8 +1140,8 @@ private fun ColumnScope.ImageWorkspace(
     var viewport by remember { mutableStateOf(IntSize.Zero) }
     var zoom by remember(sourceIdentity) { mutableFloatStateOf(1f) }
     var pan by remember(sourceIdentity) { mutableStateOf(FloatPoint(0f, 0f)) }
-    var scaleMode by remember(sourceIdentity) { mutableStateOf(CanvasScaleMode.FIT) }
-    var split by remember { mutableFloatStateOf(0.5f) }
+    var scaleMode by remember(sourceIdentity) { mutableStateOf(CanvasScaleMode.FILL) }
+    var split by remember(sourceIdentity) { mutableFloatStateOf(0.5f) }
     var activeStroke by remember { mutableStateOf<List<NormalizedPoint>>(emptyList()) }
     var activeCropCorner by remember { mutableStateOf<Int?>(null) }
     val (editedBitmap, originalBitmap) = rememberRasterPair(edited, original)
@@ -969,7 +1185,10 @@ private fun ColumnScope.ImageWorkspace(
     }
 
     Box(
-        Modifier.fillMaxWidth().weight(1f).background(RestoreXBackground)
+        Modifier.fillMaxWidth().weight(1f).padding(horizontal = 12.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(RestoreXBackground)
+            .border(1.dp, Color(0xFF302A59), RoundedCornerShape(20.dp))
             .onSizeChanged {
                 viewport = it
                 onViewportChanged(it.width, it.height)
@@ -1105,26 +1324,14 @@ private fun ColumnScope.ImageWorkspace(
         }
 
         if (splitComparison && viewport.width > 0) {
-            val density = LocalDensity.current
-            val handleWidth = with(density) { 40.dp.roundToPx() }
-            Box(
-                Modifier.fillMaxHeight().width(40.dp)
-                    .offset { IntOffset((viewport.width * split).roundToInt() - handleWidth / 2, 0) }
-                    .pointerInput(viewport.width) {
-                        detectDragGestures { change, dragAmount ->
-                            change.consume()
-                            split = (split + dragAmount.x / viewport.width).coerceIn(0.05f, 0.95f)
-                        }
-                    }
-                    .semantics { contentDescription = "Before and after divider" },
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(Modifier.fillMaxHeight().width(2.dp).background(RestoreXAccent))
-                Box(
-                    Modifier.size(30.dp).background(RestoreXAccent, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) { Text("↔", color = Color(0xFF251A00), fontWeight = FontWeight.Bold) }
-            }
+            SharedComparisonDivider(
+                fraction = split,
+                canvasWidthPx = viewport.width,
+                onFractionChange = { split = it },
+                modifier = Modifier.offset {
+                    IntOffset((viewport.width * split).roundToInt() - 24.dp.roundToPx(), 0)
+                },
+            )
         }
 
         ProcessingBadge(
@@ -1350,6 +1557,229 @@ private fun ComparisonLabel(text: String, modifier: Modifier) {
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
     )
+}
+
+private enum class ManualSection(val label: String, val icon: AppIcon, val tool: EditorTool) {
+    LIGHT("Light", AppIcon.Light, EditorTool.LIGHT),
+    COLOR("Color", AppIcon.Color, EditorTool.COLOR),
+    DETAIL("Detail", AppIcon.Details, EditorTool.DETAILS),
+    FILTERS("Filters", AppIcon.Filters, EditorTool.FILTERS),
+    CROP("Crop", AppIcon.Crop, EditorTool.CROP),
+    ;
+
+    companion object {
+        fun forTool(tool: EditorTool): ManualSection = when (tool) {
+            EditorTool.COLOR -> COLOR
+            EditorTool.DETAILS -> DETAIL
+            EditorTool.FILTERS, EditorTool.FILM -> FILTERS
+            EditorTool.CROP, EditorTool.GEOMETRY -> CROP
+            else -> LIGHT
+        }
+    }
+}
+
+/**
+ * The primary manual-edit surface deliberately exposes the five groups people use
+ * while looking at a photo.  It replaces the old two-tier tool carousel and the
+ * extra per-adjustment selector with directly labelled slider rows.
+ */
+@Composable
+private fun CleanManualPanel(
+    selectedTool: EditorTool,
+    state: EditorUiState,
+    viewModel: EditorViewModel,
+    onImportLut: () -> Unit,
+    onSelected: (EditorTool) -> Unit,
+) {
+    val section = ManualSection.forTool(selectedTool)
+    Column(
+        Modifier.fillMaxWidth().background(RestoreXPanel).navigationBarsPadding(),
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            ManualSection.entries.forEach { item ->
+                val active = item == section
+                Column(
+                    Modifier.weight(1f).height(58.dp).clip(RoundedCornerShape(13.dp))
+                        .background(if (active) RestoreXAccent else Color(0xFF11132F))
+                        .clickable { onSelected(item.tool) }
+                        .semantics {
+                            contentDescription = "${item.label} adjustments"
+                            stateDescription = if (active) "Selected" else "Not selected"
+                        },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    AppIconCanvas(item.icon, if (active) Color.White else RestoreXText, Modifier.size(22.dp))
+                    Spacer(Modifier.height(2.dp))
+                    Text(item.label, color = if (active) Color.White else RestoreXText, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+        HorizontalDivider(color = Color(0xFF2B2850))
+        Column(
+            Modifier.fillMaxWidth().heightIn(max = 330.dp).verticalScroll(rememberScrollState())
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
+            when (section) {
+                ManualSection.LIGHT -> CleanLightControls(state, viewModel)
+                ManualSection.COLOR -> CleanColorControls(state, viewModel)
+                ManualSection.DETAIL -> CleanDetailControls(state, viewModel)
+                ManualSection.FILTERS -> FilterPanel(state, viewModel, onImportLut)
+                ManualSection.CROP -> CropPanel(state, viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CleanPanelTitle(title: String, onReset: () -> Unit) {
+    Row(Modifier.fillMaxWidth().height(34.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, color = RestoreXText, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+        Text("Reset", color = RestoreXAccent, fontSize = 12.sp, modifier = Modifier.clickable(onClick = onReset).padding(8.dp))
+    }
+}
+
+@Composable
+private fun CleanSliderRow(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    neutral: Float,
+    onChange: (Float) -> Unit,
+    onCommit: () -> Unit,
+    onReset: () -> Unit,
+    valueText: (Float) -> String = { current ->
+        val normalized = if (neutral == 1f) (current - 1f) * 100f else current * 100f
+        val amount = normalized.roundToInt()
+        if (amount > 0) "+$amount" else amount.toString()
+    },
+    temperatureTrack: Boolean = false,
+) {
+    Row(
+        Modifier.fillMaxWidth().height(48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, color = RestoreXText, fontSize = 11.sp, fontWeight = FontWeight.Medium, modifier = Modifier.width(82.dp))
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            if (temperatureTrack) {
+                Box(
+                    Modifier.fillMaxWidth().height(4.dp).background(
+                        Brush.horizontalGradient(listOf(Color(0xFF3388FF), Color.White, Color(0xFFFFC83D))),
+                        RoundedCornerShape(4.dp),
+                    ),
+                )
+            }
+            Slider(
+                value = value,
+                onValueChange = onChange,
+                onValueChangeFinished = onCommit,
+                valueRange = range,
+                modifier = Modifier.fillMaxWidth().pointerInput(label, onReset) {
+                    detectTapGestures(onDoubleTap = { onReset() })
+                }.semantics { contentDescription = "$label adjustment; double tap to reset" },
+            )
+        }
+        Text(
+            valueText(value),
+            color = if (value == neutral) RestoreXMuted else RestoreXText,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(48.dp).background(Color(0xFF242342), RoundedCornerShape(12.dp)).padding(vertical = 5.dp),
+        )
+    }
+}
+
+@Composable
+private fun CleanLightControls(state: EditorUiState, viewModel: EditorViewModel) {
+    val a = state.edits.adjustments
+    CleanPanelTitle("Light") {
+        viewModel.commitAdjustments { it.copy(
+            exposure = 0f, highlights = 0f, shadows = 0f, whites = 0f, blacks = 0f,
+            contrast = 1f, brightness = 0f, autoMode = AutoEnhanceMode.NONE,
+        ) }
+    }
+    CleanSliderRow("Exposure", a.exposure, -2f..2f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(exposure = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(exposure = 0f) } },
+        valueText = { String.format(Locale.ROOT, "%+.2f EV", it) })
+    CleanSliderRow("Highlights", a.highlights, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(highlights = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(highlights = 0f) } })
+    CleanSliderRow("Shadows", a.shadows, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(shadows = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(shadows = 0f) } })
+    CleanSliderRow("Whites", a.whites, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(whites = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(whites = 0f) } })
+    CleanSliderRow("Blacks", a.blacks, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(blacks = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(blacks = 0f) } })
+    CleanSliderRow("Contrast", a.contrast, .5f..1.5f, 1f,
+        { v -> viewModel.updateAdjustments { it.copy(contrast = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(contrast = 1f) } })
+    Spacer(Modifier.height(5.dp))
+    Box(
+        Modifier.fillMaxWidth().height(44.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF171837))
+            .border(1.dp, Color(0xFF39345F), RoundedCornerShape(14.dp))
+            .clickable {
+                viewModel.commitAdjustments { it.copy(autoMode = AutoEnhanceMode.AUTO_ENHANCE, enhanceStrength = .5f) }
+            }.semantics { contentDescription = "Apply automatic values at 50 percent strength" },
+        contentAlignment = Alignment.Center,
+    ) { Text("↻   Auto values", color = RestoreXText, fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
+    Spacer(Modifier.height(6.dp))
+}
+
+@Composable
+private fun CleanColorControls(state: EditorUiState, viewModel: EditorViewModel) {
+    val a = state.edits.adjustments
+    CleanPanelTitle("Color") {
+        viewModel.commitAdjustments { it.copy(temperature = 0f, tint = 0f, vibrance = 0f, saturation = 1f, hue = 0f) }
+    }
+    CleanSliderRow("Temperature", a.temperature, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(temperature = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(temperature = 0f) } }, temperatureTrack = true)
+    CleanSliderRow("Tint", a.tint, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(tint = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(tint = 0f) } })
+    CleanSliderRow("Vibrance", a.vibrance, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(vibrance = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(vibrance = 0f) } })
+    CleanSliderRow("Saturation", a.saturation, 0f..2f, 1f,
+        { v -> viewModel.updateAdjustments { it.copy(saturation = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(saturation = 1f) } })
+    CleanSliderRow("Hue", a.hue, -180f..180f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(hue = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(hue = 0f) } }, valueText = { "${it.roundToInt()}°" })
+}
+
+@Composable
+private fun CleanDetailControls(state: EditorUiState, viewModel: EditorViewModel) {
+    val a = state.edits.adjustments
+    CleanPanelTitle("Detail") {
+        viewModel.commitAdjustments { it.copy(
+            structure = 0f, clarity = 0f, texture = 0f, dehaze = 0f, sharpening = 0f,
+            luminanceNoiseReduction = 0f, colorNoiseReduction = 0f,
+        ) }
+    }
+    CleanSliderRow("Clarity", a.clarity, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(clarity = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(clarity = 0f) } })
+    CleanSliderRow("Texture", a.texture, -1f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(texture = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(texture = 0f) } })
+    CleanSliderRow("Dehaze", a.dehaze, 0f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(dehaze = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(dehaze = 0f) } })
+    CleanSliderRow("Sharpen", a.sharpening, 0f..2f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(sharpening = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(sharpening = 0f) } }, valueText = { "+${(it * 50).roundToInt()}" })
+    CleanSliderRow("Noise", a.luminanceNoiseReduction, 0f..1f, 0f,
+        { v -> viewModel.updateAdjustments { it.copy(luminanceNoiseReduction = v) } }, viewModel::commitAdjustments,
+        { viewModel.resetAdjustments { it.copy(luminanceNoiseReduction = 0f) } })
 }
 
 @Composable
@@ -2011,7 +2441,7 @@ private fun CropPanel(state: EditorUiState, viewModel: EditorViewModel) {
 private fun EnhancePanel(state: EditorUiState, viewModel: EditorViewModel) {
     val adjustments = state.edits.adjustments
     PanelHeader("Enhance", actionLabel = "Reset", onResetAll = {
-        viewModel.commitAdjustments { it.copy(autoMode = AutoEnhanceMode.NONE, enhanceStrength = 1f, vibrance = 0f, clarity = 0f) }
+        viewModel.commitAdjustments { it.copy(autoMode = AutoEnhanceMode.NONE, enhanceStrength = .5f, vibrance = 0f, clarity = 0f) }
     })
     LazyRow(
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 3.dp),
@@ -2024,17 +2454,20 @@ private fun EnhancePanel(state: EditorUiState, viewModel: EditorViewModel) {
                 adjustments.autoMode == mode,
             ) {
                 viewModel.commitAdjustments {
-                    it.copy(autoMode = if (it.autoMode == mode) AutoEnhanceMode.NONE else mode)
+                    it.copy(
+                        autoMode = if (it.autoMode == mode) AutoEnhanceMode.NONE else mode,
+                        enhanceStrength = if (it.autoMode == mode) it.enhanceStrength else .5f,
+                    )
                 }
             }
         }
     }
     if (adjustments.autoMode != AutoEnhanceMode.NONE) {
         AdjustmentSlider(
-            "Strength", adjustments.enhanceStrength, 0f..1f, 1f,
+            "Strength", adjustments.enhanceStrength, 0f..1f, .5f,
             onChange = { value -> viewModel.updateAdjustments { it.copy(enhanceStrength = value) } },
             onCommit = viewModel::commitAdjustments,
-            onReset = { viewModel.resetAdjustments { it.copy(enhanceStrength = 1f) } },
+            onReset = { viewModel.resetAdjustments { it.copy(enhanceStrength = .5f) } },
         )
     } else {
         AdjustmentSlider(
@@ -2576,23 +3009,30 @@ private fun ToolNavigation(selected: EditorTool, onSelected: (EditorTool) -> Uni
         }
     }
     val categoryTools = EditorTool.entries.filter { it.category == category }
-    if (categoryTools.size > 1) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 2.dp)) {
+    if (categoryTools.size > 1) Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+            .padding(horizontal = 8.dp, vertical = 7.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         categoryTools.forEach { tool ->
-            val tint = when {
-                !tool.available -> RestoreXDisabled
-                tool == selected -> RestoreXAccent
-                else -> RestoreXMuted
-            }
-            Column(
-                modifier = Modifier.width(88.dp).height(34.dp)
+            val active = tool == selected
+            val tint = when { !tool.available -> RestoreXDisabled; active -> Color.White; else -> RestoreXText }
+            Row(
+                modifier = Modifier.widthIn(min = 112.dp).height(52.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (active) RestoreXAccent else RestoreXPanelRaised)
+                    .border(1.dp, if (active) RestoreXAccent else Color(0xFF3A3262), RoundedCornerShape(14.dp))
                     .clickable(enabled = tool.available) { onSelected(tool) }
                     .semantics {
                         contentDescription = if (tool.available) tool.label else "${tool.label}, unavailable"
+                        stateDescription = if (active) "Selected" else "Not selected"
                     },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
             ) {
-                Text(tool.label, color = tint, fontSize = 10.sp, maxLines = 1)
+                AppIconCanvas(tool.icon, tint, Modifier.size(21.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(tool.label, color = tint, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }
@@ -2756,84 +3196,155 @@ private fun DrawScope.drawAppIcon(icon: AppIcon, tint: Color) {
 }
 
 @Composable
-private fun ExportDialog(onDismiss: () -> Unit, onExport: (ExportOptions, Boolean) -> Unit) {
+private fun ExportDialog(preview: RasterImage?, onDismiss: () -> Unit, onExport: (ExportOptions, Boolean) -> Unit) {
     var format by remember { mutableStateOf(ExportFormat.JPEG) }
-    var quality by remember { mutableFloatStateOf(95f) }
-    var maxWidth by remember { mutableStateOf("") }
-    var maxHeight by remember { mutableStateOf("") }
-    var shareAfterExport by remember { mutableStateOf(false) }
+    var quality by remember { mutableFloatStateOf(92f) }
+    var resolutionScale by remember { mutableFloatStateOf(1f) }
     var preserveMetadata by remember { mutableStateOf(true) }
-    var targetKb by remember { mutableStateOf("") }
-    val widthValue = maxWidth.toIntOrNull()
-    val heightValue = maxHeight.toIntOrNull()
-    val targetValue = targetKb.toIntOrNull()
-    val dimensionsValid = (maxWidth.isBlank() || (widthValue ?: 0) > 0) &&
-        (maxHeight.isBlank() || (heightValue ?: 0) > 0) &&
-        (targetKb.isBlank() || (targetValue ?: 0) in 10..50_000)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = RestoreXPanelRaised,
-        title = { Text("Export photo", color = RestoreXText) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text("Export renders from the original photo. Blank dimensions preserve the edited resolution.", color = RestoreXMuted)
-                HorizontalTextSelector(ExportFormat.entries, format, { it.name }) { format = it; if (it == ExportFormat.PNG) targetKb = "" }
-                if (format != ExportFormat.PNG) {
-                    AdjustmentSlider(
-                        "Quality", quality, 50f..100f, 95f,
-                        onChange = { quality = it }, onCommit = {}, onReset = { quality = 95f },
-                        valueFormatter = { "${it.roundToInt()}" },
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = maxWidth,
-                        onValueChange = { maxWidth = it.filter(Char::isDigit).take(5) },
-                        label = { Text("Max width") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedTextField(
-                        value = maxHeight,
-                        onValueChange = { maxHeight = it.filter(Char::isDigit).take(5) },
-                        label = { Text("Max height") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                Text("Custom dimensions fit within these bounds without distortion or upscaling.", color = RestoreXMuted, fontSize = 11.sp)
-                if (format != ExportFormat.PNG) {
-                    OutlinedTextField(
-                        value = targetKb,
-                        onValueChange = { targetKb = it.filter(Char::isDigit).take(5) },
-                        label = { Text("Optional target KB") },
-                        supportingText = { Text("Uses the highest fitting quality, then proportionally reduces dimensions if necessary.") },
-                        singleLine = true,
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = shareAfterExport, onCheckedChange = { shareAfterExport = it })
-                    Text("Open Android share sheet after saving", color = RestoreXText, fontSize = 12.sp)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = preserveMetadata, onCheckedChange = { preserveMetadata = it })
-                    Text("Preserve available photo metadata", color = RestoreXText, fontSize = 12.sp)
-                }
-            }
-        },
-        confirmButton = {
-            Button(enabled = dimensionsValid, onClick = {
-                onExport(
-                    ExportOptions(format, quality.roundToInt(), widthValue, heightValue, preserveMetadata, targetValue.takeIf { format != ExportFormat.PNG }),
-                    shareAfterExport,
-                )
-            }) { Text("Save to device") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    var formatMenu by remember { mutableStateOf(false) }
+    var resolutionMenu by remember { mutableStateOf(false) }
+    var showQuality by remember { mutableStateOf(false) }
+    val previewBitmap = preview?.let { rememberRasterPair(it, it).first }
+    val outputWidth = preview?.let { (it.width * resolutionScale).roundToInt().coerceAtLeast(1) }
+    val outputHeight = preview?.let { (it.height * resolutionScale).roundToInt().coerceAtLeast(1) }
+    val megapixels = if (outputWidth != null && outputHeight != null) outputWidth.toLong() * outputHeight / 1_000_000f else 0f
+    val estimatedMb = if (preview == null) null else when (format) {
+        ExportFormat.PNG -> megapixels * 2.25f
+        ExportFormat.JPEG -> megapixels * (.28f + quality / 100f * .36f)
+        ExportFormat.WEBP -> megapixels * (.20f + quality / 100f * .28f)
+    }
+    fun options() = ExportOptions(
+        format = format,
+        jpegQuality = quality.roundToInt(),
+        maxWidth = outputWidth.takeIf { resolutionScale < .999f },
+        maxHeight = outputHeight.takeIf { resolutionScale < .999f },
+        preserveMetadata = preserveMetadata,
+        targetKilobytes = null,
     )
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(listOf(Color(0xFF080D28), Color(0xFF050719))),
+            ).statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp),
+        ) {
+            Row(Modifier.fillMaxWidth().height(58.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(44.dp).clickable(onClick = onDismiss).semantics { contentDescription = "Close export" },
+                    contentAlignment = Alignment.Center,
+                ) { Text("‹", color = RestoreXText, fontSize = 36.sp, lineHeight = 36.sp) }
+                Text("Export", color = RestoreXText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            Column(
+                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                if (previewBitmap != null) Image(
+                    bitmap = previewBitmap,
+                    contentDescription = "Finished photo preview",
+                    modifier = Modifier.fillMaxWidth().height(255.dp).clip(RoundedCornerShape(18.dp)).background(Color.Black),
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.High,
+                )
+                Column(
+                    Modifier.fillMaxWidth().background(Color(0xFF151735), RoundedCornerShape(20.dp))
+                        .border(1.dp, Color(0xFF33345C), RoundedCornerShape(20.dp)).padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(42.dp).background(Color(0xFF123B56), CircleShape), contentAlignment = Alignment.Center) {
+                            Text("✓", color = Color(0xFF71E6FF), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text("Ready to save", color = RestoreXText, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Box {
+                        ExportSettingRow("▧", "Format", format.name, onClick = { formatMenu = true })
+                        DropdownMenu(expanded = formatMenu, onDismissRequest = { formatMenu = false }, containerColor = RestoreXPanelRaised) {
+                            ExportFormat.entries.forEach { choice ->
+                                DropdownMenuItem(
+                                    text = { Text(choice.name, color = RestoreXText) },
+                                    onClick = { format = choice; formatMenu = false },
+                                )
+                            }
+                        }
+                    }
+                    ExportSettingRow("◇", "Quality", if (format == ExportFormat.PNG) "Lossless" else "${quality.roundToInt()}%", onClick = {
+                        if (format != ExportFormat.PNG) showQuality = !showQuality
+                    })
+                    if (showQuality && format != ExportFormat.PNG) Slider(
+                        value = quality,
+                        onValueChange = { quality = it },
+                        valueRange = 50f..100f,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    )
+                    Box {
+                        val originalMp = preview?.let { String.format(Locale.ROOT, "%.1f MP", it.width.toLong() * it.height / 1_000_000f) } ?: "Original"
+                        val resolutionLabel = if (resolutionScale == 1f) "Original $originalMp" else "${(resolutionScale * 100).roundToInt()}%"
+                        ExportSettingRow("⌗", "Resolution", resolutionLabel, onClick = { resolutionMenu = true })
+                        DropdownMenu(expanded = resolutionMenu, onDismissRequest = { resolutionMenu = false }, containerColor = RestoreXPanelRaised) {
+                            listOf(1f to "Original", .75f to "75%", .5f to "50%").forEach { (scale, label) ->
+                                DropdownMenuItem(
+                                    text = { Text(label, color = RestoreXText) },
+                                    onClick = { resolutionScale = scale; resolutionMenu = false },
+                                )
+                            }
+                        }
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().height(48.dp).background(Color(0xFF1D1F43), RoundedCornerShape(12.dp)).padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Preserve metadata", color = RestoreXText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = preserveMetadata,
+                            onCheckedChange = { preserveMetadata = it },
+                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF18CBE6)),
+                        )
+                    }
+                    HorizontalDivider(color = Color(0xFF42336B))
+                    Row(Modifier.fillMaxWidth().height(38.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("▤", color = RestoreXText, fontSize = 16.sp)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Estimated file size", color = RestoreXMuted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        Text(estimatedMb?.let { "~${String.format(Locale.ROOT, "%.1f", it)} MB" } ?: "Calculating", color = RestoreXText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+            Box(
+                Modifier.fillMaxWidth().height(54.dp).clip(RoundedCornerShape(16.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF7B2DFF), RestoreXAccent)))
+                    .clickable { onExport(options(), false) },
+                contentAlignment = Alignment.Center,
+            ) { Text("↓   Save to Gallery", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+            Spacer(Modifier.height(8.dp))
+            Box(
+                Modifier.fillMaxWidth().height(46.dp).clip(RoundedCornerShape(15.dp)).background(Color(0xFF151735))
+                    .border(1.dp, Color(0xFF39345F), RoundedCornerShape(15.dp)).clickable { onExport(options(), true) },
+                contentAlignment = Alignment.Center,
+            ) { Text("⌯   Share", color = RestoreXText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
+            Row(
+                Modifier.fillMaxWidth().height(42.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) { Text("♢  Processed privately on this device", color = RestoreXMuted, fontSize = 11.sp) }
+        }
+    }
+}
+
+@Composable
+private fun ExportSettingRow(icon: String, label: String, value: String, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF1D1F43))
+            .clickable(onClick = onClick).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(icon, color = RestoreXText, fontSize = 17.sp, modifier = Modifier.width(28.dp))
+        Text(label, color = RestoreXText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        Text(value, color = RestoreXText, fontSize = 12.sp)
+        Spacer(Modifier.width(7.dp))
+        Text("⌄", color = RestoreXMuted, fontSize = 13.sp)
+    }
 }
 
 private fun RasterImage.toBitmap(): Bitmap = Bitmap.createBitmap(argb, width, height, Bitmap.Config.ARGB_8888)
@@ -2864,6 +3375,24 @@ private fun rememberRasterImage(raster: RasterImage): ImageBitmap {
 private fun exportName(extension: String): String {
     val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
     return "Restovue_$stamp.$extension"
+}
+
+private fun loadRecentSources(context: Context): List<String> =
+    context.getSharedPreferences("restovue_home", Context.MODE_PRIVATE)
+        .getString("recent_sources", "")
+        .orEmpty()
+        .lineSequence()
+        .filter(String::isNotBlank)
+        .take(9)
+        .toList()
+
+private fun rememberRecentSource(context: Context, source: String, current: List<String>): List<String> {
+    val updated = (listOf(source) + current.filterNot { it == source }).take(9)
+    context.getSharedPreferences("restovue_home", Context.MODE_PRIVATE)
+        .edit()
+        .putString("recent_sources", updated.joinToString("\n"))
+        .apply()
+    return updated
 }
 
 private fun openDeveloperWebsite(context: Context, url: String) {

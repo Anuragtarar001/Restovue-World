@@ -4,6 +4,7 @@ import com.restorex.app.domain.model.RasterImage
 import com.restorex.app.domain.photointelligence.BrightRegionAnalyzer
 import com.restorex.app.domain.photointelligence.AdvancedPhotometricAnalyzer
 import com.restorex.app.domain.photointelligence.AdaptivePhotographicOptimizer
+import com.restorex.app.domain.photointelligence.AdaptiveAutoController
 import com.restorex.app.domain.photointelligence.AdjustmentDiagnosticBuilder
 import com.restorex.app.domain.photointelligence.AdjustmentDiagnosticReport
 import com.restorex.app.domain.photointelligence.CompositionReasoningEngine
@@ -33,9 +34,10 @@ import com.restorex.app.domain.photointelligence.SmartMagicWorkUpdate
 import com.restorex.app.domain.photointelligence.SmartMagicStageTimings
 import com.restorex.app.domain.photointelligence.SmartMagicProcessingBudget
 import com.restorex.app.domain.photointelligence.SmartMagicProcessingBudgetPolicy
-import com.restorex.app.domain.smartmagic.SmartMagicParameterEngine
 import java.security.MessageDigest
 import java.util.concurrent.CancellationException
+import java.util.concurrent.ConcurrentHashMap
+import com.smartphotomagic.engine.AffineBilateralGrid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
@@ -50,6 +52,7 @@ class SmartMagicProcessingCoordinator(
     private val diagnosisEngine: PhotographicDiagnosisEngine = PhotographicDiagnosisEngine(),
     private val advancedAnalyzer: AdvancedPhotometricAnalyzer = AdvancedPhotometricAnalyzer(),
     private val adaptiveOptimizer: AdaptivePhotographicOptimizer = AdaptivePhotographicOptimizer(),
+    private val adaptiveAutoController: AdaptiveAutoController = AdaptiveAutoController(),
     private val brightRegionAnalyzer: BrightRegionAnalyzer = BrightRegionAnalyzer(),
     private val compositionEngine: CompositionReasoningEngine = CompositionReasoningEngine(),
     private val semanticCompositionEngine: SemanticCompositionEngine = SemanticCompositionEngine(),
@@ -60,10 +63,14 @@ class SmartMagicProcessingCoordinator(
     private val regionalRenderer: RegionalCorrectionRenderer = RegionalCorrectionRenderer(),
     private val impactEstimator: PerceptualImpactEstimator = PerceptualImpactEstimator(),
     private val diagnosticBuilder: AdjustmentDiagnosticBuilder = AdjustmentDiagnosticBuilder(),
+    private val proFinishEngine: ProFinishEngineAdapter = ProFinishEngineAdapter(),
     val processingBudget: SmartMagicProcessingBudget = SmartMagicProcessingBudgetPolicy.forRuntime(
         Runtime.getRuntime().maxMemory(), Runtime.getRuntime().availableProcessors(),
     ),
 ) {
+    private val finishGridCache = ConcurrentHashMap<EnhancementLevel, AffineBilateralGrid>()
+    @Volatile private var finishGridSessionId: String? = null
+
     suspend fun createSession(
         sourceIdentity: String,
         analysisSource: RasterImage,
@@ -95,6 +102,7 @@ class SmartMagicProcessingCoordinator(
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.DETECTING_SUBJECTS, SmartMagicWorkState.STARTED,
             detail = "Locating faces and people on device"))
         val semantic = semanticAnalyzer.analyze(analysisSource, shouldCancel)
+        val proFinishPlans = proFinishEngine.planAll(analysisSource, semantic.faces, shouldCancel)
         val semanticInferenceNanos = System.nanoTime() - mark
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.DETECTING_SUBJECTS, SmartMagicWorkState.COMPLETED,
             detail = "Detected ${semantic.faces.size} face${if (semantic.faces.size == 1) "" else "s"}"))
@@ -114,14 +122,10 @@ class SmartMagicProcessingCoordinator(
                     semantic.faces, faceIlluminationDeficit(analysisSource, semantic.faces))
             }
         } else emptyMap()
-        val baseGlobalParameters = mapOf(
-            EnhancementLevel.NATURAL to calibrateAdvanced(
-                SmartMagicParameterEngine(.42f).parametersFor(smartAnalysis), EnhancementLevel.NATURAL, advanced),
-            EnhancementLevel.ENHANCED to calibrateAdvanced(
-                SmartMagicParameterEngine(.70f).parametersFor(smartAnalysis), EnhancementLevel.ENHANCED, advanced),
-            EnhancementLevel.EXTREME to calibrateAdvanced(
-                SmartMagicParameterEngine(.88f).parametersFor(smartAnalysis), EnhancementLevel.EXTREME, advanced),
-        )
+        val adaptiveAutoPlan = adaptiveAutoController.plan(smartAnalysis, advanced)
+        val baseGlobalParameters = EnhancementLevel.entries.associateWith { level ->
+            calibrateAdvanced(adaptiveAutoController.parametersForMode(adaptiveAutoPlan, level), level, advanced)
+        }
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.EVALUATING_TONE, SmartMagicWorkState.COMPLETED,
             detail = "Correction plans prepared"))
         // Global and regional decisions share the same bounded preview evidence. A reliable person
@@ -174,6 +178,7 @@ class SmartMagicProcessingCoordinator(
             photometricEvidence = evidence,
             diagnoses = diagnoses,
             advancedEvidence = advanced,
+            adaptiveAutoPlan = adaptiveAutoPlan,
             semanticResult = semantic,
             sceneGraph = graph,
             regionalEvidence = regional,
@@ -181,6 +186,7 @@ class SmartMagicProcessingCoordinator(
             globalParameters = globalParameters,
             regionalPlans = regionalPlans,
             optimizationResults = optimizationResults,
+            proFinishPlans = proFinishPlans,
             stageTimings = SmartMagicStageTimings(globalAnalysisNanos, photometricAnalysisNanos,
                 semanticInferenceNanos, System.nanoTime() - mark),
             createdElapsedNanos = System.nanoTime() - started,
@@ -206,7 +212,7 @@ class SmartMagicProcessingCoordinator(
         val regional = session.regionalEvidence
         val plan = session.regionalPlans[level]
         val globalParameters = session.globalParameters.getValue(level)
-        val globalCandidate = globalPipeline.enhance(source, globalParameters, shouldCancel)
+        val globalCandidate = proFinishEngine.render(source, session.proFinishPlans.getValue(level), shouldCancel)
         val globalImpact = impactEstimator.estimate(source, globalCandidate)
         val globalAccepted = !globalCandidate.argb.contentEquals(source.argb) && !globalImpact.perceptuallyNegligible
         val globalBase = if (globalAccepted) globalCandidate else source
@@ -243,6 +249,11 @@ class SmartMagicProcessingCoordinator(
             }
             val rendered = SmartMagicProductionRender(finalImage, level, strategy,
                 outcome, impact, result, explanation, System.nanoTime() - started)
+            if (regionalAccepted) {
+                cacheFinishGrid(session, level, globalBase, finalImage, shouldCancel)
+            } else {
+                removeFinishGrid(session, level)
+            }
             onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.RENDERING_PREVIEW, SmartMagicWorkState.COMPLETED,
                 detail = when (strategy) {
                     ProductionRenderStrategy.COMBINED -> "Global and regional preview rendered"
@@ -257,6 +268,7 @@ class SmartMagicProcessingCoordinator(
         // global plan. It only prevents claims of subject-specific correction.
         val hasHumanEvidence = semantic.faces.isNotEmpty() || semantic.personMaskReference?.quality?.accepted == true
         if (hasHumanEvidence) {
+            removeFinishGrid(session, level)
             val finalImage = if (globalAccepted) globalCandidate else source
             val rendered = SmartMagicProductionRender(finalImage, level,
                 if (globalAccepted) ProductionRenderStrategy.GLOBAL_ONLY else ProductionRenderStrategy.NO_OP,
@@ -283,6 +295,7 @@ class SmartMagicProcessingCoordinator(
             if (finalImage === source) ProductionRenderStrategy.NO_OP else ProductionRenderStrategy.GLOBAL_ONLY,
             outcome, globalImpact, null, listOf(DecisionReason("GLOBAL_PLAN", "Validated global plan executed independently")),
             System.nanoTime() - started)
+        removeFinishGrid(session, level)
         onProgress(SmartMagicWorkUpdate(SmartMagicWorkStage.RENDERING_PREVIEW, SmartMagicWorkState.COMPLETED,
             detail = if (finalImage === source) "Original preserved" else "Global preview rendered"))
         return rendered
@@ -298,9 +311,18 @@ class SmartMagicProcessingCoordinator(
         val regionalAdjustments = if (render.strategy == ProductionRenderStrategy.REGIONAL_ONLY ||
             render.strategy == ProductionRenderStrategy.COMBINED) {
             val strength = render.regionalResult?.appliedStrength ?: 1f
+            val personOnlyFallback = render.regionalResult?.decisions?.any {
+                it.code == "REGIONAL_PERSON_FALLBACK_APPLIED"
+            } == true
+            val faceOnlyFallback = render.regionalResult?.decisions?.any {
+                it.code == "REGIONAL_FACE_FALLBACK_APPLIED"
+            } == true
             residualRegionalPlan(session.regionalPlans.getValue(render.level),
                 session.globalParameters.getValue(render.level),
-                session.subjectAssessment?.decision == SemanticSubjectDecision.PROTECT_CORRECTLY_EXPOSED_SUBJECT).operations.map { operation ->
+                session.subjectAssessment?.decision == SemanticSubjectDecision.PROTECT_CORRECTLY_EXPOSED_SUBJECT).operations
+                .filter { !personOnlyFallback || it.target == com.restorex.app.domain.photointelligence.RegionalTarget.PERSON }
+                .filter { !faceOnlyFallback || it.type == com.restorex.app.domain.photointelligence.RegionalOperationType.MIDTONE_GAMMA }
+                .map { operation ->
                 val target = operation.target.name.lowercase().replaceFirstChar { it.uppercase() }
                 val value = operation.amount * strength
                 val formatted = when (operation.unit) {
@@ -341,7 +363,10 @@ class SmartMagicProcessingCoordinator(
         session, render, sourceGeneration, renderGeneration,
     )
 
-    /** Export reuses the preview's selected plan and accepted strength; it never silently chooses a different look. */
+    /**
+     * Export reuses the preview-fitted residual grid. Regional decisions and bounded candidate
+     * searches are preview work only; they are never repeated over the full-resolution image.
+     */
     fun renderForExport(
         source: RasterImage,
         session: SmartMagicProductionSession,
@@ -359,12 +384,68 @@ class SmartMagicProcessingCoordinator(
             return SmartMagicProductionRender(source, preview.level, ProductionRenderStrategy.NO_OP, preview.outcome,
                 impactEstimator.estimate(source, source), preview.regionalResult, preview.explanation, 0)
         }
-        val lockedStrength = preview.regionalResult?.appliedStrength?.takeIf { it > 0f }
-        val exported = render(source, session, preview.level, shouldCancel, lockedStrength)
-        check(exported.strategy == preview.strategy && exported.outcome !in setOf(
-            ProductionRenderOutcome.REJECTED_FOR_QUALITY, ProductionRenderOutcome.UNSUPPORTED,
-        )) { "Full-resolution output could not reproduce the validated preview correction" }
-        return exported
+        requireCompatibleGeometry(source, session)
+        val started = System.nanoTime()
+        val finishGrid = cachedFinishGrid(session, preview.level)
+        val wantsRegional = preview.strategy == ProductionRenderStrategy.COMBINED ||
+            preview.strategy == ProductionRenderStrategy.REGIONAL_ONLY
+        val globalImage = proFinishEngine.render(source, session.proFinishPlans.getValue(preview.level),
+            if (wantsRegional) finishGrid else null, shouldCancel)
+        val globalImpact = impactEstimator.estimate(source, globalImage)
+        return if (!globalImage.argb.contentEquals(source.argb)) {
+            SmartMagicProductionRender(
+                globalImage, preview.level,
+                if (wantsRegional && finishGrid != null) preview.strategy else ProductionRenderStrategy.GLOBAL_ONLY,
+                ProductionRenderOutcome.APPLIED, globalImpact, null,
+                preview.explanation + DecisionReason(
+                    if (wantsRegional && finishGrid != null) "EXPORT_CACHED_BILATERAL_FINISH" else "EXPORT_GLOBAL_FALLBACK",
+                    if (wantsRegional && finishGrid != null)
+                        "The approved preview correction was upsampled during the single full-resolution photographic pass"
+                    else "The validated global plan was saved because no approved regional fit was cached",
+                ),
+                System.nanoTime() - started,
+            )
+        } else {
+            SmartMagicProductionRender(
+                source, preview.level, ProductionRenderStrategy.NO_OP,
+                ProductionRenderOutcome.NO_CORRECTION_NEEDED, globalImpact, null,
+                preview.explanation + DecisionReason("EXPORT_ORIGINAL_PRESERVED", "No safe full-resolution correction was available"),
+                System.nanoTime() - started,
+            )
+        }
+    }
+
+    private fun cacheFinishGrid(
+        session: SmartMagicProductionSession,
+        level: EnhancementLevel,
+        globalPreview: RasterImage,
+        approvedPreview: RasterImage,
+        shouldCancel: () -> Boolean,
+    ) {
+        synchronized(finishGridCache) {
+            if (finishGridSessionId != session.sessionId) {
+                finishGridCache.clear()
+                finishGridSessionId = session.sessionId
+            }
+        }
+        finishGridCache[level] = proFinishEngine.fitFinishGrid(globalPreview, approvedPreview, shouldCancel)
+    }
+
+    private fun removeFinishGrid(session: SmartMagicProductionSession, level: EnhancementLevel) {
+        synchronized(finishGridCache) {
+            if (finishGridSessionId != session.sessionId) {
+                finishGridCache.clear()
+                finishGridSessionId = session.sessionId
+            }
+            finishGridCache.remove(level)
+        }
+    }
+
+    private fun cachedFinishGrid(
+        session: SmartMagicProductionSession,
+        level: EnhancementLevel,
+    ): AffineBilateralGrid? = synchronized(finishGridCache) {
+        if (finishGridSessionId == session.sessionId) finishGridCache[level] else null
     }
 
     private fun requireCompatibleGeometry(source: RasterImage, session: SmartMagicProductionSession) {
@@ -467,10 +548,25 @@ class SmartMagicProcessingCoordinator(
             (sum / count.coerceAtLeast(1)).toFloat()
         }
         if (means.size == 1) {
-            // A very small single-face midtone opportunity. This is deliberately far below a
-            // universal skin target and is used only after the subject was classified as already
-            // protected, so complexion is not interpreted as exposure by itself.
-            return ((.23f - means.single()) * .8f).coerceIn(0f, .06f)
+            val face = faces.single()
+            val left = (face.bounds.left * source.width).toInt().coerceIn(0, source.width - 1)
+            val top = (face.bounds.top * source.height).toInt().coerceIn(0, source.height - 1)
+            val right = (face.bounds.right * source.width).toInt().coerceIn(left + 1, source.width)
+            val bottom = (face.bounds.bottom * source.height).toInt().coerceIn(top + 1, source.height)
+            val luminance = FloatArray((right - left) * (bottom - top))
+            var index = 0
+            for (y in top until bottom) for (x in left until right) {
+                val color = source.argb[y * source.width + x]
+                val r = com.restorex.app.domain.smartmagic.SmartMagicColorMath.srgbToLinear((color ushr 16 and 255) / 255f)
+                val g = com.restorex.app.domain.smartmagic.SmartMagicColorMath.srgbToLinear((color ushr 8 and 255) / 255f)
+                val b = com.restorex.app.domain.smartmagic.SmartMagicColorMath.srgbToLinear((color and 255) / 255f)
+                luminance[index++] = com.restorex.app.domain.smartmagic.SmartMagicColorMath.luminance(r, g, b)
+            }
+            luminance.sort()
+            val median = luminance[luminance.size / 2]
+            // Median facial tone is robust to bright hair, glasses and specular highlights while
+            // the low target remains conservative across complexion differences.
+            return (.22f - median).coerceIn(0f, .10f)
         }
         // Preserve genuine complexion differences: only recover the portion below 72% of the
         // brightest reliably detected face, rather than equalizing faces to one target.

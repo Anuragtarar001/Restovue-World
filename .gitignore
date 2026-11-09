@@ -39,3 +39,7 @@ research/photographic-intelligence/milestone4-diagnostics/
 research/photographic-intelligence/milestone4-fixtures/
 research/photographic-intelligence/milestone5-validation/
 research/photographic-intelligence/milestone6-validation/
+
+# Owner-review renders derived from private photographs. The HTML/report sources are tracked;
+# pixel assets and per-photo measurements stay local and are included in the private backup.
+docs/smart-magic/review/assets/private/

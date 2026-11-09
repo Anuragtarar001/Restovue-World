@@ -109,9 +109,9 @@ class RegionalPlanBuilder {
                         EnhancementLevel.EXTREME -> 1.55f
                     }
                     val gammaCap = if (faces.size == 1) when (level) {
-                        EnhancementLevel.NATURAL -> .055f
-                        EnhancementLevel.ENHANCED -> .075f
-                        EnhancementLevel.EXTREME -> .085f
+                        EnhancementLevel.NATURAL -> .10f
+                        EnhancementLevel.ENHANCED -> .16f
+                        EnhancementLevel.EXTREME -> .22f
                     } else when (level) {
                         EnhancementLevel.NATURAL -> .13f
                         EnhancementLevel.ENHANCED -> .23f

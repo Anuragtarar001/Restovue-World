@@ -18,8 +18,8 @@ android {
         applicationId = "com.restorex.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 9
-        versionName = "0.9.0-rc1"
+        versionCode = 22
+        versionName = "0.12.3-beta11"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -55,6 +55,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":smart-photo-magic-engine"))
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)

@@ -200,9 +200,9 @@ class EditorViewModel(
                     _uiState.update {
                         it.copy(
                             filterPreviews = emptyMap(),
-                            message = if (level >= MEMORY_RUNNING_CRITICAL) {
-                                "Preview caches released to protect memory"
-                            } else it.message,
+                            // Cache eviction is an internal recovery action, not a user-facing
+                            // error. Showing it as a snackbar obscured the active editor controls.
+                            message = it.message,
                         )
                     }
                 }
