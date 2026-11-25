@@ -79,3 +79,17 @@ For instrumentation tests, start a compatible emulator or connect an API 28+ dev
 ```
 
 The debug APK is generated under `app/build/outputs/apk/debug/`.
+
+## License and branding
+
+Restovue's original source code is available under the [Apache License 2.0](LICENSE).
+Bundled models and third-party materials retain their own terms and notices. See the
+[model manifest](app/src/main/assets/models/model_manifest.json) and
+[test asset notices](app/src/androidTest/assets/TEST_ASSET_LICENSE.md).
+
+NextGen TechEdge Solutions reserves the **Restovue** and **Restovue World** names,
+including the **Restovue-World** repository name, and the project logos and branding
+artwork. The source code license excludes the project logos and branding artwork,
+including app icons and graphics that incorporate those marks. Forks should use
+their own names and branding. Factual attribution is allowed as described in
+Section 6 of the license.
