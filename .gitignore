@@ -14,6 +14,19 @@ captures/
 Thumbs.db
 .DS_Store
 
+# Local tooling notes and build archives.
+/.codex/
+/docs/CODEX_HISTORY.md
+/.kotlin/
+/app.zip
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
 # Owner-supplied private calibration photographs and derived visual diagnostics.
 orig1.jpeg
 origfixed.jpeg
